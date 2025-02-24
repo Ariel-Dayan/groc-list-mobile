@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">GrocList</string>
+    <string name="shared_lists_title">Shared Lists</string>
+    <string name="profile_title">Profile</string>
+    <string name="my_lists_title">My Lists</string>
+    <string name="slogan">Shop Smart, Share Easy!</string>
+    <string name="no_cards_message">No cards to show</string>
+    <string name="add_card">Add</string>
 </resources>
