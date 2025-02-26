@@ -2,4 +2,10 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="joke_background">#8BC34A</color>
+    <color name="card_background">#E2D6D6</color>
+    <color name="delete_button_background">#951B1B</color>
+    <color name="button_text_color">#FFFFFF</color>
+    <color name="cancel_button_background">#808080</color>
+    <color name="update_button_background">#4CAF50</color>
 </resources>

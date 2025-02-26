@@ -25,4 +25,16 @@
     <string name="created_by_hint">Created by:</string>
     <string name="update_at_hint">Update at:</string>
     <string name="shared_code_hint">Shared code:</string>
+    <string name="title_hint">title</string>
+    <string name="title_description">title</string>
+    <string name="description_hint">description</string>
+    <string name="description_description">description</string>
+    <string name="item_name_hint">Name</string>
+    <string name="item_name_description">Name</string>
+    <string name="item_amount_hint">Amount</string>
+    <string name="item_amount_description">Amount</string>
+    <string name="add_item">Add Item</string>
+    <string name="delete">Delete</string>
+    <string name="cancel">Cancel</string>
+    <string name="update">Update</string>
 </resources>

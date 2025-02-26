@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.card.UpdateCardFragment">
+
+    <ImageView
+        android:id="@+id/ivUpdateCardTop"
+        android:layout_width="0dp"
+        android:layout_height="170dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:contentDescription="@string/card_image_description"
+        android:scaleType="fitXY"
+        app:layout_constraintEnd_toStartOf="@+id/ibUpdateCardTakePhoto"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/shopping_card_placeholder" />
+
+    <ImageButton
+        android:id="@+id/ibUpdateCardTakePhoto"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:contentDescription="@string/take_photo_button_description"
+        android:src="@android:drawable/ic_menu_camera"
+        app:layout_constraintBottom_toTopOf="@+id/ibUpdateCardUploadImageFromGallery"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/ivUpdateCardTop"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="SpeakableTextPresentCheck" />
+
+    <ImageButton
+        android:id="@+id/ibUpdateCardUploadImageFromGallery"
+        android:layout_width="55dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="8dp"
+        android:contentDescription="@string/upload_photo_from_gallery_button_description"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_gallery"
+        app:layout_constraintBottom_toTopOf="@+id/tilUpdateCardTitle"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/ivUpdateCardTop"
+        app:layout_constraintTop_toBottomOf="@+id/ibUpdateCardTakePhoto"
+        tools:ignore="SpeakableTextPresentCheck" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilUpdateCardTitle"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:hint="@string/title_hint"
+        app:endIconMode="clear_text"
+        app:layout_constraintWidth_max="488dp"
+        android:maxWidth="488dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintTop_toBottomOf="@+id/ivUpdateCardTop"
+        app:startIconContentDescription="@string/title_description">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:singleLine="true"
+            tools:ignore="TextContrastCheck" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilUpdateCardDescription"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:hint="@string/description_hint"
+        app:endIconMode="clear_text"
+        app:layout_constraintWidth_max="488dp"
+        android:maxWidth="488dp"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tilUpdateCardTitle"
+        app:startIconContentDescription="@string/description_description">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:inputType="textMultiLine"
+            android:maxLines="2"
+            tools:ignore="TextContrastCheck" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilUpdateCardItemName"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:hint="@string/item_name_hint"
+        app:endIconMode="clear_text"
+        app:layout_constraintBaseline_toBaselineOf="@+id/tilUpdateCardItemAmount"
+        app:layout_constraintEnd_toStartOf="@+id/tilUpdateCardItemAmount"
+        app:layout_constraintStart_toStartOf="parent"
+        app:startIconContentDescription="@string/item_name_description">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            tools:ignore="TextContrastCheck" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilUpdateCardItemAmount"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:hint="@string/item_amount_hint"
+        app:endIconMode="clear_text"
+        app:layout_constraintWidth_max="488dp"
+        android:maxWidth="488dp"
+        app:layout_constraintBottom_toTopOf="@+id/divUpdateCardItems"
+        app:layout_constraintEnd_toStartOf="@+id/btnUpdateCardAddItem"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/tilUpdateCardItemName"
+        app:layout_constraintTop_toBottomOf="@+id/tilUpdateCardDescription"
+        app:startIconContentDescription="@string/item_amount_description">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            tools:ignore="TextContrastCheck" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <Button
+        android:id="@+id/btnUpdateCardAddItem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:text="@string/add_item"
+        app:layout_constraintBaseline_toBaselineOf="@+id/tilUpdateCardItemAmount"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <com.google.android.material.divider.MaterialDivider
+        android:id="@+id/divUpdateCardItems"
+        android:layout_width="match_parent"
+        android:layout_height="5dp"
+        android:layout_marginTop="8dp"
+        app:dividerInsetEnd="8dp"
+        app:dividerInsetStart="8dp"
+        app:dividerThickness="3dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tilUpdateCardItemAmount" />
+
+    <ScrollView
+        android:id="@+id/svUpdateCardItems"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_margin="8dp"
+        app:layout_constraintBottom_toTopOf="@+id/btnUpdateCardCancel"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/divUpdateCardItems">
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/cgUpdateCardContainer"
+            android:layout_gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:chipSpacingHorizontal="8dp"
+            app:chipSpacingVertical="4dp"
+            app:singleLine="false" />
+    </ScrollView>
+
+    <Button
+        android:id="@+id/btnUpdateCardDelete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:backgroundTint="@color/delete_button_background"
+        android:text="@string/delete"
+        android:textColor="@color/button_text_color"
+        app:layout_constraintBaseline_toBaselineOf="@+id/btnUpdateCardCancel"
+        app:layout_constraintEnd_toStartOf="@+id/btnUpdateCardCancel"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/btnUpdateCardCancel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/cancel_button_background"
+        android:text="@string/cancel"
+        android:textColor="@color/button_text_color"
+        app:layout_constraintBaseline_toBaselineOf="@+id/btnUpdateCardUpdate"
+        app:layout_constraintEnd_toStartOf="@+id/btnUpdateCardUpdate"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/btnUpdateCardDelete"
+        tools:ignore="TextContrastCheck" />
+
+    <Button
+        android:id="@+id/btnUpdateCardUpdate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:backgroundTint="@color/update_button_background"
+        android:text="@string/update"
+        android:textColor="@color/button_text_color"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/btnUpdateCardCancel"
+        tools:ignore="TextContrastCheck" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
