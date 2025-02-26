@@ -21,4 +21,8 @@
     <string name="password_login_hint">Password</string>
     <string name="login">Login</string>
     <string name="sign_up_navigation_text">Don\'t have an account yet? Let\'s sign up</string>
+    <string name="card_image_description">card image</string>
+    <string name="created_by_hint">Created by:</string>
+    <string name="update_at_hint">Update at:</string>
+    <string name="shared_code_hint">Shared code:</string>
 </resources>
