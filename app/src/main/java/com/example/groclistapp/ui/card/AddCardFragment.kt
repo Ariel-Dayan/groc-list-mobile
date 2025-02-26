@@ -13,22 +13,23 @@ import com.example.groclistapp.R
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 
-class UpdateCardFragment : Fragment() {
+class AddCardFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_update_card, container, false)
+        return inflater.inflate(R.layout.fragment_add_card, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val chipGroup = view.findViewById<ChipGroup>(R.id.cgUpdateCardContainer)
+        val chipGroup = view.findViewById<ChipGroup>(R.id.cgAddCardContainer)
         chipGroup.layoutDirection = View.LAYOUT_DIRECTION_LOCALE
 
-        val btnAddItem = view.findViewById<Button>(R.id.btnUpdateCardAddItem)
+        val btnAddItem = view.findViewById<Button>(R.id.btnAddCardAddItem)
 
+        // Add chips to the chip group
         chipGroup.addView(createChip("Apples", "5", chipGroup))
         chipGroup.addView(createChip("Bananas", "10", chipGroup))
         chipGroup.addView(createChip("Oranges", "3", chipGroup))
@@ -95,7 +96,6 @@ class UpdateCardFragment : Fragment() {
                 val newName = nameInput.text.toString()
                 val newAmount = amountInput.text.toString()
 
-                // Call the onUpdate callback with the new values
                 if (newName.isNotEmpty() && newAmount.isNotEmpty()) {
                     onUpdate(newName, newAmount)
                 }
