@@ -38,4 +38,7 @@
     <string name="cancel">Cancel</string>
     <string name="update">Update</string>
     <string name="save">Save</string>
+    <string name="add_shared_code_hint">Shared Code</string>
+    <string name="add_shared_code_description">Shared Code</string>
+    <string name="add_shared_card">Add</string>
 </resources>
