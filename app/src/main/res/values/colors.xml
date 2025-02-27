@@ -9,4 +9,5 @@
     <color name="cancel_button_background">#808080</color>
     <color name="update_button_background">#4CAF50</color>
     <color name="save_button_background">#4CAF50</color>
+    <color name="remove_button_background">#951B1B</color>
 </resources>

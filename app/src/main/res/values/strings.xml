@@ -41,4 +41,5 @@
     <string name="add_shared_code_hint">Shared Code</string>
     <string name="add_shared_code_description">Shared Code</string>
     <string name="add_shared_card">Add</string>
+    <string name="remove">Remove</string>
 </resources>

@@ -24,7 +24,7 @@ class UpdateCardFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val chipGroup = view.findViewById<ChipGroup>(R.id.cgUpdateCardContainer)
+        val chipGroup = view.findViewById<ChipGroup>(R.id.cgUpdateCardItemsContainer)
         chipGroup.layoutDirection = View.LAYOUT_DIRECTION_LOCALE
 
         val btnAddItem = view.findViewById<Button>(R.id.btnUpdateCardAddItem)
