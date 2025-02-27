@@ -8,13 +8,13 @@
     <string name="add_card">Add</string>
     <string name="take_photo_button_description">Take photo</string>
     <string name="upload_photo_from_gallery_button_description">Upload photo from gallery</string>
-    <string name="email_signup_hint">Email*</string>
-    <string name="full_name_signup_hint">Full Name*</string>
+    <string name="email_hint">Email*</string>
+    <string name="full_name_hint">Full Name*</string>
     <string name="email_icon_description">Email</string>
     <string name="full_name_icon_description">Full Name</string>
-    <string name="password_signup_hint">Password*</string>
+    <string name="password_hint">Password*</string>
     <string name="password_icon_description">Password</string>
-    <string name="confirm_password_signup_hint">Confirm Password*</string>
+    <string name="confirm_password_hint">Confirm Password*</string>
     <string name="confirm_password_icon_description">Confirm password</string>
     <string name="sign_up">Sign Up</string>
     <string name="email_login_hint">Email</string>
@@ -42,4 +42,5 @@
     <string name="add_shared_code_description">Shared Code</string>
     <string name="add_shared_card">Add</string>
     <string name="remove">Remove</string>
+    <string name="logout">Logout</string>
 </resources>
