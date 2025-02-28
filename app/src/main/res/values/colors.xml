@@ -11,4 +11,7 @@
     <color name="save_button_background">#4CAF50</color>
     <color name="remove_button_background">#951B1B</color>
     <color name="logout_button_background">#951B1B</color>
+    <color name="app_background">#F4ECE1</color>
+    <color name="logo_title">#558B2F</color>
+    <color name="logo_subtitle">#1565C0</color>
 </resources>
