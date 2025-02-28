@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/myCardsListFragment">
+
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.example.groclistapp.ui.auth.LoginFragment"
+        android:label="Login"
+        tools:layout="@layout/fragment_login">
+        <action
+            android:id="@+id/action_loginFragment_to_signupFragment"
+            app:destination="@id/signupFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/signupFragment"
+        android:name="com.example.groclistapp.ui.auth.SignupFragment"
+        android:label="Sign Up"
+        tools:layout="@layout/fragment_signup" />
+    <fragment
+        android:id="@+id/sharedCardsListFragment"
+        android:name="com.example.groclistapp.ui.list.SharedCardsListFragment"
+        android:label="Shared Shopping Cards">
+        <action
+            android:id="@+id/action_sharedCardsListFragment_to_displayCardFragment"
+            app:destination="@id/displayCardFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/displayCardFragment"
+        android:name="com.example.groclistapp.ui.card.DisplayCardFragment"
+        android:label="Shopping Card"
+        tools:layout="@layout/fragment_display_card" />
+    <fragment
+        android:id="@+id/updateCardFragment"
+        android:name="com.example.groclistapp.ui.card.UpdateCardFragment"
+        android:label="Shopping Card"
+        tools:layout="@layout/fragment_update_card" />
+    <fragment
+        android:id="@+id/myCardsListFragment"
+        android:name="com.example.groclistapp.ui.list.MyCardsListFragment"
+        android:label="My Shopping Cards"
+        tools:layout="@layout/fragment_my_cards_list">
+
+        <action
+            android:id="@+id/action_myCardsListFragment_to_addCardFragment"
+            app:destination="@id/addCardFragment" />
+        <action
+            android:id="@+id/action_myCardsListFragment_to_updateCardFragment"
+            app:destination="@id/updateCardFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/updateProfileFragment"
+        android:name="com.example.groclistapp.ui.profile.UpdateProfileFragment"
+        android:label="Profile"
+        tools:layout="@layout/fragment_update_profile" />
+    <fragment
+        android:id="@+id/addCardFragment"
+        android:name="com.example.groclistapp.ui.card.AddCardFragment"
+        android:label="Shopping Card"
+        tools:layout="@layout/fragment_add_card" />
+</navigation>
