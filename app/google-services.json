@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "30792789482",
+    "project_id": "groclistapp-3afbd",
+    "storage_bucket": "groclistapp-3afbd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:30792789482:android:57d6e665115aa975cd5693",
+        "android_client_info": {
+          "package_name": "com.example.groclistapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA1Wssbb1opIz1j1nU-CcQSy3RoWkwhCNE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
