@@ -13,6 +13,7 @@ constraintlayout = "2.2.1"
 navigationFragmentktx = "2.8.8"
 navigationSafeArgsGradlePluginVersion = "2.8.8"
 core = "1.15.0"
+picasso = "2.8"
 retrofit = "2.9.0"
 
 [libraries]
@@ -30,6 +31,7 @@ androidx-activity = { group = "androidx.activity", name = "activity", version.re
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 navigation-safe-args-gradle-plugin = { module = "androidx.navigation:navigation-safe-args-gradle-plugin", version.ref = "navigationSafeArgsGradlePluginVersion" }
 androidx-core = { group = "androidx.core", name = "core", version.ref = "core" }
+picasso = { module = "com.squareup.picasso:picasso", version.ref = "picasso" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 
 [plugins]
