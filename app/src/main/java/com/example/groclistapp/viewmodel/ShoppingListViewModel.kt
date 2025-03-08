@@ -5,15 +5,14 @@ import androidx.lifecycle.*
 import com.example.groclistapp.model.ShoppingList
 import com.example.groclistapp.repository.FirebaseRepository
 import com.example.groclistapp.repository.ShoppingListRepository
-import com.example.groclistapp.repository.AppDatabase
 import kotlinx.coroutines.launch
 
-class ShoppingListViewModel(application: Application, private val repository: ShoppingListRepository) : AndroidViewModel(application) {
+class ShoppingListViewModel(application: Application, private val repository: ShoppingListRepository)
+    : AndroidViewModel(application) {
 
     private val firebaseRepository = FirebaseRepository()
 
-    private val _localShoppingLists = repository.allShoppingLists.asLiveData()
-    val localShoppingLists: LiveData<List<ShoppingList>> = _localShoppingLists
+    val localShoppingLists: LiveData<List<ShoppingList>> = repository.allShoppingLists
 
     private val _remoteShoppingLists = MutableLiveData<List<ShoppingList>>()
     val remoteShoppingLists: LiveData<List<ShoppingList>> = _remoteShoppingLists
@@ -34,7 +33,7 @@ class ShoppingListViewModel(application: Application, private val repository: Sh
             },
             onFailure = {
                 viewModelScope.launch {
-                    repository.allShoppingLists.asLiveData().observeForever { lists ->
+                    repository.allShoppingLists.observeForever { lists -> // ✅ שימוש נכון ב-LiveData
                         _remoteShoppingLists.postValue(lists)
                     }
                 }
