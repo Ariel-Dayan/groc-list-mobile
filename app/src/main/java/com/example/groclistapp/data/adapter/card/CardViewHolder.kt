@@ -1,42 +1,26 @@
 package com.example.groclistapp.data.adapter.card
 
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import android.widget.CheckBox
-import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.groclistapp.R
+import com.example.groclistapp.model.ShoppingList
 
-class CardViewHolder(itemView: View, listener: OnItemClickListener?): RecyclerView.ViewHolder(itemView) {
-//    private var studentNameTextView: TextView? = null
-//    private var studentIdTextView: TextView? = null
-//    private var studentCheckStatusCheckBox: CheckBox? = null
-//    private var studentProfileImageView: ImageView? = null
-//    private var student: Student? = null
+class CardViewHolder(itemView: View, private val listener: OnItemClickListener?)
+    : RecyclerView.ViewHolder(itemView) {
 
-//    init {
-//        studentNameTextView = itemView.findViewById(R.id.tvStudentListRowName)
-//        studentIdTextView = itemView.findViewById(R.id.tvStudentListRowId)
-//        studentCheckStatusCheckBox = itemView.findViewById(R.id.cbStudentListRowCheckStatus)
-//        studentProfileImageView = itemView.findViewById(R.id.ivStudentListRowProfileImage)
-//
-//        studentCheckStatusCheckBox?.setOnClickListener {
-//            student?.isChecked = studentCheckStatusCheckBox?.isChecked ?: false
-//        }
-//
-//        itemView.setOnClickListener {
-//            listener?.onItemClick(student)
-//        }
-//    }
+    private val titleTextView: TextView = itemView.findViewById(R.id.tvCardsListRowTitle)
+    private val descriptionTextView: TextView = itemView.findViewById(R.id.tvCardsListRowDescription)
 
-    fun bind(card: Any?) {
-//        this.student = student
-//
-//        studentProfileImageView?.setImageResource(student?.picture ?: R.drawable.avatar)
-//        studentNameTextView?.text = student?.name
-//        studentIdTextView?.text = student?.id.toString()
-//        studentCheckStatusCheckBox?.isChecked = student?.isChecked ?: false
+    fun bind(shoppingList: ShoppingList) {
+        titleTextView.text = shoppingList.name
+        descriptionTextView.text = "Items: ${shoppingList.items.size}"
+
+        // הפעלת הלחיצה אם listener לא null
+        itemView.setOnClickListener {
+            listener?.onItemClick(shoppingList)
+        }
     }
 }
+
+

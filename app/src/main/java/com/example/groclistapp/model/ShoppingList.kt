@@ -2,13 +2,19 @@ package com.example.groclistapp.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import androidx.room.TypeConverters
+import com.example.groclistapp.utils.Converters
+import androidx.room.Ignore
 
 @Entity(tableName = "shopping_lists")
+@TypeConverters(Converters::class)
 data class ShoppingList(
-    @PrimaryKey val id: String = "",
-    val name: String = "",
-    val items: List<String> = emptyList()
+    @PrimaryKey(autoGenerate = true) var id: Int = 0,
+    var name: String = "",
+    var items: List<String> = emptyList()
 ) {
-
-    constructor() : this("", "", emptyList())
+    @Ignore
+    constructor() : this(0, "", emptyList())
 }
+
+

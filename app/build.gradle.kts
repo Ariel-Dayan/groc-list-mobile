@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.androidx.navigation.safeargs)
 
     id("com.google.gms.google-services")
+    id("kotlin-kapt")
 }
 
 android {
@@ -35,7 +36,12 @@ android {
     }
     kotlinOptions {
         jvmTarget = "11"
+        languageVersion = "1.8"
     }
+}
+
+kapt {
+    correctErrorTypes = true
 }
 
 dependencies {
@@ -53,12 +59,22 @@ dependencies {
     implementation(libs.firebase.storage.ktx)
     implementation(libs.androidx.room.common)
     implementation(libs.firebase.firestore.ktx)
+    implementation(libs.androidx.espresso.core)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     implementation(platform("com.google.firebase:firebase-bom:33.10.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-firestore-ktx")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:2.1.0")
+
+    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("androidx.room:room-runtime:2.5.2")
+    kapt("androidx.room:room-compiler:2.5.2")
+    implementation("androidx.room:room-ktx:2.5.2")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.1")
+
+    implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.5.0")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.8.22")
+
 
 }

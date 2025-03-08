@@ -1,47 +1,78 @@
 package com.example.groclistapp.viewmodel
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.*
 import com.example.groclistapp.model.ShoppingList
 import com.example.groclistapp.repository.FirebaseRepository
+import com.example.groclistapp.repository.ShoppingListRepository
+import com.example.groclistapp.repository.AppDatabase
+import kotlinx.coroutines.launch
 
-class ShoppingListViewModel : ViewModel() {
-    private val repository = FirebaseRepository()
+class ShoppingListViewModel(application: Application, private val repository: ShoppingListRepository) : AndroidViewModel(application) {
 
-    private val _shoppingLists = MutableLiveData<List<ShoppingList>>()
-    val shoppingLists: LiveData<List<ShoppingList>> = _shoppingLists
+    private val firebaseRepository = FirebaseRepository()
 
-    //  שליפת כל רשימות הקניות
-    fun fetchShoppingLists() {
-        repository.getShoppingLists(
-            onSuccess = { lists -> _shoppingLists.postValue(lists) },
-            onFailure = { _shoppingLists.postValue(emptyList()) }
+    private val _localShoppingLists = repository.allShoppingLists.asLiveData()
+    val localShoppingLists: LiveData<List<ShoppingList>> = _localShoppingLists
+
+    private val _remoteShoppingLists = MutableLiveData<List<ShoppingList>>()
+    val remoteShoppingLists: LiveData<List<ShoppingList>> = _remoteShoppingLists
+
+    init {
+        syncShoppingLists()
+    }
+
+    private fun syncShoppingLists() {
+        firebaseRepository.getShoppingLists(
+            onSuccess = { lists ->
+                _remoteShoppingLists.postValue(lists)
+                viewModelScope.launch {
+                    lists.forEach { shoppingList ->
+                        repository.insert(shoppingList)
+                    }
+                }
+            },
+            onFailure = {
+                viewModelScope.launch {
+                    repository.allShoppingLists.asLiveData().observeForever { lists ->
+                        _remoteShoppingLists.postValue(lists)
+                    }
+                }
+            }
         )
     }
 
-    //  הוספת רשימת קניות חדשה
     fun addShoppingList(shoppingList: ShoppingList) {
-        repository.addShoppingList(shoppingList,
-            onSuccess = { fetchShoppingLists() },
-            onFailure = { /* , אם יבוא לנו ניתן להוסיף טיפול בשגיאות */ }
-        )
+        viewModelScope.launch {
+            repository.insert(shoppingList)
+        }
+        firebaseRepository.addShoppingList(shoppingList, {}, {})
     }
 
-    //  עדכון רשימת קניות (לדוגמה, שינוי שם)
-    fun updateShoppingList(listId: String, updatedData: Map<String, Any>) {
-        repository.updateShoppingList(listId, updatedData,
-            onSuccess = { fetchShoppingLists() },
-            onFailure = { /* ניתן להוסיף טיפול בשגיאות */ }
-        )
+    fun updateShoppingList(listId: String, updatedData: Map<String, Any>, shoppingList: ShoppingList) {
+        viewModelScope.launch {
+            repository.update(shoppingList)
+        }
+        firebaseRepository.updateShoppingList(listId, updatedData, {}, {})
     }
 
-    //  מחיקת רשימה מהמסד
-    fun deleteShoppingList(listId: String) {
-        repository.deleteShoppingList(listId,
-            onSuccess = { fetchShoppingLists() },
-            onFailure = { /* ניתן להוסיף טיפול בשגיאות */ }
-        )
+    fun deleteShoppingList(listId: String, shoppingList: ShoppingList) {
+        viewModelScope.launch {
+            repository.delete(shoppingList)
+        }
+        firebaseRepository.deleteShoppingList(listId, {}, {})
+    }
+
+    class Factory(private val application: Application, private val repository: ShoppingListRepository) :
+        ViewModelProvider.Factory {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(ShoppingListViewModel::class.java)) {
+                @Suppress("UNCHECKED_CAST")
+                return ShoppingListViewModel(application, repository) as T
+            }
+            throw IllegalArgumentException("Unknown ViewModel class")
+        }
     }
 }
+
 
