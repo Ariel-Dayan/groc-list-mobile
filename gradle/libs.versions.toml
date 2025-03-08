@@ -15,6 +15,10 @@ navigationSafeArgsGradlePluginVersion = "2.8.8"
 core = "1.15.0"
 picasso = "2.8"
 retrofit = "2.9.0"
+firebaseAuthKtx = "23.2.0"
+firebaseStorageKtx = "21.0.1"
+roomCommon = "2.6.1"
+firebaseFirestoreKtx = "25.1.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -33,6 +37,10 @@ navigation-safe-args-gradle-plugin = { module = "androidx.navigation:navigation-
 androidx-core = { group = "androidx.core", name = "core", version.ref = "core" }
 picasso = { module = "com.squareup.picasso:picasso", version.ref = "picasso" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx", version.ref = "firebaseAuthKtx" }
+firebase-storage-ktx = { group = "com.google.firebase", name = "firebase-storage-ktx", version.ref = "firebaseStorageKtx" }
+androidx-room-common = { group = "androidx.room", name = "room-common", version.ref = "roomCommon" }
+firebase-firestore-ktx = { group = "com.google.firebase", name = "firebase-firestore-ktx", version.ref = "firebaseFirestoreKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

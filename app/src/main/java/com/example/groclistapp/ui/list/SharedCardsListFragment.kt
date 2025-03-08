@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.groclistapp.R
 import com.example.groclistapp.data.adapter.card.CardsRecyclerAdapter
+import com.example.groclistapp.model.ShoppingList
 
 class SharedCardsListFragment : Fragment() {
     private var adapter: CardsRecyclerAdapter? = null
@@ -53,7 +54,7 @@ class SharedCardsListFragment : Fragment() {
 
         cardsRecyclerView?.setHasFixedSize(true)
 //
-        adapter = CardsRecyclerAdapter(cards)
+        adapter = CardsRecyclerAdapter(cards as MutableList<ShoppingList>)
 //        adapter?.listener = object : OnItemClickListener {
 //            override fun onItemClick(student: Student?) {
 //                student?.let {
