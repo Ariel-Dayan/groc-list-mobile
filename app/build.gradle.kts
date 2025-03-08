@@ -37,7 +37,8 @@ android {
 }
 
 dependencies {
-
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
     implementation (libs.circleimageview)
     implementation(libs.androidx.navigation.fragmentktx)
     implementation(libs.androidx.navigation.ui)
