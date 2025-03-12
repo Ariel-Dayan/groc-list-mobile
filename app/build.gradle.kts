@@ -38,6 +38,9 @@ android {
         jvmTarget = "11"
         languageVersion = "1.8"
     }
+    viewBinding {
+        enable = true
+    }
 }
 
 kapt {

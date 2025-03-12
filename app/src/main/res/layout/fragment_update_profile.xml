@@ -70,7 +70,7 @@
         android:layout_marginTop="8dp"
         android:hint="@string/full_name_hint"
         app:endIconMode="clear_text"
-        app:layout_constraintBottom_toTopOf="@+id/tilUpdateProfilePassword"
+        app:layout_constraintBottom_toTopOf="@+id/tilUpdateProfileOldPassword"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
@@ -88,6 +88,31 @@
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilUpdateProfileOldPassword"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:hint="@string/old_password_hint"
+        app:endIconMode="password_toggle"
+        app:layout_constraintBottom_toTopOf="@+id/tilUpdateProfilePassword"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tilUpdateProfileFullName"
+        app:startIconContentDescription="@string/password_icon_description"
+        app:startIconDrawable="@android:drawable/ic_secure">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPassword"
+            android:singleLine="true"
+            tools:ignore="TextContrastCheck" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/tilUpdateProfilePassword"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="300dp"
@@ -99,7 +124,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tilUpdateProfileFullName"
+        app:layout_constraintTop_toBottomOf="@+id/tilUpdateProfileOldPassword"
         app:startIconContentDescription="@string/password_icon_description"
         app:startIconDrawable="@android:drawable/ic_secure">
 

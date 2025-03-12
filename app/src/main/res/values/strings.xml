@@ -43,4 +43,9 @@
     <string name="add_shared_card">Add</string>
     <string name="remove">Remove</string>
     <string name="logout">Logout</string>
-</resources>
+    <string name="google_api_key">AIzaSyA1Wssbb1opIz1j1nU-CcQSy3RoWkwhCNE</string>
+    <string name="admob_app_id">ca-app-pub-XXXXXXXXXXXXXXXX~YYYYYYYYYY</string>
+    <string name="logging_in">Logging in...</string>
+    <string name="signing_up">Signing up...</string>
+    <string name="old_password_hint">Old Password</string>
+ </resources>
