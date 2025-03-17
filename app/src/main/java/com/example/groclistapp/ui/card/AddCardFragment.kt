@@ -24,6 +24,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.fragment.app.setFragmentResult
 import androidx.core.os.bundleOf
+import com.example.groclistapp.data.model.ShoppingListSummary
 
 class AddCardFragment : Fragment() {
 
@@ -81,7 +82,8 @@ class AddCardFragment : Fragment() {
             }
 
             lifecycleScope.launch(Dispatchers.IO) {
-                val newList = ShoppingList(name = listName)
+                val newList = ShoppingListSummary(id = 0, name = listName, itemsCount = 0)
+
                 val newListId = viewModel.addShoppingList(newList)
 
                 pendingItems.forEach { it.listId = newListId }

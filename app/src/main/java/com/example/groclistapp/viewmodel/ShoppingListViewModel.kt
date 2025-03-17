@@ -3,7 +3,7 @@ package com.example.groclistapp.viewmodel
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.*
-import com.example.groclistapp.data.model.ShoppingList
+import com.example.groclistapp.data.model.ShoppingListSummary
 import com.example.groclistapp.data.model.ShoppingItem
 import com.example.groclistapp.data.repository.ShoppingListRepository
 import kotlinx.coroutines.Dispatchers
@@ -13,31 +13,28 @@ import kotlinx.coroutines.withContext
 class ShoppingListViewModel(application: Application, private val repository: ShoppingListRepository)
     : AndroidViewModel(application) {
 
-    private val _shoppingLists = MediatorLiveData<List<ShoppingList>>()
-    val localShoppingLists: LiveData<List<ShoppingList>> get() = _shoppingLists
+    private val _shoppingLists = MediatorLiveData<List<ShoppingListSummary>>()
+    val localShoppingLists: LiveData<List<ShoppingListSummary>> get() = _shoppingLists
 
-
-    suspend fun addShoppingList(shoppingList: ShoppingList): Int {
+    suspend fun addShoppingList(shoppingList: ShoppingListSummary): Int {
         return withContext(Dispatchers.IO) {
-            repository.insertAndGetId(shoppingList).toInt() // עכשיו מחזיר את ה-ID
+            repository.insertAndGetId(shoppingList).toInt()
         }
     }
 
-
-
-    fun updateShoppingList(shoppingList: ShoppingList) {
+    fun updateShoppingList(shoppingList: ShoppingListSummary) {
         viewModelScope.launch {
             repository.update(shoppingList)
         }
     }
 
-    fun deleteShoppingList(shoppingList: ShoppingList) {
+    fun deleteShoppingList(shoppingList: ShoppingListSummary) {
         viewModelScope.launch {
             repository.delete(shoppingList)
         }
     }
 
-    suspend fun getShoppingListById(listId: Int): ShoppingList? {
+    suspend fun getShoppingListById(listId: Int): ShoppingListSummary? {
         return repository.getShoppingListById(listId)
     }
 
@@ -77,10 +74,6 @@ class ShoppingListViewModel(application: Application, private val repository: Sh
         }
     }
 
-
-
-
-
     class Factory(private val application: Application, private val repository: ShoppingListRepository) :
         ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -92,3 +85,4 @@ class ShoppingListViewModel(application: Application, private val repository: Sh
         }
     }
 }
+

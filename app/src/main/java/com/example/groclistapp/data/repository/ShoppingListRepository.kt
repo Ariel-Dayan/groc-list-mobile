@@ -3,38 +3,36 @@ package com.example.groclistapp.data.repository
 import androidx.lifecycle.LiveData
 import com.example.groclistapp.data.model.ShoppingList
 import com.example.groclistapp.data.model.ShoppingItem
+import com.example.groclistapp.data.model.ShoppingListSummary
 import android.util.Log
 
 class ShoppingListRepository(
     private val shoppingListDao: ShoppingListDao,
     private val shoppingItemDao: ShoppingItemDao
 ) {
-    val allShoppingLists: LiveData<List<ShoppingList>> = shoppingListDao.getAllShoppingLists().also {
+    val allShoppingLists: LiveData<List<ShoppingListSummary>> = shoppingListDao.getAllShoppingLists().also {
         Log.d("ShoppingListRepository", "📥 משיכת רשימות מהמסד: ${it.value?.size ?: 0}")
     }
 
-
-    suspend fun insert(shoppingList: ShoppingList) {
-        shoppingListDao.insertShoppingList(shoppingList)
+    suspend fun insertAndGetId(shoppingList: ShoppingListSummary): Long {
+        return shoppingListDao.insertShoppingList(
+            ShoppingList(id = shoppingList.id, name = shoppingList.name)
+        )
     }
 
-    suspend fun insertAndGetId(shoppingList: ShoppingList): Long {
-        Log.d("ShoppingListRepository", "📝 ניסיון להוספת רשימה: $shoppingList")
-        val id = shoppingListDao.insertShoppingList(shoppingList)
-        Log.d("ShoppingListRepository", "✅ רשימה נוספה עם ID: $id")
-        return id
+    suspend fun update(shoppingList: ShoppingListSummary) {
+        shoppingListDao.updateShoppingList(
+            ShoppingList(id = shoppingList.id, name = shoppingList.name)
+        )
     }
 
-
-    suspend fun update(shoppingList: ShoppingList) {
-        shoppingListDao.updateShoppingList(shoppingList)
+    suspend fun delete(shoppingList: ShoppingListSummary) {
+        shoppingListDao.deleteShoppingList(
+            ShoppingList(id = shoppingList.id, name = shoppingList.name)
+        )
     }
 
-    suspend fun delete(shoppingList: ShoppingList) {
-        shoppingListDao.deleteShoppingList(shoppingList)
-    }
-
-    suspend fun getShoppingListById(listId: Int): ShoppingList? {
+    suspend fun getShoppingListById(listId: Int): ShoppingListSummary? {
         return shoppingListDao.getListById(listId)
     }
 
@@ -54,5 +52,8 @@ class ShoppingListRepository(
         shoppingItemDao.deleteItem(item)
     }
 }
+
+
+
 
 

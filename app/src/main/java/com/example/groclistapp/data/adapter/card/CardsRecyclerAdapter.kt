@@ -5,10 +5,10 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.groclistapp.R
-import com.example.groclistapp.data.model.ShoppingList
+import com.example.groclistapp.data.model.ShoppingListSummary
 
 class CardsRecyclerAdapter(
-    private var shoppingLists: MutableList<ShoppingList>
+    private var shoppingLists: MutableList<ShoppingListSummary>
 ) : RecyclerView.Adapter<CardViewHolder>() {
 
     var listener: OnItemClickListener? = null
@@ -25,8 +25,7 @@ class CardsRecyclerAdapter(
 
     override fun getItemCount(): Int = shoppingLists.size
 
-
-    fun updateData(newLists: List<ShoppingList>) {
+    fun updateData(newLists: List<ShoppingListSummary>) {
         val diffCallback = ShoppingListDiffCallback(shoppingLists, newLists)
         val diffResult = DiffUtil.calculateDiff(diffCallback)
 
@@ -36,10 +35,9 @@ class CardsRecyclerAdapter(
     }
 }
 
-
 class ShoppingListDiffCallback(
-    private val oldList: List<ShoppingList>,
-    private val newList: List<ShoppingList>
+    private val oldList: List<ShoppingListSummary>,
+    private val newList: List<ShoppingListSummary>
 ) : DiffUtil.Callback() {
 
     override fun getOldListSize(): Int = oldList.size
@@ -53,3 +51,4 @@ class ShoppingListDiffCallback(
         return oldList[oldItemPosition] == newList[newItemPosition]
     }
 }
+
