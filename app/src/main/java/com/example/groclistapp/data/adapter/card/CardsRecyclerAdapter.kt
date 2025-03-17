@@ -5,7 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.groclistapp.R
-import com.example.groclistapp.model.ShoppingList
+import com.example.groclistapp.data.model.ShoppingList
 
 class CardsRecyclerAdapter(
     private var shoppingLists: MutableList<ShoppingList>

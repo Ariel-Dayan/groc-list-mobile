@@ -35,7 +35,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        if (true) { // TODO: check if user login in
+        if (false) { // TODO: check if user login in
            navController?.navigate(R.id.loginFragment)
         }
     }

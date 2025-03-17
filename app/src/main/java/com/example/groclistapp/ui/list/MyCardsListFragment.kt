@@ -1,19 +1,24 @@
 package com.example.groclistapp.ui.list
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.groclistapp.R
 import com.example.groclistapp.data.adapter.card.CardsRecyclerAdapter
-import com.example.groclistapp.model.ShoppingList
-import com.example.groclistapp.repository.AppDatabase
-import com.example.groclistapp.repository.ShoppingListRepository
+import com.example.groclistapp.data.model.ShoppingList
+import com.example.groclistapp.data.repository.AppDatabase
+import com.example.groclistapp.data.repository.ShoppingListRepository
 import com.example.groclistapp.viewmodel.ShoppingListViewModel
+import kotlinx.coroutines.launch
+import androidx.fragment.app.setFragmentResultListener
 
 class MyCardsListFragment : Fragment() {
 
@@ -27,19 +32,32 @@ class MyCardsListFragment : Fragment() {
     ): View {
         val view = inflater.inflate(R.layout.fragment_my_cards_list, container, false)
 
-
         val shoppingListDao = AppDatabase.getDatabase(requireContext()).shoppingListDao()
-        val repository = ShoppingListRepository(shoppingListDao)
+        val shoppingItemDao = AppDatabase.getDatabase(requireContext()).shoppingItemDao()
+        val repository = ShoppingListRepository(shoppingListDao, shoppingItemDao)
 
         viewModel = ViewModelProvider(
             this,
             ShoppingListViewModel.Factory(requireActivity().application, repository)
-        ).get(ShoppingListViewModel::class.java)
+        )[ShoppingListViewModel::class.java]
 
         setupRecyclerView(view)
         observeShoppingLists()
+        setupAddButton(view)
 
+        // מאזין לעדכון הרשימה בזמן אמת
+        setFragmentResultListener("shoppingListUpdated") { _, bundle ->
+            if (bundle.getBoolean("updated", false)) {
+                Log.d("MyCardsListFragment", "📌 רשימה חדשה נוספה, טוען מחדש נתונים...")
+                viewModel.loadShoppingLists() // טוען מחדש
+            }
+        }
         return view
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.loadShoppingLists() // מבטיח שהרשימה תתעדכן אחרי החזרה למסך
     }
 
     private fun setupRecyclerView(view: View) {
@@ -50,11 +68,17 @@ class MyCardsListFragment : Fragment() {
     }
 
     private fun observeShoppingLists() {
-        viewModel.remoteShoppingLists.observe(viewLifecycleOwner) { shoppingLists: List<ShoppingList>? ->
-            shoppingLists?.let { list ->
-                adapter.updateData(list)
-            }
+        viewModel.localShoppingLists.observe(viewLifecycleOwner) { shoppingLists ->
+            shoppingLists?.let { adapter.updateData(it) }
+        }
+    }
+
+    private fun setupAddButton(view: View) {
+        view.findViewById<View>(R.id.btnMyCardsListAddCard).setOnClickListener {
+            findNavController().navigate(R.id.action_myCardsListFragment_to_addCardFragment)
         }
     }
 }
+
+
 

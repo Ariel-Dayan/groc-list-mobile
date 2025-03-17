@@ -1,9 +1,8 @@
-package com.example.groclistapp.repository
+package com.example.groclistapp.data.repository
 
 import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.toObject
-import com.example.groclistapp.model.ShoppingList
+import com.example.groclistapp.data.model.ShoppingList
 
 class FirebaseRepository {
     private val db = FirebaseFirestore.getInstance()

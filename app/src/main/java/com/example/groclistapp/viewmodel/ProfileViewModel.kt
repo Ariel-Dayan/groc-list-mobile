@@ -2,7 +2,7 @@ package com.example.groclistapp.viewmodel
 
 import android.net.Uri
 import androidx.lifecycle.ViewModel
-import com.example.groclistapp.repository.ProfileRepository
+import com.example.groclistapp.data.repository.ProfileRepository
 
 class ProfileViewModel : ViewModel() {
 

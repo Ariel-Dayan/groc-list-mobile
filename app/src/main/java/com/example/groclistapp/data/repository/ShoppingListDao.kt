@@ -1,7 +1,8 @@
-package com.example.groclistapp.repository
+package com.example.groclistapp.data.repository
 
 import androidx.room.*
-import com.example.groclistapp.model.ShoppingList
+import com.example.groclistapp.data.model.ShoppingList
+import com.example.groclistapp.data.model.ShoppingItem
 import androidx.lifecycle.LiveData
 
 @Dao
@@ -17,6 +18,13 @@ interface ShoppingListDao {
 
     @Query("SELECT * FROM shopping_lists ORDER BY name ASC")
     fun getAllShoppingLists(): LiveData<List<ShoppingList>>
+
+    @Query("SELECT * FROM shopping_lists WHERE id = :listId LIMIT 1")
+    suspend fun getListById(listId: Int): ShoppingList?
+
+    @Query("SELECT * FROM shopping_lists ORDER BY name ASC")
+    suspend fun getAllShoppingListsNow(): List<ShoppingList>
 }
+
 
 

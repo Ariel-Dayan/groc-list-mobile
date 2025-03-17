@@ -1,66 +1,85 @@
 package com.example.groclistapp.viewmodel
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.*
-import com.example.groclistapp.model.ShoppingList
-import com.example.groclistapp.repository.FirebaseRepository
-import com.example.groclistapp.repository.ShoppingListRepository
+import com.example.groclistapp.data.model.ShoppingList
+import com.example.groclistapp.data.model.ShoppingItem
+import com.example.groclistapp.data.repository.ShoppingListRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ShoppingListViewModel(application: Application, private val repository: ShoppingListRepository)
     : AndroidViewModel(application) {
 
-    private val firebaseRepository = FirebaseRepository()
+    private val _shoppingLists = MediatorLiveData<List<ShoppingList>>()
+    val localShoppingLists: LiveData<List<ShoppingList>> get() = _shoppingLists
 
-    val localShoppingLists: LiveData<List<ShoppingList>> = repository.allShoppingLists
 
-    private val _remoteShoppingLists = MutableLiveData<List<ShoppingList>>()
-    val remoteShoppingLists: LiveData<List<ShoppingList>> = _remoteShoppingLists
-
-    init {
-        syncShoppingLists()
-    }
-
-    private fun syncShoppingLists() {
-        firebaseRepository.getShoppingLists(
-            onSuccess = { lists ->
-                _remoteShoppingLists.postValue(lists)
-                viewModelScope.launch {
-                    lists.forEach { shoppingList ->
-                        repository.insert(shoppingList)
-                    }
-                }
-            },
-            onFailure = {
-                viewModelScope.launch {
-                    repository.allShoppingLists.observeForever { lists -> // ✅ שימוש נכון ב-LiveData
-                        _remoteShoppingLists.postValue(lists)
-                    }
-                }
-            }
-        )
-    }
-
-    fun addShoppingList(shoppingList: ShoppingList) {
-        viewModelScope.launch {
-            repository.insert(shoppingList)
+    suspend fun addShoppingList(shoppingList: ShoppingList): Int {
+        return withContext(Dispatchers.IO) {
+            repository.insertAndGetId(shoppingList).toInt() // עכשיו מחזיר את ה-ID
         }
-        firebaseRepository.addShoppingList(shoppingList, {}, {})
     }
 
-    fun updateShoppingList(listId: String, updatedData: Map<String, Any>, shoppingList: ShoppingList) {
+
+
+    fun updateShoppingList(shoppingList: ShoppingList) {
         viewModelScope.launch {
             repository.update(shoppingList)
         }
-        firebaseRepository.updateShoppingList(listId, updatedData, {}, {})
     }
 
-    fun deleteShoppingList(listId: String, shoppingList: ShoppingList) {
+    fun deleteShoppingList(shoppingList: ShoppingList) {
         viewModelScope.launch {
             repository.delete(shoppingList)
         }
-        firebaseRepository.deleteShoppingList(listId, {}, {})
     }
+
+    suspend fun getShoppingListById(listId: Int): ShoppingList? {
+        return repository.getShoppingListById(listId)
+    }
+
+    fun getItemsForList(listId: Int): LiveData<List<ShoppingItem>> {
+        return repository.getItemsForList(listId)
+    }
+
+    fun addItem(item: ShoppingItem) {
+        viewModelScope.launch {
+            repository.insertItem(item)
+        }
+    }
+
+    fun updateItem(item: ShoppingItem) {
+        viewModelScope.launch {
+            repository.updateItem(item)
+        }
+    }
+
+    fun deleteItem(item: ShoppingItem) {
+        viewModelScope.launch {
+            repository.deleteItem(item)
+        }
+    }
+
+    init {
+        _shoppingLists.addSource(repository.allShoppingLists) { lists ->
+            _shoppingLists.value = lists
+        }
+    }
+
+    fun loadShoppingLists() {
+        viewModelScope.launch {
+            val lists = repository.allShoppingLists.value
+            Log.d("ShoppingListViewModel", "📥 מספר הרשימות שנמשכו: ${lists?.size ?: 0}")
+            _shoppingLists.postValue(lists ?: emptyList()) // עדכון ה-LiveData
+        }
+    }
+
+
+
+
 
     class Factory(private val application: Application, private val repository: ShoppingListRepository) :
         ViewModelProvider.Factory {
@@ -73,5 +92,3 @@ class ShoppingListViewModel(application: Application, private val repository: Sh
         }
     }
 }
-
-
