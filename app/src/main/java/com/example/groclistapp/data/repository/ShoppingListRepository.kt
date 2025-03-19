@@ -6,6 +6,7 @@ import com.example.groclistapp.data.model.ShoppingList
 import com.example.groclistapp.data.model.ShoppingItem
 import com.example.groclistapp.data.model.ShoppingListSummary
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlin.random.Random
 
@@ -111,7 +112,27 @@ class ShoppingListRepository(
     suspend fun insertItem(item: ShoppingItem) {
         shoppingItemDao.insertItem(item)
         saveItemToFirestore(item)
+        val listRef = db.collection("shoppingLists").document(item.listId.toString())
+
+        listRef.get().addOnSuccessListener { document ->
+            if (document.exists()) {
+                val currentItems = document.get("items") as? MutableList<Map<String, Any>> ?: mutableListOf()
+                val newItem = mapOf("name" to item.name, "amount" to item.amount)
+
+                currentItems.add(newItem)
+                listRef.update("items", currentItems)
+                    .addOnSuccessListener {
+                        Log.d("Firestore", "✅ פריט נוסף בהצלחה לשדה `items` במסמך הראשי של הרשימה")
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("Firestore", "❌ שגיאה בשמירת הפריט בתוך `items`: ${e.message}")
+                    }
+            }
+        }.addOnFailureListener {
+            Log.e("Firestore", "❌ שגיאה בשליפת הרשימה: ${it.message}")
+        }
     }
+
 
     suspend fun updateItem(item: ShoppingItem) {
         shoppingItemDao.updateItem(item)
@@ -148,18 +169,21 @@ class ShoppingListRepository(
     }
 
     private fun saveItemToFirestore(item: ShoppingItem) {
-        db.collection("shoppingLists")
-            .document(item.listId.toString())
-            .collection("items")
-            .document(item.id.toString())
-            .set(item)
+        val listRef = db.collection("shoppingLists").document(item.listId.toString())
+
+        listRef.update("items", FieldValue.arrayUnion(mapOf("name" to item.name, "amount" to item.amount)))
             .addOnSuccessListener {
-                Log.d("Firestore", "✅ פריט נשמר בהצלחה: ${item.id}")
+                Log.d("Firestore", "✅ פריט נוסף בהצלחה לרשימה `items` בפיירבייס")
             }
-            .addOnFailureListener {
-                Log.e("Firestore", "❌ שגיאה בשמירת הפריט: ${it.message}")
+            .addOnFailureListener { e ->
+                Log.e("Firestore", "❌ שגיאה בהוספת הפריט: ${e.message}")
             }
     }
+
+
+
+
+
 
     private fun updateItemInFirestore(item: ShoppingItem) {
         db.collection("shoppingLists")

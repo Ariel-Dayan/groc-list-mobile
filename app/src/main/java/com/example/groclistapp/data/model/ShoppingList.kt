@@ -12,7 +12,7 @@ data class ShoppingList(
     @PrimaryKey(autoGenerate = true)
     var id: Int = 0,
     var name: String = "",
-    var items: List<String> = emptyList(),
+    var items: List<ShoppingItem> = emptyList(),
     var creatorId: String = "",
     var shareCode: String = ""
 ) {
