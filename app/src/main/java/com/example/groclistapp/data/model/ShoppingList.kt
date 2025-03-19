@@ -13,10 +13,11 @@ data class ShoppingList(
     var id: Int = 0,
     var name: String = "",
     var items: List<String> = emptyList(),
-    var creatorId: String = ""
+    var creatorId: String = "",
+    var shareCode: String = ""
 ) {
     @Ignore
-    constructor() : this(0, "", emptyList(), "")
+    constructor() : this(0, "", emptyList(), "", "")
 }
 
 

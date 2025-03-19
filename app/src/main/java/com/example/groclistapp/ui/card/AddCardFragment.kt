@@ -30,6 +30,7 @@ class AddCardFragment : Fragment() {
 
     private var listId: Int = -1
     private lateinit var viewModel: ShoppingListViewModel
+    private lateinit var repository: ShoppingListRepository
     private val pendingItems = mutableListOf<ShoppingItem>()
 
     override fun onCreateView(
@@ -44,7 +45,8 @@ class AddCardFragment : Fragment() {
 
         val shoppingListDao = AppDatabase.getDatabase(requireContext()).shoppingListDao()
         val shoppingItemDao = AppDatabase.getDatabase(requireContext()).shoppingItemDao()
-        val repository = ShoppingListRepository(shoppingListDao, shoppingItemDao)
+        repository = ShoppingListRepository(shoppingListDao, shoppingItemDao)
+
         viewModel = ViewModelProvider(
             this,
             ShoppingListViewModel.Factory(requireActivity().application, repository)
@@ -66,7 +68,6 @@ class AddCardFragment : Fragment() {
             if (name.isNotEmpty() && amount > 0) {
                 val chip = createChip(name, amountStr, chipGroup)
                 chipGroup.addView(chip)
-                // בשלב זה listId = -1, נעדכן אותו רק לאחר יצירת הרשימה
                 pendingItems.add(ShoppingItem(name = name, amount = amount, listId = -1))
 
                 tilItemName.editText?.text?.clear()
@@ -86,23 +87,21 @@ class AddCardFragment : Fragment() {
                 val user = FirebaseAuth.getInstance().currentUser
                 val creatorId = user?.uid ?: ""
 
+                val shareCode = repository.generateShareCode()
+
                 val newList = ShoppingListSummary(
                     id = 0,
                     name = listName,
                     itemsCount = 0,
-                    creatorId = creatorId
+                    creatorId = creatorId,
+                    shareCode = shareCode
                 )
 
-                // 1) יוצרים רשימה מקומית ובפיירסטור, מקבלים מזהה (Long)
                 val newListIdLong = viewModel.addShoppingList(newList)
-
-                // 2) המרה ל-Int, כי ShoppingItem.listId הוא Int
                 val newListId = newListIdLong.toInt()
 
-                // 3) משייכים את ה-ListId לפריטים
                 pendingItems.forEach { it.listId = newListId }
 
-                // 4) מוסיפים פריטים גם ב-ROOM וגם בפיירסטור
                 pendingItems.forEach {
                     viewModel.addItem(it)
                     Log.d("AddCardFragment", "🔹 פריט נוסף: ${it.name}, כמות: ${it.amount}, listId: ${it.listId}")
@@ -110,7 +109,7 @@ class AddCardFragment : Fragment() {
 
                 withContext(Dispatchers.Main) {
                     listId = newListId
-                    Log.d("AddCardFragment", "✅ רשימה חדשה נוצרה עם ID: $listId")
+                    Log.d("AddCardFragment", "✅ רשימה חדשה נוצרה עם ID: $listId ושיתוף קוד: $shareCode")
                     setFragmentResult("shoppingListUpdated", bundleOf("updated" to true))
                     findNavController().navigateUp()
                 }
@@ -130,4 +129,5 @@ class AddCardFragment : Fragment() {
         return chip
     }
 }
+
 

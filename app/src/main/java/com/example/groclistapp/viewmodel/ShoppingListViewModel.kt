@@ -18,10 +18,7 @@ class ShoppingListViewModel(
     private val _shoppingLists = MediatorLiveData<List<ShoppingListSummary>>()
     val localShoppingLists: LiveData<List<ShoppingListSummary>> get() = _shoppingLists
 
-    /**
-     * יוצר רשימה חדשה דרך ה-Repository, ומחזיר את ה-ID (Long).
-     * ב-AddCardFragment ממירים את ה-Long ל-Int כדי לשייך לפריטים.
-     */
+
     suspend fun addShoppingList(shoppingList: ShoppingListSummary): Long {
         return withContext(Dispatchers.IO) {
             repository.insertAndGetId(shoppingList)
@@ -67,7 +64,7 @@ class ShoppingListViewModel(
     }
 
     init {
-        // מאזין לשינויים ברשימות המקומיות ומעדכן _shoppingLists
+
         _shoppingLists.addSource(repository.allShoppingLists) { lists ->
             lists?.let {
                 val updatedLists = mutableListOf<ShoppingListSummary>()
@@ -78,9 +75,9 @@ class ShoppingListViewModel(
                             id = list.id,
                             name = list.name,
                             itemsCount = list.itemsCount,
-                            creatorId = list.creatorId
+                            creatorId = list.creatorId,
+                            shareCode = list.shareCode
                         )
-                        // אפשר לשמור creatorName בשדה נוסף, אם תרצה
 
                         updatedLists.add(updatedList)
                         _shoppingLists.postValue(updatedLists)

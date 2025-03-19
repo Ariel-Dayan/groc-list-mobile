@@ -7,6 +7,7 @@ import com.example.groclistapp.data.model.ShoppingItem
 import com.example.groclistapp.data.model.ShoppingListSummary
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlin.random.Random
 
 class ShoppingListRepository(
     private val shoppingListDao: ShoppingListDao,
@@ -19,10 +20,15 @@ class ShoppingListRepository(
     }
 
 
+    fun generateShareCode(): String {
+        val timestamp = System.currentTimeMillis() / 1000
+        val salt = Random.nextInt(0, 100)
+        val combined = timestamp * 100 + salt
+        return combined.toString(36).uppercase()
+    }
+
     suspend fun insertAndGetId(shoppingList: ShoppingListSummary): Long {
-
         val user = FirebaseAuth.getInstance().currentUser
-
 
         Log.d("ShoppingListRepository", "insertAndGetId() called. user=$user, uid=${user?.uid}")
 
@@ -31,30 +37,27 @@ class ShoppingListRepository(
             return -1
         }
 
-
         Log.d("ShoppingListRepository", "ShoppingListSummary => id=${shoppingList.id}, name=${shoppingList.name}, itemsCount=${shoppingList.itemsCount}, creatorId=${shoppingList.creatorId}")
-
 
         val newList = ShoppingList(
             id = shoppingList.id,
             name = shoppingList.name,
-            creatorId = user.uid
+            creatorId = user.uid,
+            shareCode = generateShareCode()
         )
 
-        Log.d("ShoppingListRepository", "📝 Creating newList => id=${newList.id}, name=${newList.name}, creatorId=${newList.creatorId}")
-
+        Log.d("ShoppingListRepository", "📝 Creating newList => id=${newList.id}, name=${newList.name}, creatorId=${newList.creatorId}, shareCode=${newList.shareCode}")
 
         val listId = shoppingListDao.insertShoppingList(newList)
         val listWithUpdatedId = newList.copy(id = listId.toInt())
 
         Log.d("ShoppingListRepository", "Local DB saved. listId=$listId => Now saving to Firestore...")
 
-
         db.collection("shoppingLists")
             .document(listId.toString())
             .set(listWithUpdatedId)
             .addOnSuccessListener {
-                Log.d("ShoppingListRepository", "✅ רשימה נשמרה בפיירבייס עם ID: $listId, creatorId=${user.uid}")
+                Log.d("ShoppingListRepository", "✅ רשימה נשמרה בפיירבייס עם ID: $listId, creatorId=${user.uid}, shareCode=${listWithUpdatedId.shareCode}")
             }
             .addOnFailureListener { e ->
                 Log.e("ShoppingListRepository", "❌ שגיאה בשמירה בפיירבייס: ${e.message}")
@@ -63,16 +66,12 @@ class ShoppingListRepository(
         return listId
     }
 
-
     suspend fun update(shoppingList: ShoppingListSummary) {
-
         shoppingListDao.updateShoppingList(
             ShoppingList(id = shoppingList.id, name = shoppingList.name)
         )
-
         updateShoppingListInFirestore(shoppingList)
     }
-
 
     suspend fun delete(shoppingList: ShoppingListSummary) {
         shoppingListDao.deleteShoppingList(
@@ -109,7 +108,6 @@ class ShoppingListRepository(
             }
     }
 
-
     suspend fun insertItem(item: ShoppingItem) {
         shoppingItemDao.insertItem(item)
         saveItemToFirestore(item)
@@ -124,8 +122,6 @@ class ShoppingListRepository(
         shoppingItemDao.deleteItem(item)
         deleteItemFromFirestore(item.id)
     }
-
-
 
     private fun updateShoppingListInFirestore(shoppingList: ShoppingListSummary) {
         db.collection("shoppingLists")
@@ -180,7 +176,6 @@ class ShoppingListRepository(
     }
 
     private fun deleteItemFromFirestore(itemId: Int) {
-
         db.collection("shoppingLists")
             .document(itemId.toString())
             .delete()

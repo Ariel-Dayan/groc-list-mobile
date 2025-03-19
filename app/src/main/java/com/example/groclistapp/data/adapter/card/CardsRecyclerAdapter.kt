@@ -33,11 +33,9 @@ class CardsRecyclerAdapter(
             holder.creatorTextView.text = "Created by: $creatorName"
         }
 
-        // קריאה ל-bind() בלי repository
+        // ✅ העברת `shareCode` ל-ViewHolder
         holder.bind(shoppingList)
     }
-
-
 
     override fun getItemCount(): Int = shoppingLists.size
 
@@ -67,4 +65,5 @@ class ShoppingListDiffCallback(
         return oldList[oldItemPosition] == newList[newItemPosition]
     }
 }
+
 
