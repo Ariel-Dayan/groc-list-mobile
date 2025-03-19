@@ -9,12 +9,14 @@ import androidx.room.Ignore
 @Entity(tableName = "shopping_lists")
 @TypeConverters(Converters::class)
 data class ShoppingList(
-    @PrimaryKey(autoGenerate = true) var id: Int = 0,
+    @PrimaryKey(autoGenerate = true)
+    var id: Int = 0,
     var name: String = "",
-    var items: List<String> = emptyList()
+    var items: List<String> = emptyList(),
+    var creatorId: String = ""
 ) {
     @Ignore
-    constructor() : this(0, "", emptyList())
+    constructor() : this(0, "", emptyList(), "")
 }
 
 

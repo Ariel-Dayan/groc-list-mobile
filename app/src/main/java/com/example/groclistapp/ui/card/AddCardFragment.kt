@@ -12,7 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.groclistapp.R
 import com.example.groclistapp.data.model.ShoppingItem
-import com.example.groclistapp.data.model.ShoppingList
+import com.example.groclistapp.data.model.ShoppingListSummary
 import com.example.groclistapp.data.repository.AppDatabase
 import com.example.groclistapp.data.repository.ShoppingListRepository
 import com.example.groclistapp.viewmodel.ShoppingListViewModel
@@ -24,7 +24,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.fragment.app.setFragmentResult
 import androidx.core.os.bundleOf
-import com.example.groclistapp.data.model.ShoppingListSummary
+import com.google.firebase.auth.FirebaseAuth
 
 class AddCardFragment : Fragment() {
 
@@ -66,6 +66,7 @@ class AddCardFragment : Fragment() {
             if (name.isNotEmpty() && amount > 0) {
                 val chip = createChip(name, amountStr, chipGroup)
                 chipGroup.addView(chip)
+                // בשלב זה listId = -1, נעדכן אותו רק לאחר יצירת הרשימה
                 pendingItems.add(ShoppingItem(name = name, amount = amount, listId = -1))
 
                 tilItemName.editText?.text?.clear()
@@ -82,11 +83,26 @@ class AddCardFragment : Fragment() {
             }
 
             lifecycleScope.launch(Dispatchers.IO) {
-                val newList = ShoppingListSummary(id = 0, name = listName, itemsCount = 0)
+                val user = FirebaseAuth.getInstance().currentUser
+                val creatorId = user?.uid ?: ""
 
-                val newListId = viewModel.addShoppingList(newList)
+                val newList = ShoppingListSummary(
+                    id = 0,
+                    name = listName,
+                    itemsCount = 0,
+                    creatorId = creatorId
+                )
 
+                // 1) יוצרים רשימה מקומית ובפיירסטור, מקבלים מזהה (Long)
+                val newListIdLong = viewModel.addShoppingList(newList)
+
+                // 2) המרה ל-Int, כי ShoppingItem.listId הוא Int
+                val newListId = newListIdLong.toInt()
+
+                // 3) משייכים את ה-ListId לפריטים
                 pendingItems.forEach { it.listId = newListId }
+
+                // 4) מוסיפים פריטים גם ב-ROOM וגם בפיירסטור
                 pendingItems.forEach {
                     viewModel.addItem(it)
                     Log.d("AddCardFragment", "🔹 פריט נוסף: ${it.name}, כמות: ${it.amount}, listId: ${it.listId}")
@@ -114,3 +130,4 @@ class AddCardFragment : Fragment() {
         return chip
     }
 }
+

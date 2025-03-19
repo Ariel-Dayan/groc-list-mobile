@@ -4,12 +4,14 @@ import androidx.room.*
 
 @Entity(
     tableName = "shopping_items",
-    foreignKeys = [ForeignKey(
-        entity = ShoppingList::class,
-        parentColumns = ["id"],
-        childColumns = ["listId"],
-        onDelete = ForeignKey.CASCADE
-    )],
+    foreignKeys = [
+        ForeignKey(
+            entity = ShoppingList::class,
+            parentColumns = ["id"],
+            childColumns = ["listId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
     indices = [Index(value = ["listId"])]
 )
 data class ShoppingItem(
@@ -25,4 +27,5 @@ data class ShoppingItem(
     @ColumnInfo(name = "listId")
     var listId: Int
 )
+
 

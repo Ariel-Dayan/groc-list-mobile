@@ -10,7 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-@Database(entities = [ShoppingList::class, ShoppingItem::class], views = [ShoppingListSummary::class], version = 4, exportSchema = false)
+@Database(entities = [ShoppingList::class, ShoppingItem::class], views = [ShoppingListSummary::class], version = 5, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun shoppingListDao(): ShoppingListDao

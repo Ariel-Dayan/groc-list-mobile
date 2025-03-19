@@ -6,13 +6,14 @@ import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import com.example.groclistapp.R
 import com.example.groclistapp.viewmodel.AuthViewModel
 import com.google.android.material.textfield.TextInputLayout
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.button.MaterialButton
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 class SignupFragment : Fragment(R.layout.fragment_signup) {
 
@@ -23,27 +24,23 @@ class SignupFragment : Fragment(R.layout.fragment_signup) {
     private lateinit var passwordInput: TextInputEditText
     private lateinit var confirmPasswordInput: TextInputEditText
     private lateinit var registerButton: MaterialButton
+    private val db = FirebaseFirestore.getInstance()
+    private val auth = FirebaseAuth.getInstance()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        try {
-            val emailLayout = view.findViewById<TextInputLayout>(R.id.tilSignupEmail)
-            val fullNameLayout = view.findViewById<TextInputLayout>(R.id.tilSignupFullName)
-            val passwordLayout = view.findViewById<TextInputLayout>(R.id.tilSignupPassword)
-            val confirmPasswordLayout = view.findViewById<TextInputLayout>(R.id.tilSignupConfirmPassword)
+        val emailLayout = view.findViewById<TextInputLayout>(R.id.tilSignupEmail)
+        val fullNameLayout = view.findViewById<TextInputLayout>(R.id.tilSignupFullName)
+        val passwordLayout = view.findViewById<TextInputLayout>(R.id.tilSignupPassword)
+        val confirmPasswordLayout = view.findViewById<TextInputLayout>(R.id.tilSignupConfirmPassword)
 
-            emailInput = emailLayout.editText as? TextInputEditText ?: throw NullPointerException("TextInputEditText for email not found")
-            fullNameInput = fullNameLayout.editText as? TextInputEditText ?: throw NullPointerException("TextInputEditText for full name not found")
-            passwordInput = passwordLayout.editText as? TextInputEditText ?: throw NullPointerException("TextInputEditText for password not found")
-            confirmPasswordInput = confirmPasswordLayout.editText as? TextInputEditText ?: throw NullPointerException("TextInputEditText for confirm password not found")
+        emailInput = emailLayout.editText as TextInputEditText
+        fullNameInput = fullNameLayout.editText as TextInputEditText
+        passwordInput = passwordLayout.editText as TextInputEditText
+        confirmPasswordInput = confirmPasswordLayout.editText as TextInputEditText
 
-            registerButton = view.findViewById(R.id.btnSignupRegister)
-        } catch (e: Exception) {
-            Log.e("SignupFragment", "Error initializing views: ${e.localizedMessage}", e)
-            Toast.makeText(requireContext(), "Error initializing UI. Please restart the app.", Toast.LENGTH_LONG).show()
-            return
-        }
+        registerButton = view.findViewById(R.id.btnSignupRegister)
 
         registerButton.setOnClickListener {
             val email = emailInput.text?.toString()?.trim()
@@ -51,7 +48,9 @@ class SignupFragment : Fragment(R.layout.fragment_signup) {
             val password = passwordInput.text?.toString()?.trim()
             val confirmPassword = confirmPasswordInput.text?.toString()?.trim()
 
-            if (email.isNullOrEmpty() || fullName.isNullOrEmpty() || password.isNullOrEmpty() || confirmPassword.isNullOrEmpty()) {
+            if (email.isNullOrEmpty() || fullName.isNullOrEmpty() ||
+                password.isNullOrEmpty() || confirmPassword.isNullOrEmpty()
+            ) {
                 Toast.makeText(requireContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
@@ -68,20 +67,46 @@ class SignupFragment : Fragment(R.layout.fragment_signup) {
 
             registerButton.isEnabled = false
             registerButton.text = getString(R.string.signing_up)
-            authViewModel.signup(email, password, fullName)
-        }
 
-        authViewModel.signupStatus.observe(viewLifecycleOwner, Observer { isSuccess ->
-            registerButton.isEnabled = true
-            registerButton.text = getString(R.string.sign_up)
-            if (isSuccess) {
-                findNavController().popBackStack()
-            } else {
-                Toast.makeText(requireContext(), "Signup failed. Try a different email.", Toast.LENGTH_SHORT).show()
-            }
-        })
+            auth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener { task ->
+                    registerButton.isEnabled = true
+                    registerButton.text = getString(R.string.sign_up)
+
+                    if (task.isSuccessful) {
+                        val userId = auth.currentUser?.uid ?: return@addOnCompleteListener
+
+                        val userRef = db.collection("users").document(userId)
+                        userRef.get().addOnSuccessListener { document ->
+                            if (!document.exists()) {
+                                val userData = hashMapOf(
+                                    "fullName" to fullName,
+                                    "email" to email
+                                )
+                                userRef.set(userData)
+                                    .addOnSuccessListener {
+                                        Log.d("SignupFragment", "User added to Firestore: $userId")
+                                        Toast.makeText(requireContext(), "User registered successfully!", Toast.LENGTH_SHORT).show()
+                                    }
+                                    .addOnFailureListener { e ->
+                                        Log.e("SignupFragment", "Failed to add user to Firestore", e)
+                                    }
+                            }
+                        }.addOnFailureListener { e ->
+                            Log.e("SignupFragment", "Error checking user in Firestore", e)
+                        }
+
+
+                        findNavController().popBackStack()
+                    } else {
+                        Toast.makeText(requireContext(), "Signup failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                        Log.e("SignupFragment", "Signup failed", task.exception)
+                    }
+                }
+        }
     }
 }
+
 
 
 

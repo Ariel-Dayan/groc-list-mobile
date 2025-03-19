@@ -11,6 +11,7 @@ import com.example.groclistapp.R
 import com.example.groclistapp.data.adapter.card.CardsRecyclerAdapter
 import com.example.groclistapp.data.model.ShoppingList
 import com.example.groclistapp.data.model.ShoppingListSummary
+import com.example.groclistapp.data.repository.AppDatabase
 
 class SharedCardsListFragment : Fragment() {
     private var adapter: CardsRecyclerAdapter? = null
@@ -46,6 +47,8 @@ class SharedCardsListFragment : Fragment() {
     }
 
     private fun setStudentsRecyclerView(view: View) {
+        val shoppingListDao = AppDatabase.getDatabase(requireContext()).shoppingListDao()
+        val shoppingItemDao = AppDatabase.getDatabase(requireContext()).shoppingItemDao()
         var cards: MutableList<Any> = mutableListOf(
             "Apples: 5",
             "Bananas: 10",
@@ -55,7 +58,11 @@ class SharedCardsListFragment : Fragment() {
 
         cardsRecyclerView?.setHasFixedSize(true)
 //
-        adapter = CardsRecyclerAdapter(cards as MutableList<ShoppingListSummary>)
+        adapter = CardsRecyclerAdapter(
+            mutableListOf(),
+            shoppingListDao,
+            shoppingItemDao
+        )
 
 //        adapter?.listener = object : OnItemClickListener {
 //            override fun onItemClick(student: Student?) {

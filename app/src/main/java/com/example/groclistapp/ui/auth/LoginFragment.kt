@@ -26,20 +26,14 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        try {
-            val emailLayout = view.findViewById<TextInputLayout>(R.id.tilLoginEmail)
-            val passwordLayout = view.findViewById<TextInputLayout>(R.id.tilLoginPassword)
+        val emailLayout = view.findViewById<TextInputLayout>(R.id.tilLoginEmail)
+        val passwordLayout = view.findViewById<TextInputLayout>(R.id.tilLoginPassword)
 
-            emailInput = emailLayout.editText as? TextInputEditText ?: throw NullPointerException("TextInputEditText for email not found")
-            passwordInput = passwordLayout.editText as? TextInputEditText ?: throw NullPointerException("TextInputEditText for password not found")
+        emailInput = emailLayout.editText as TextInputEditText
+        passwordInput = passwordLayout.editText as TextInputEditText
 
-            loginButton = view.findViewById(R.id.btnLoginEnter)
-            signupNavigationButton = view.findViewById(R.id.btnSignupNavigation)
-        } catch (e: Exception) {
-            Log.e("LoginFragment", "Error initializing views: ${e.localizedMessage}", e)
-            Toast.makeText(requireContext(), "Error initializing UI. Please restart the app.", Toast.LENGTH_LONG).show()
-            return
-        }
+        loginButton = view.findViewById(R.id.btnLoginEnter)
+        signupNavigationButton = view.findViewById(R.id.btnSignupNavigation)
 
         loginButton.setOnClickListener {
             val email = emailInput.text?.toString()?.trim()
@@ -52,13 +46,17 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
 
             loginButton.isEnabled = false
             loginButton.text = getString(R.string.logging_in)
+
             authViewModel.login(email, password)
         }
 
         authViewModel.loginStatus.observe(viewLifecycleOwner, Observer { isSuccess ->
             loginButton.isEnabled = true
             loginButton.text = getString(R.string.login)
+
             if (isSuccess) {
+                Log.d("LoginFragment", "Login successful. Navigating back...")
+
                 findNavController().popBackStack()
             } else {
                 Toast.makeText(requireContext(), "Login failed. Please check your details.", Toast.LENGTH_SHORT).show()
@@ -66,12 +64,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
         })
 
         signupNavigationButton.setOnClickListener {
-            try {
-                findNavController().navigate(R.id.action_loginFragment_to_signupFragment)
-            } catch (e: Exception) {
-                Log.e("LoginFragment", "Navigation error: ${e.localizedMessage}", e)
-                Toast.makeText(requireContext(), "Navigation failed. Please try again.", Toast.LENGTH_SHORT).show()
-            }
+            findNavController().navigate(R.id.action_loginFragment_to_signupFragment)
         }
     }
 }

@@ -13,12 +13,13 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.groclistapp.R
 import com.example.groclistapp.data.adapter.card.CardsRecyclerAdapter
-import com.example.groclistapp.data.model.ShoppingList
 import com.example.groclistapp.data.repository.AppDatabase
 import com.example.groclistapp.data.repository.ShoppingListRepository
 import com.example.groclistapp.viewmodel.ShoppingListViewModel
 import kotlinx.coroutines.launch
 import androidx.fragment.app.setFragmentResultListener
+import com.example.groclistapp.data.repository.ShoppingListDao
+import com.example.groclistapp.data.repository.ShoppingItemDao
 
 class MyCardsListFragment : Fragment() {
 
@@ -41,7 +42,7 @@ class MyCardsListFragment : Fragment() {
             ShoppingListViewModel.Factory(requireActivity().application, repository)
         )[ShoppingListViewModel::class.java]
 
-        setupRecyclerView(view)
+        setupRecyclerView(view, shoppingListDao, shoppingItemDao)
         observeShoppingLists()
         setupAddButton(view)
 
@@ -60,9 +61,9 @@ class MyCardsListFragment : Fragment() {
         viewModel.loadShoppingLists() // מבטיח שהרשימה תתעדכן אחרי החזרה למסך
     }
 
-    private fun setupRecyclerView(view: View) {
+    private fun setupRecyclerView(view: View, shoppingListDao: ShoppingListDao, shoppingItemDao: ShoppingItemDao) {
         cardsRecyclerView = view.findViewById(R.id.rvMyCardsList)
-        adapter = CardsRecyclerAdapter(mutableListOf())
+        adapter = CardsRecyclerAdapter(mutableListOf(), shoppingListDao, shoppingItemDao) // 👈 עכשיו ה-DAO מועבר
         cardsRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         cardsRecyclerView.adapter = adapter
     }

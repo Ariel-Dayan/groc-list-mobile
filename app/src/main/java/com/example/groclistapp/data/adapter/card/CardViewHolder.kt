@@ -4,7 +4,6 @@ import android.view.View
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.groclistapp.R
-import com.example.groclistapp.data.model.ShoppingList
 import com.example.groclistapp.data.model.ShoppingListSummary
 
 class CardViewHolder(itemView: View, private val listener: OnItemClickListener?)
@@ -12,6 +11,7 @@ class CardViewHolder(itemView: View, private val listener: OnItemClickListener?)
 
     private val titleTextView: TextView = itemView.findViewById(R.id.tvCardsListRowTitle)
     private val descriptionTextView: TextView = itemView.findViewById(R.id.tvCardsListRowDescription)
+    val creatorTextView: TextView = itemView.findViewById(R.id.tvCardsListRowCreatedByHint)
 
     fun bind(shoppingList: ShoppingListSummary) {
         titleTextView.text = shoppingList.name
@@ -21,7 +21,6 @@ class CardViewHolder(itemView: View, private val listener: OnItemClickListener?)
             listener?.onItemClick(shoppingList)
         }
     }
-
 }
 
 

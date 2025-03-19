@@ -3,22 +3,17 @@ package com.example.groclistapp.data.repository
 import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.groclistapp.data.model.ShoppingList
+import com.google.firebase.auth.FirebaseAuth
 
 class FirebaseRepository {
     private val db = FirebaseFirestore.getInstance()
 
     //  הוספת רשימת קניות עם מזהה אוטומטי
-    fun addShoppingList(shoppingList: ShoppingList, onSuccess: (String) -> Unit, onFailure: (Exception) -> Unit) {
-        db.collection("shoppingLists").add(shoppingList)
-            .addOnSuccessListener { documentReference ->
-                Log.d("Firestore", "List added with ID: ${documentReference.id}")
-                onSuccess(documentReference.id)
-            }
-            .addOnFailureListener { e ->
-                Log.w("Firestore", "Error adding document", e)
-                onFailure(e)
-            }
-    }
+
+
+
+
+
 
     //  יצירת רשימת קניות עם מזהה קבוע
     fun setShoppingList(listId: String, shoppingList: ShoppingList, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {

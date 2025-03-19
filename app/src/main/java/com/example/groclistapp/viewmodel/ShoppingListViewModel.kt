@@ -10,15 +10,21 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class ShoppingListViewModel(application: Application, private val repository: ShoppingListRepository)
-    : AndroidViewModel(application) {
+class ShoppingListViewModel(
+    application: Application,
+    private val repository: ShoppingListRepository
+) : AndroidViewModel(application) {
 
     private val _shoppingLists = MediatorLiveData<List<ShoppingListSummary>>()
     val localShoppingLists: LiveData<List<ShoppingListSummary>> get() = _shoppingLists
 
-    suspend fun addShoppingList(shoppingList: ShoppingListSummary): Int {
+    /**
+     * יוצר רשימה חדשה דרך ה-Repository, ומחזיר את ה-ID (Long).
+     * ב-AddCardFragment ממירים את ה-Long ל-Int כדי לשייך לפריטים.
+     */
+    suspend fun addShoppingList(shoppingList: ShoppingListSummary): Long {
         return withContext(Dispatchers.IO) {
-            repository.insertAndGetId(shoppingList).toInt()
+            repository.insertAndGetId(shoppingList)
         }
     }
 
@@ -61,8 +67,26 @@ class ShoppingListViewModel(application: Application, private val repository: Sh
     }
 
     init {
+        // מאזין לשינויים ברשימות המקומיות ומעדכן _shoppingLists
         _shoppingLists.addSource(repository.allShoppingLists) { lists ->
-            _shoppingLists.value = lists
+            lists?.let {
+                val updatedLists = mutableListOf<ShoppingListSummary>()
+
+                it.forEach { list ->
+                    repository.getCreatorName(list.creatorId) { creatorName ->
+                        val updatedList = ShoppingListSummary(
+                            id = list.id,
+                            name = list.name,
+                            itemsCount = list.itemsCount,
+                            creatorId = list.creatorId
+                        )
+                        // אפשר לשמור creatorName בשדה נוסף, אם תרצה
+
+                        updatedLists.add(updatedList)
+                        _shoppingLists.postValue(updatedLists)
+                    }
+                }
+            }
         }
     }
 
@@ -70,12 +94,14 @@ class ShoppingListViewModel(application: Application, private val repository: Sh
         viewModelScope.launch {
             val lists = repository.allShoppingLists.value
             Log.d("ShoppingListViewModel", "📥 מספר הרשימות שנמשכו: ${lists?.size ?: 0}")
-            _shoppingLists.postValue(lists ?: emptyList()) // עדכון ה-LiveData
+            _shoppingLists.postValue(lists ?: emptyList())
         }
     }
 
-    class Factory(private val application: Application, private val repository: ShoppingListRepository) :
-        ViewModelProvider.Factory {
+    class Factory(
+        private val application: Application,
+        private val repository: ShoppingListRepository
+    ) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(ShoppingListViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")

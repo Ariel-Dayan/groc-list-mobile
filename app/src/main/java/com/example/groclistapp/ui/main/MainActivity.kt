@@ -8,6 +8,7 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI
 import com.example.groclistapp.R
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : AppCompatActivity() {
     private var bottomNavigationView: BottomNavigationView? = null
@@ -29,14 +30,20 @@ class MainActivity : AppCompatActivity() {
 
             nc.addOnDestinationChangedListener { _, destination, _ ->
                 when (destination.id) {
-                    R.id.loginFragment, R.id.signupFragment -> bottomNavigationView?.visibility = View.GONE
-                    else -> bottomNavigationView?.visibility = View.VISIBLE
+                    R.id.loginFragment, R.id.signupFragment ->
+                        bottomNavigationView?.visibility = View.GONE
+                    else ->
+                        bottomNavigationView?.visibility = View.VISIBLE
                 }
             }
         }
 
-        if (false) { // TODO: check if user login in
-           navController?.navigate(R.id.loginFragment)
+        // בדיקה אם המשתמש כבר מחובר
+        val user = FirebaseAuth.getInstance().currentUser
+        if (user == null) {
+
+            navController?.navigate(R.id.loginFragment)
         }
+
     }
 }

@@ -6,9 +6,14 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.groclistapp.R
 import com.example.groclistapp.data.model.ShoppingListSummary
+import com.example.groclistapp.data.repository.ShoppingItemDao
+import com.example.groclistapp.data.repository.ShoppingListDao
+import com.example.groclistapp.data.repository.ShoppingListRepository
 
 class CardsRecyclerAdapter(
-    private var shoppingLists: MutableList<ShoppingListSummary>
+    private var shoppingLists: MutableList<ShoppingListSummary>,
+    private val shoppingListDao: ShoppingListDao,
+    private val shoppingItemDao: ShoppingItemDao
 ) : RecyclerView.Adapter<CardViewHolder>() {
 
     var listener: OnItemClickListener? = null
@@ -20,8 +25,19 @@ class CardsRecyclerAdapter(
     }
 
     override fun onBindViewHolder(holder: CardViewHolder, position: Int) {
-        holder.bind(shoppingLists[position])
+        val shoppingList = shoppingLists[position]
+
+        // קבלת שם היוצר ועדכון ה-TextView בתוך ה-Adapter
+        val repository = ShoppingListRepository(shoppingListDao, shoppingItemDao)
+        repository.getCreatorName(shoppingList.creatorId) { creatorName ->
+            holder.creatorTextView.text = "Created by: $creatorName"
+        }
+
+        // קריאה ל-bind() בלי repository
+        holder.bind(shoppingList)
     }
+
+
 
     override fun getItemCount(): Int = shoppingLists.size
 
