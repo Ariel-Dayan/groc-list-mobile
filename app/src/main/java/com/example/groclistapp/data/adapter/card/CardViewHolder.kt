@@ -17,7 +17,13 @@ class CardViewHolder(itemView: View, private val listener: OnItemClickListener?)
 
     fun bind(shoppingList: ShoppingListSummary) {
         titleTextView.text = shoppingList.name
-        descriptionTextView.text = "Items: ${shoppingList.itemsCount}"
+        descriptionTextView.text = if (!shoppingList.description.isNullOrEmpty()) {
+            shoppingList.description
+        } else {
+            "No description available"
+        }
+
+
 
 
         shareCodeTextView.text = if (!shoppingList.shareCode.isNullOrEmpty()) {

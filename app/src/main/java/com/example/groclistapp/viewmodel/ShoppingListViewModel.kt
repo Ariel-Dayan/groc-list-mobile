@@ -64,28 +64,24 @@ class ShoppingListViewModel(
     }
 
     init {
-
         _shoppingLists.addSource(repository.allShoppingLists) { lists ->
             lists?.let {
-                val updatedLists = mutableListOf<ShoppingListSummary>()
-
-                it.forEach { list ->
-                    repository.getCreatorName(list.creatorId) { creatorName ->
-                        val updatedList = ShoppingListSummary(
-                            id = list.id,
-                            name = list.name,
-                            itemsCount = list.itemsCount,
-                            creatorId = list.creatorId,
-                            shareCode = list.shareCode
-                        )
-
-                        updatedLists.add(updatedList)
-                        _shoppingLists.postValue(updatedLists)
-                    }
+                val updatedLists = lists.map { list ->
+                    ShoppingListSummary(
+                        id = list.id,
+                        name = list.name,
+                        description = list.description ?: "",
+                        itemsCount = list.itemsCount,
+                        creatorId = list.creatorId,
+                        shareCode = list.shareCode
+                    )
                 }
+                _shoppingLists.postValue(updatedLists)
+                Log.d("ShoppingListViewModel", "✅ רשימות נטענו עם תיאורים: ${updatedLists.map { it.description }}")
             }
         }
     }
+
 
     fun loadShoppingLists() {
         viewModelScope.launch {

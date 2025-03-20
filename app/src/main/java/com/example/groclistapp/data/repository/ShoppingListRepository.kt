@@ -43,6 +43,7 @@ class ShoppingListRepository(
         val newList = ShoppingList(
             id = shoppingList.id,
             name = shoppingList.name,
+            description = shoppingList.description,
             creatorId = user.uid,
             shareCode = generateShareCode()
         )
@@ -69,7 +70,9 @@ class ShoppingListRepository(
 
     suspend fun update(shoppingList: ShoppingListSummary) {
         shoppingListDao.updateShoppingList(
-            ShoppingList(id = shoppingList.id, name = shoppingList.name)
+            ShoppingList(id = shoppingList.id, name = shoppingList.name,
+                description = shoppingList.description,  creatorId = shoppingList.creatorId,
+                shareCode = shoppingList.shareCode)
         )
         updateShoppingListInFirestore(shoppingList)
     }

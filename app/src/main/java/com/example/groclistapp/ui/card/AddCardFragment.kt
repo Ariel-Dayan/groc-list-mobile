@@ -55,6 +55,7 @@ class AddCardFragment : Fragment() {
         val tilListName = view.findViewById<TextInputLayout>(R.id.tilAddCardTitle)
         val tilItemName = view.findViewById<TextInputLayout>(R.id.tilAddCardItemName)
         val tilItemAmount = view.findViewById<TextInputLayout>(R.id.tilAddCardItemAmount)
+        val tilListDescription = view.findViewById<TextInputLayout>(R.id.tilAddCardDescription)
         val chipGroup = view.findViewById<ChipGroup>(R.id.cgAddCardItemsContainer)
         val btnAddItem = view.findViewById<Button>(R.id.btnAddCardAddItem)
         val btnSave = view.findViewById<Button>(R.id.btnAddCardSave)
@@ -77,6 +78,8 @@ class AddCardFragment : Fragment() {
 
         btnSave.setOnClickListener {
             val listName = tilListName.editText?.text.toString().trim()
+            val listDescription = tilListDescription.editText?.text.toString().trim()
+            Log.d("AddCardFragment", "📥 שמירת רשימה - שם: $listName | תיאור: $listDescription")
 
             if (listName.isEmpty()) {
                 tilListName.error = "The list name cannot be empty"
@@ -92,6 +95,7 @@ class AddCardFragment : Fragment() {
                 val newList = ShoppingListSummary(
                     id = 0,
                     name = listName,
+                    description = listDescription,
                     itemsCount = 0,
                     creatorId = creatorId,
                     shareCode = shareCode

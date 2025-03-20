@@ -18,28 +18,28 @@ interface ShoppingListDao {
     suspend fun deleteShoppingList(shoppingList: ShoppingList): Int
 
     @Query("""
-        SELECT shopping_lists.id, shopping_lists.name, shopping_lists.creatorId, shopping_lists.shareCode, 
+        SELECT shopping_lists.id, shopping_lists.name, shopping_lists.description, shopping_lists.creatorId, shopping_lists.shareCode, 
         (SELECT COUNT(*) FROM shopping_items WHERE shopping_items.listId = shopping_lists.id) AS itemsCount 
         FROM shopping_lists ORDER BY name ASC
     """)
     fun getAllShoppingLists(): LiveData<List<ShoppingListSummary>>
 
     @Query("""
-        SELECT shopping_lists.id, shopping_lists.name, shopping_lists.creatorId, shopping_lists.shareCode, 
+        SELECT shopping_lists.id, shopping_lists.name, shopping_lists.description, shopping_lists.creatorId, shopping_lists.shareCode, 
         (SELECT COUNT(*) FROM shopping_items WHERE shopping_items.listId = shopping_lists.id) AS itemsCount 
         FROM shopping_lists WHERE shopping_lists.id = :listId LIMIT 1
     """)
     suspend fun getListById(listId: Int): ShoppingListSummary?
 
     @Query("""
-        SELECT shopping_lists.id, shopping_lists.name, shopping_lists.creatorId, shopping_lists.shareCode, 
+        SELECT shopping_lists.id, shopping_lists.name, shopping_lists.description, shopping_lists.creatorId, shopping_lists.shareCode, 
         (SELECT COUNT(*) FROM shopping_items WHERE shopping_items.listId = shopping_lists.id) AS itemsCount 
         FROM shopping_lists ORDER BY name ASC
     """)
     suspend fun getAllShoppingListsNow(): List<ShoppingListSummary>
 
     @Query("""
-        SELECT shopping_lists.id, shopping_lists.name, shopping_lists.creatorId, shopping_lists.shareCode, 
+        SELECT shopping_lists.id, shopping_lists.name, shopping_lists.description, shopping_lists.creatorId, shopping_lists.shareCode, 
         (SELECT COUNT(*) FROM shopping_items WHERE shopping_items.listId = shopping_lists.id) AS itemsCount 
         FROM shopping_lists WHERE shopping_lists.shareCode = :shareCode LIMIT 1
     """)

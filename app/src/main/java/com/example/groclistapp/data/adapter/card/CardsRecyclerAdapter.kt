@@ -27,26 +27,21 @@ class CardsRecyclerAdapter(
     override fun onBindViewHolder(holder: CardViewHolder, position: Int) {
         val shoppingList = shoppingLists[position]
 
-        // קבלת שם היוצר ועדכון ה-TextView בתוך ה-Adapter
         val repository = ShoppingListRepository(shoppingListDao, shoppingItemDao)
         repository.getCreatorName(shoppingList.creatorId) { creatorName ->
             holder.creatorTextView.text = "Created by: $creatorName"
         }
 
-        // ✅ העברת `shareCode` ל-ViewHolder
         holder.bind(shoppingList)
     }
 
     override fun getItemCount(): Int = shoppingLists.size
 
     fun updateData(newLists: List<ShoppingListSummary>) {
-        val diffCallback = ShoppingListDiffCallback(shoppingLists, newLists)
-        val diffResult = DiffUtil.calculateDiff(diffCallback)
-
-        shoppingLists.clear()
-        shoppingLists.addAll(newLists)
-        diffResult.dispatchUpdatesTo(this)
+        shoppingLists = newLists.toMutableList()
+        notifyDataSetChanged()
     }
+
 }
 
 class ShoppingListDiffCallback(

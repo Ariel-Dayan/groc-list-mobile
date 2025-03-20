@@ -12,12 +12,13 @@ data class ShoppingList(
     @PrimaryKey(autoGenerate = true)
     var id: Int = 0,
     var name: String = "",
+    var description: String = "",
     var items: List<ShoppingItem> = emptyList(),
     var creatorId: String = "",
     var shareCode: String = ""
 ) {
     @Ignore
-    constructor() : this(0, "", emptyList(), "", "")
+    constructor() : this(0, "","", emptyList(), "", "")
 }
 
 
