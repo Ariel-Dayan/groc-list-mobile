@@ -114,27 +114,19 @@ class ShoppingListRepository(
 
     suspend fun insertItem(item: ShoppingItem) {
         shoppingItemDao.insertItem(item)
-        saveItemToFirestore(item)
+
         val listRef = db.collection("shoppingLists").document(item.listId.toString())
+        val newItem = mapOf("name" to item.name, "amount" to item.amount)
 
-        listRef.get().addOnSuccessListener { document ->
-            if (document.exists()) {
-                val currentItems = document.get("items") as? MutableList<Map<String, Any>> ?: mutableListOf()
-                val newItem = mapOf("name" to item.name, "amount" to item.amount)
-
-                currentItems.add(newItem)
-                listRef.update("items", currentItems)
-                    .addOnSuccessListener {
-                        Log.d("Firestore", "✅ פריט נוסף בהצלחה לשדה `items` במסמך הראשי של הרשימה")
-                    }
-                    .addOnFailureListener { e ->
-                        Log.e("Firestore", "❌ שגיאה בשמירת הפריט בתוך `items`: ${e.message}")
-                    }
+        listRef.update("items", FieldValue.arrayUnion(newItem))
+            .addOnSuccessListener {
+                Log.d("Firestore", "✅ פריט נוסף בהצלחה לשדה `items` בפיירבייס (arrayUnion)")
             }
-        }.addOnFailureListener {
-            Log.e("Firestore", "❌ שגיאה בשליפת הרשימה: ${it.message}")
-        }
+            .addOnFailureListener { e ->
+                Log.e("Firestore", "❌ שגיאה בהוספת הפריט לשדה `items`: ${e.message}")
+            }
     }
+
 
 
     suspend fun updateItem(item: ShoppingItem) {
