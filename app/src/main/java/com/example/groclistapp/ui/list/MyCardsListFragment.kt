@@ -20,6 +20,8 @@ import kotlinx.coroutines.launch
 import androidx.fragment.app.setFragmentResultListener
 import com.example.groclistapp.data.repository.ShoppingListDao
 import com.example.groclistapp.data.repository.ShoppingItemDao
+import com.example.groclistapp.data.adapter.card.OnItemClickListener
+
 
 class MyCardsListFragment : Fragment() {
 
@@ -46,7 +48,6 @@ class MyCardsListFragment : Fragment() {
         observeShoppingLists()
         setupAddButton(view)
 
-        // מאזין לעדכון הרשימה בזמן אמת
         setFragmentResultListener("shoppingListUpdated") { _, bundle ->
             if (bundle.getBoolean("updated", false)) {
                 Log.d("MyCardsListFragment", "📌 רשימה חדשה נוספה, טוען מחדש נתונים...")
@@ -58,14 +59,26 @@ class MyCardsListFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.loadShoppingLists() // מבטיח שהרשימה תתעדכן אחרי החזרה למסך
+        viewModel.loadShoppingLists()
     }
 
     private fun setupRecyclerView(view: View, shoppingListDao: ShoppingListDao, shoppingItemDao: ShoppingItemDao) {
         cardsRecyclerView = view.findViewById(R.id.rvMyCardsList)
-        adapter = CardsRecyclerAdapter(mutableListOf(), shoppingListDao, shoppingItemDao) // 👈 עכשיו ה-DAO מועבר
+        adapter = CardsRecyclerAdapter(
+            mutableListOf(),
+            shoppingListDao,
+            shoppingItemDao,
+            object : OnItemClickListener {
+                override fun onItemClick(listId: Int) {
+                    val bundle = Bundle().apply { putInt("listId", listId) }
+                    findNavController().navigate(R.id.action_myCardsListFragment_to_updateCardFragment, bundle)
+                }
+            }
+        )
+
         cardsRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         cardsRecyclerView.adapter = adapter
+
     }
 
     private fun observeShoppingLists() {

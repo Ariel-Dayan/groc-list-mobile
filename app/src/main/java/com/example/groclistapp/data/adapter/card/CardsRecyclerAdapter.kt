@@ -9,14 +9,14 @@ import com.example.groclistapp.data.model.ShoppingListSummary
 import com.example.groclistapp.data.repository.ShoppingItemDao
 import com.example.groclistapp.data.repository.ShoppingListDao
 import com.example.groclistapp.data.repository.ShoppingListRepository
+import com.example.groclistapp.data.adapter.card.OnItemClickListener
 
 class CardsRecyclerAdapter(
     private var shoppingLists: MutableList<ShoppingListSummary>,
     private val shoppingListDao: ShoppingListDao,
-    private val shoppingItemDao: ShoppingItemDao
+    private val shoppingItemDao: ShoppingItemDao,
+    var listener: OnItemClickListener
 ) : RecyclerView.Adapter<CardViewHolder>() {
-
-    var listener: OnItemClickListener? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CardViewHolder {
         val itemView = LayoutInflater.from(parent.context)

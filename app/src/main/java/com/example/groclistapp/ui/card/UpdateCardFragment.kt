@@ -10,8 +10,15 @@ import android.widget.Button
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 import com.example.groclistapp.R
+import com.example.groclistapp.data.repository.AppDatabase
+import com.example.groclistapp.data.repository.ShoppingListRepository
+import com.example.groclistapp.viewmodel.ShoppingListViewModel
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
+import androidx.lifecycle.ViewModelProvider
+import com.example.groclistapp.data.model.ShoppingItem
+import com.google.android.material.textfield.TextInputLayout
+
 
 class UpdateCardFragment : Fragment() {
     override fun onCreateView(
@@ -20,38 +27,70 @@ class UpdateCardFragment : Fragment() {
     ): View? {
         return inflater.inflate(R.layout.fragment_update_card, container, false)
     }
+    private lateinit var viewModel: ShoppingListViewModel
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val listId = arguments?.getInt("listId") ?: return
+
+        val repository = ShoppingListRepository(
+            AppDatabase.getDatabase(requireContext()).shoppingListDao(),
+            AppDatabase.getDatabase(requireContext()).shoppingItemDao()
+        )
+
+        val factory = ShoppingListViewModel.Factory(requireActivity().application, repository)
+
+        viewModel = ViewModelProvider(this, factory).get(ShoppingListViewModel::class.java)
 
         val chipGroup = view.findViewById<ChipGroup>(R.id.cgUpdateCardItemsContainer)
         chipGroup.layoutDirection = View.LAYOUT_DIRECTION_LOCALE
+        viewModel.getItemsForList(listId).observe(viewLifecycleOwner) { items ->
+            items.forEach { item ->
+                val chip = createChip(item.name, item.amount.toString(), chipGroup)
+                chipGroup.addView(chip)
+            }
+        }
 
         val btnAddItem = view.findViewById<Button>(R.id.btnUpdateCardAddItem)
 
-        chipGroup.addView(createChip("Apples", "5", chipGroup))
-        chipGroup.addView(createChip("Bananas", "10", chipGroup))
-        chipGroup.addView(createChip("Oranges", "3", chipGroup))
-        chipGroup.addView(createChip("Apples1", "5", chipGroup))
-        chipGroup.addView(createChip("Bananas1", "10", chipGroup))
-        chipGroup.addView(createChip("Oranges1", "3", chipGroup))
-        chipGroup.addView(createChip("Bananas2", "10", chipGroup))
-        chipGroup.addView(createChip("Oranges2", "3", chipGroup))
-
         btnAddItem.setOnClickListener {
-            val name = "aaaa"
-            val amount = "3"
+            val dialogView = layoutInflater.inflate(R.layout.dialog_item, null)
 
-            if (name.isNotEmpty() && amount.isNotEmpty()) {
-                val chip = createChip(name, amount, chipGroup)
-                chipGroup.addView(chip)
+            val tilName = dialogView.findViewById<TextInputLayout>(R.id.tilDialogItemName)
+            val tilAmount = dialogView.findViewById<TextInputLayout>(R.id.tilDialogItemAmount)
 
-                // Clear the text fields after adding
-//                nameField.text.clear()
-//                amountField.text.clear()
-            }
+            val etName = tilName.editText
+            val etAmount = tilAmount.editText
+
+            AlertDialog.Builder(requireContext())
+                .setTitle("add item")
+                .setView(dialogView)
+                .setPositiveButton("add") { _, _ ->
+                    val name = etName?.text?.toString()?.trim() ?: ""
+                    val amountText = etAmount?.text?.toString()?.trim() ?: ""
+
+                    if (name.isNotEmpty() && amountText.isNotEmpty()) {
+                        val amount = amountText.toIntOrNull() ?: 1
+
+                        val chip = createChip(name, amount.toString(), chipGroup)
+                        chipGroup.addView(chip)
+
+                        val newItem = ShoppingItem(
+                            id = 0,
+                            name = name,
+                            amount = amount,
+                            listId = listId
+                        )
+                        viewModel.addItem(newItem)
+                    }
+                }
+                .setNegativeButton("cancel", null)
+                .show()
         }
+
+
     }
+
 
     private fun createChip(name: String, amount: String, chipGroup: ChipGroup): Chip {
         val chip = Chip(requireContext())

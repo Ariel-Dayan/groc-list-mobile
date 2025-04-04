@@ -1,5 +1,6 @@
 package com.example.groclistapp.data.adapter.card
 
+import android.util.Log
 import android.view.View
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
@@ -33,7 +34,8 @@ class CardViewHolder(itemView: View, private val listener: OnItemClickListener?)
         }
 
         itemView.setOnClickListener {
-            listener?.onItemClick(shoppingList)
+            Log.d("CardViewHolder", "Item clicked: ${shoppingList.id}")
+            listener?.onItemClick(shoppingList.id)
         }
     }
 }

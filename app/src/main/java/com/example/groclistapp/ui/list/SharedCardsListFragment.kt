@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.groclistapp.R
 import com.example.groclistapp.data.adapter.card.CardsRecyclerAdapter
+import com.example.groclistapp.data.adapter.card.OnItemClickListener
 import com.example.groclistapp.data.model.ShoppingList
 import com.example.groclistapp.data.model.ShoppingListSummary
 import com.example.groclistapp.data.repository.AppDatabase
@@ -61,8 +62,14 @@ class SharedCardsListFragment : Fragment() {
         adapter = CardsRecyclerAdapter(
             mutableListOf(),
             shoppingListDao,
-            shoppingItemDao
+            shoppingItemDao,
+            object : OnItemClickListener {
+                override fun onItemClick(listId: Int) {
+
+                }
+            }
         )
+
 
 //        adapter?.listener = object : OnItemClickListener {
 //            override fun onItemClick(student: Student?) {
