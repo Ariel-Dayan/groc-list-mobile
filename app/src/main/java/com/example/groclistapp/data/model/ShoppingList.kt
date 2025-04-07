@@ -14,11 +14,12 @@ data class ShoppingList(
     var name: String = "",
     var description: String = "",
     var items: List<ShoppingItem> = emptyList(),
+    val imageUrl: String? = null,
     var creatorId: String = "",
     var shareCode: String = ""
 ) {
     @Ignore
-    constructor() : this(0, "","", emptyList(), "", "")
+    constructor() : this(0, "","", emptyList(), null, "", "")
 }
 
 

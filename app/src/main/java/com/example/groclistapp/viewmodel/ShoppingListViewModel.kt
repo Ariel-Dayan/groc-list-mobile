@@ -71,6 +71,7 @@ class ShoppingListViewModel(
                         id = list.id,
                         name = list.name,
                         description = list.description ?: "",
+                        imageUrl = list.imageUrl,
                         itemsCount = list.itemsCount,
                         creatorId = list.creatorId,
                         shareCode = list.shareCode

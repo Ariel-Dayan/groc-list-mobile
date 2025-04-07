@@ -8,6 +8,7 @@ import com.example.groclistapp.data.model.ShoppingListSummary
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 import kotlin.random.Random
 
 class ShoppingListRepository(
@@ -44,9 +45,11 @@ class ShoppingListRepository(
             id = shoppingList.id,
             name = shoppingList.name,
             description = shoppingList.description,
+            imageUrl = shoppingList.imageUrl,
             creatorId = user.uid,
             shareCode = generateShareCode()
         )
+
 
         Log.d("ShoppingListRepository", "📝 Creating newList => id=${newList.id}, name=${newList.name}, creatorId=${newList.creatorId}, shareCode=${newList.shareCode}")
 
@@ -57,7 +60,7 @@ class ShoppingListRepository(
 
         db.collection("shoppingLists")
             .document(listId.toString())
-            .set(listWithUpdatedId)
+            .set(listWithUpdatedId, com.google.firebase.firestore.SetOptions.merge())
             .addOnSuccessListener {
                 Log.d("ShoppingListRepository", "✅ רשימה נשמרה בפיירבייס עם ID: $listId, creatorId=${user.uid}, shareCode=${listWithUpdatedId.shareCode}")
             }
@@ -70,12 +73,18 @@ class ShoppingListRepository(
 
     suspend fun update(shoppingList: ShoppingListSummary) {
         shoppingListDao.updateShoppingList(
-            ShoppingList(id = shoppingList.id, name = shoppingList.name,
-                description = shoppingList.description,  creatorId = shoppingList.creatorId,
-                shareCode = shoppingList.shareCode)
+            ShoppingList(
+                id = shoppingList.id,
+                name = shoppingList.name,
+                description = shoppingList.description,
+                imageUrl = shoppingList.imageUrl,
+                creatorId = shoppingList.creatorId,
+                shareCode = shoppingList.shareCode
+            )
         )
         updateShoppingListInFirestore(shoppingList)
     }
+
 
     suspend fun delete(shoppingList: ShoppingListSummary) {
         shoppingListDao.deleteShoppingList(
@@ -85,8 +94,30 @@ class ShoppingListRepository(
     }
 
     suspend fun getShoppingListById(listId: Int): ShoppingListSummary? {
-        return shoppingListDao.getListById(listId)
+
+        val localList = shoppingListDao.getListById(listId)
+        if (localList != null) return localList
+
+        return try {
+            val documentSnapshot = db.collection("shoppingLists")
+                .document(listId.toString())
+                .get()
+                .await()
+
+            if (documentSnapshot.exists()) {
+                val firebaseList = documentSnapshot.toObject(ShoppingList::class.java)
+                if (firebaseList != null) {
+
+                    shoppingListDao.insertShoppingList(firebaseList)
+                    shoppingListDao.getListById(listId)
+                } else null
+            } else null
+        } catch (e: Exception) {
+            Log.e("Firestore", "❌ שגיאה בשליפה מ־Firestore: ${e.message}")
+            null
+        }
     }
+
 
     fun getItemsForList(listId: Int): LiveData<List<ShoppingItem>> {
         return shoppingItemDao.getItemsForList(listId)
@@ -142,7 +173,13 @@ class ShoppingListRepository(
     private fun updateShoppingListInFirestore(shoppingList: ShoppingListSummary) {
         db.collection("shoppingLists")
             .document(shoppingList.id.toString())
-            .update("name", shoppingList.name)
+            .update(
+                mapOf(
+                    "name" to shoppingList.name,
+                    "description" to shoppingList.description,
+                    "imageUrl" to shoppingList.imageUrl
+                )
+            )
             .addOnSuccessListener {
                 Log.d("Firestore", "✅ רשימה עודכנה בהצלחה: ${shoppingList.id}")
             }
@@ -150,6 +187,7 @@ class ShoppingListRepository(
                 Log.e("Firestore", "❌ שגיאה בעדכון הרשימה: ${it.message}")
             }
     }
+
 
     private fun deleteShoppingListFromFirestore(listId: Int) {
         db.collection("shoppingLists")
@@ -174,11 +212,6 @@ class ShoppingListRepository(
                 Log.e("Firestore", "❌ שגיאה בהוספת הפריט: ${e.message}")
             }
     }
-
-
-
-
-
 
     private fun updateItemInFirestore(item: ShoppingItem) {
         db.collection("shoppingLists")
