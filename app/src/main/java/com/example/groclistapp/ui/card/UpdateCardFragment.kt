@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import androidx.appcompat.app.AlertDialog
 import com.example.groclistapp.R
 import com.example.groclistapp.data.repository.AppDatabase
@@ -16,8 +17,12 @@ import com.example.groclistapp.viewmodel.ShoppingListViewModel
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.example.groclistapp.data.model.ShoppingItem
 import com.google.android.material.textfield.TextInputLayout
+import androidx.navigation.fragment.findNavController
+import com.bumptech.glide.Glide
+import kotlinx.coroutines.launch
 
 
 class UpdateCardFragment : Fragment() {
@@ -41,6 +46,23 @@ class UpdateCardFragment : Fragment() {
         val factory = ShoppingListViewModel.Factory(requireActivity().application, repository)
 
         viewModel = ViewModelProvider(this, factory).get(ShoppingListViewModel::class.java)
+
+        val tilTitle = view.findViewById<TextInputLayout>(R.id.tilUpdateCardTitle)
+        val tilDescription = view.findViewById<TextInputLayout>(R.id.tilUpdateCardDescription)
+        val ivTop = view.findViewById<ImageView>(R.id.ivUpdateCardTop)
+
+        lifecycleScope.launch {
+            val list = viewModel.getShoppingListById(listId)
+            list?.let {
+                tilTitle.editText?.setText(it.name)
+                tilDescription.editText?.setText(it.description)
+                if (!it.imageUrl.isNullOrEmpty()) {
+                    Glide.with(requireContext())
+                        .load(it.imageUrl)
+                        .into(ivTop)
+                }
+            }
+        }
 
         val chipGroup = view.findViewById<ChipGroup>(R.id.cgUpdateCardItemsContainer)
         chipGroup.layoutDirection = View.LAYOUT_DIRECTION_LOCALE
@@ -88,6 +110,10 @@ class UpdateCardFragment : Fragment() {
                 .show()
         }
 
+        val btnCancel = view.findViewById<Button>(R.id.btnUpdateCardCancel)
+        btnCancel.setOnClickListener {
+            findNavController().navigateUp()
+        }
 
     }
 
