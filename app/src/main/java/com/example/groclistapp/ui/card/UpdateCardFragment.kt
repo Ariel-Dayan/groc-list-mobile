@@ -2,6 +2,7 @@ package com.example.groclistapp.ui.card
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -9,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.example.groclistapp.R
 import com.example.groclistapp.data.repository.AppDatabase
@@ -22,17 +24,20 @@ import com.example.groclistapp.data.model.ShoppingItem
 import com.google.android.material.textfield.TextInputLayout
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
+import com.example.groclistapp.data.model.ShoppingListSummary
 import kotlinx.coroutines.launch
 
-
 class UpdateCardFragment : Fragment() {
+
+    private lateinit var viewModel: ShoppingListViewModel
+    private var currentListSummary: ShoppingListSummary? = null
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         return inflater.inflate(R.layout.fragment_update_card, container, false)
     }
-    private lateinit var viewModel: ShoppingListViewModel
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -44,7 +49,6 @@ class UpdateCardFragment : Fragment() {
         )
 
         val factory = ShoppingListViewModel.Factory(requireActivity().application, repository)
-
         viewModel = ViewModelProvider(this, factory).get(ShoppingListViewModel::class.java)
 
         val tilTitle = view.findViewById<TextInputLayout>(R.id.tilUpdateCardTitle)
@@ -52,8 +56,8 @@ class UpdateCardFragment : Fragment() {
         val ivTop = view.findViewById<ImageView>(R.id.ivUpdateCardTop)
 
         lifecycleScope.launch {
-            val list = viewModel.getShoppingListById(listId)
-            list?.let {
+            currentListSummary = viewModel.getShoppingListById(listId)
+            currentListSummary?.let {
                 tilTitle.editText?.setText(it.name)
                 tilDescription.editText?.setText(it.description)
                 if (!it.imageUrl.isNullOrEmpty()) {
@@ -74,7 +78,6 @@ class UpdateCardFragment : Fragment() {
         }
 
         val btnAddItem = view.findViewById<Button>(R.id.btnUpdateCardAddItem)
-
         btnAddItem.setOnClickListener {
             val dialogView = layoutInflater.inflate(R.layout.dialog_item, null)
 
@@ -115,8 +118,34 @@ class UpdateCardFragment : Fragment() {
             findNavController().navigateUp()
         }
 
-    }
+        val btnUpdate = view.findViewById<Button>(R.id.btnUpdateCardUpdate)
+        btnUpdate.setOnClickListener {
+            val updatedName = tilTitle.editText?.text?.toString()?.trim()
+            val updatedDescription = tilDescription.editText?.text?.toString()?.trim()
 
+            if (updatedName.isNullOrEmpty() || updatedDescription.isNullOrEmpty()) {
+                Toast.makeText(requireContext(), "שם ותיאור לא יכולים להיות ריקים", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            currentListSummary?.let { oldList ->
+                val updatedList = oldList.copy(
+                    name = updatedName,
+                    description = updatedDescription
+                )
+
+                Log.d("UpdateTest", " שולח את updatedList ל־ViewModel: ${updatedList.name}, ${updatedList.description}")
+
+                viewModel.updateShoppingList(updatedList)
+
+                Toast.makeText(requireContext(), "List updated successfully", Toast.LENGTH_SHORT).show()
+                findNavController().navigateUp()
+            } ?: run {
+                Log.e("UpdateTest", " currentListSummary היה null")
+            }
+        }
+
+    }
 
     private fun createChip(name: String, amount: String, chipGroup: ChipGroup): Chip {
         val chip = Chip(requireContext())
@@ -159,8 +188,6 @@ class UpdateCardFragment : Fragment() {
             .setPositiveButton("Update") { _, _ ->
                 val newName = nameInput.text.toString()
                 val newAmount = amountInput.text.toString()
-
-                // Call the onUpdate callback with the new values
                 if (newName.isNotEmpty() && newAmount.isNotEmpty()) {
                     onUpdate(newName, newAmount)
                 }
