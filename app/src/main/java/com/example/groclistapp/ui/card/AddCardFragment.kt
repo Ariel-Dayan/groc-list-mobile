@@ -83,19 +83,22 @@ class AddCardFragment : Fragment() {
             val amount = amountStr.toIntOrNull() ?: 0
 
             if (name.isNotEmpty() && amount > 0) {
+                Log.d("AddCardFragment", "Adding new pending item: name=$name, amount=$amount")
                 val chip = createChip(name, amountStr, chipGroup)
                 chipGroup.addView(chip)
                 pendingItems.add(ShoppingItem(name = name, amount = amount, listId = -1))
 
                 tilItemName.editText?.text?.clear()
                 tilItemAmount.editText?.text?.clear()
+            } else {
+                Log.d("AddCardFragment", "Invalid item input: name='$name', amount='$amount'")
             }
         }
+
 
         btnSave.setOnClickListener {
             val listName = tilListName.editText?.text.toString().trim()
             val listDescription = tilListDescription.editText?.text.toString().trim()
-            Log.d("AddCardFragment", "\uD83D\uDCC5 שמירת רשימה - שם: $listName | תיאור: $listDescription")
 
             if (listName.isEmpty()) {
                 tilListName.error = "The list name cannot be empty"
@@ -117,7 +120,7 @@ class AddCardFragment : Fragment() {
                         continueSaving(listName, listDescription, url, creatorId, shareCode)
                     },
                     onFailure = { e ->
-                        Log.e("AddCardFragment", "\u274C שגיאה בהעלאת התמונה: ${e.message}")
+                        Log.e("AddCardFragment", "\u274C Error uploading image: ${e.message}")
                         continueSaving(listName, listDescription, null, creatorId, shareCode)
                     }
                 )
@@ -211,24 +214,42 @@ class AddCardFragment : Fragment() {
                 shareCode = shareCode
             )
 
+            Log.d("AddCardFragment", "Before adding shopping list: $newList")
+
             val newListIdLong = viewModel.addShoppingList(newList)
             val newListId = newListIdLong.toInt()
+            Log.d("AddCardFragment", "New shopping list added with ID: $newListId")
 
-            pendingItems.forEach { it.listId = newListId }
-
-            pendingItems.forEach {
-                viewModel.addItem(it)
-                Log.d("AddCardFragment", "\uD83D\uDD39 פריט נוסף: ${it.name}, כמות: ${it.amount}, listId: ${it.listId}")
+            pendingItems.forEachIndexed { index, item ->
+                Log.d("AddCardFragment", "Before update: pendingItems[$index] - name: ${item.name}, old listId: ${item.listId}")
+                item.listId = newListId
+                Log.d("AddCardFragment", "After update: pendingItems[$index] - name: ${item.name}, new listId: ${item.listId}")
             }
+
+            for ((index, item) in pendingItems.withIndex()) {
+                try {
+                    Log.d("AddCardFragment", "Attempting to add item [$index] using addItemSuspend: name=${item.name}, listId=${item.listId}, amount=${item.amount}")
+                     viewModel.addItemSuspend(item)
+                    Log.d("AddCardFragment", "Successfully added item [$index] using addItemSuspend: name=${item.name}")
+                } catch (e: Exception) {
+                    Log.e("AddCardFragment", "Error adding item [$index] using addItemSuspend: name=${item.name} - ${e.message}")
+                }
+            }
+
+
+            pendingItems.clear()
+            Log.d("AddCardFragment", "Pending items list cleared after saving.")
 
             withContext(Dispatchers.Main) {
                 listId = newListId
-                Log.d("AddCardFragment", "\u2705 רשימה חדשה נוצרה עם ID: $listId ושיתוף קוד: $shareCode")
+                Log.d("AddCardFragment", "Finalizing list with ID: $listId and shareCode: $shareCode")
                 setFragmentResult("shoppingListUpdated", bundleOf("updated" to true))
                 findNavController().navigateUp()
             }
         }
     }
+
+
 }
 
 

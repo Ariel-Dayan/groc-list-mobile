@@ -6,6 +6,7 @@ import com.example.groclistapp.data.model.ShoppingList
 import com.example.groclistapp.data.model.ShoppingItem
 import com.example.groclistapp.data.model.ShoppingListSummary
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
@@ -36,41 +37,43 @@ class ShoppingListRepository(
         Log.d("ShoppingListRepository", "insertAndGetId() called. user=$user, uid=${user?.uid}")
 
         if (user == null) {
-            Log.e("ShoppingListRepository", " Cannot create list. User is not logged in!")
+            Log.e("ShoppingListRepository", "Cannot create list. User is not logged in!")
             return -1
         }
 
-        Log.d("ShoppingListRepository", "ShoppingListSummary => id=${shoppingList.id}, name=${shoppingList.name}, itemsCount=${shoppingList.itemsCount}, creatorId=${shoppingList.creatorId}")
+        Log.d("ShoppingListRepository", "ShoppingListSummary received: id=${shoppingList.id}, name=${shoppingList.name}, itemsCount=${shoppingList.itemsCount}, creatorId=${shoppingList.creatorId}")
 
         val newList = ShoppingList(
             id = shoppingList.id,
             name = shoppingList.name,
             description = shoppingList.description,
+            items = emptyList(),
             imageUrl = shoppingList.imageUrl,
             creatorId = user.uid,
             shareCode = generateShareCode()
         )
 
-
-        Log.d("ShoppingListRepository", "Creating newList => id=${newList.id}, name=${newList.name}, creatorId=${newList.creatorId}, shareCode=${newList.shareCode}")
+        Log.d("ShoppingListRepository", "Creating newList: id=${newList.id}, name=${newList.name}, creatorId=${newList.creatorId}, shareCode=${newList.shareCode}")
 
         val listId = shoppingListDao.insertShoppingList(newList)
         val listWithUpdatedId = newList.copy(id = listId.toInt())
 
-        Log.d("ShoppingListRepository", "Local DB saved. listId=$listId => Now saving to Firestore...")
+        Log.d("ShoppingListRepository", "Local DB saved. listId=$listId. Proceeding to save to Firestore...")
 
-        db.collection("shoppingLists")
-            .document(listId.toString())
-            .set(listWithUpdatedId, com.google.firebase.firestore.SetOptions.merge())
-            .addOnSuccessListener {
-                Log.d("ShoppingListRepository", " רשימה נשמרה בפיירבייס עם ID: $listId, creatorId=${user.uid}, shareCode=${listWithUpdatedId.shareCode}")
-            }
-            .addOnFailureListener { e ->
-                Log.e("ShoppingListRepository", " שגיאה בשמירה בפיירבייס: ${e.message}")
-            }
+        try {
+            db.collection("shoppingLists")
+                .document(listId.toString())
+                .set(listWithUpdatedId, SetOptions.merge())
+                .await()
+            Log.d("ShoppingListRepository", "List successfully saved to Firestore with ID: $listId, creatorId=${user.uid}, shareCode=${listWithUpdatedId.shareCode}")
+        } catch (e: Exception) {
+            Log.e("ShoppingListRepository", "Error saving list to Firestore: ${e.message}")
+        }
 
         return listId
     }
+
+
 
     suspend fun update(shoppingList: ShoppingListSummary) {
         shoppingListDao.updateShoppingList(
@@ -88,6 +91,7 @@ class ShoppingListRepository(
 
 
     suspend fun delete(shoppingList: ShoppingListSummary) {
+        Log.d("RepoDelete", "מוחק את הרשימה ממסד מקומי ו-Firestore: id=${shoppingList.id}")
         shoppingListDao.deleteShoppingList(
             ShoppingList(id = shoppingList.id, name = shoppingList.name)
         )
@@ -145,18 +149,30 @@ class ShoppingListRepository(
     }
 
     suspend fun insertItem(item: ShoppingItem) {
-        shoppingItemDao.insertItem(item)
+        Log.d("InsertItemDebug", "insertItem called: name=${item.name}, amount=${item.amount}, listId=${item.listId}")
 
-        val listRef = db.collection("shoppingLists").document(item.listId.toString())
-        val newItem = mapOf("name" to item.name, "amount" to item.amount)
+        val itemId = shoppingItemDao.insertItem(item)
+        val itemWithId = item.copy(id = itemId.toInt())
 
-        listRef.update("items", FieldValue.arrayUnion(newItem))
-            .addOnSuccessListener {
-                Log.d("Firestore", " פריט נוסף בהצלחה לשדה `items` בפיירבייס (arrayUnion)")
-            }
-            .addOnFailureListener { e ->
-                Log.e("Firestore", " שגיאה בהוספת הפריט לשדה `items`: ${e.message}")
-            }
+        Log.d("InsertItemDebug", "Local DB inserted item '${item.name}' with ID: ${itemWithId.id}")
+
+        val listRef = db.collection("shoppingLists").document(itemWithId.listId.toString())
+        val itemRef = listRef.collection("items").document(itemWithId.id.toString())
+
+        val newItemData = mapOf(
+            "id" to itemWithId.id,
+            "name" to itemWithId.name,
+            "amount" to itemWithId.amount,
+            "listId" to itemWithId.listId
+        )
+
+        try {
+            Log.d("InsertItemDebug", "Attempting to add item '${item.name}' to Firestore under listId: ${itemWithId.listId}")
+            itemRef.set(newItemData).await()
+            Log.d("InsertItemDebug", "Successfully added item '${item.name}' in Firestore at items/${itemWithId.id}")
+        } catch (e: Exception) {
+            Log.e("InsertItemDebug", "Error adding item '${item.name}' to Firestore: ${e.message}")
+        }
     }
 
 
@@ -173,12 +189,13 @@ class ShoppingListRepository(
 
     fun updateShoppingListInFirestore(shoppingList: ShoppingListSummary) {
         Log.d("UpdateTest", " נכנס לפונקציית updateShoppingListInFirestore")
-
+        Log.d("UpdateRepo", "Preparing to update local DB with imageUrl: ${shoppingList.imageUrl}")
         val data = mapOf(
             "name" to shoppingList.name,
             "description" to shoppingList.description,
             "imageUrl" to shoppingList.imageUrl,
-            "creatorId" to shoppingList.creatorId
+            "creatorId" to shoppingList.creatorId,
+            "items" to emptyList<Any>()
         )
 
         db.collection("shoppingLists")
@@ -194,17 +211,54 @@ class ShoppingListRepository(
 
 
 
-    private fun deleteShoppingListFromFirestore(listId: Int) {
-        db.collection("shoppingLists")
-            .document(listId.toString())
-            .delete()
+    fun deleteShoppingListFromFirestore(listId: Int) {
+        Log.d("Firestore", ">>> התחיל deleteShoppingListFromFirestore עבור ID=$listId")
+        val listRef = db.collection("shoppingLists").document(listId.toString())
+        val itemsRef = listRef.collection("items")
+
+        itemsRef.get()
+            .addOnSuccessListener { querySnapshot ->
+                val documents = querySnapshot.documents
+
+                if (documents.isEmpty()) {
+                    Log.d("Firestore", "אין פריטים למחוק, מוחק את הרשימה עצמה מיד")
+                    deleteListDocument(listRef, listId)
+                    return@addOnSuccessListener
+                }
+
+                var deletedCount = 0
+                for (doc in documents) {
+                    doc.reference.delete()
+                        .addOnSuccessListener {
+                            deletedCount++
+                            Log.d("Firestore", "פריט נמחק (${deletedCount}/${documents.size})")
+
+                            if (deletedCount == documents.size) {
+                                Log.d("Firestore", "כל הפריטים נמחקו. מוחק את הרשימה.")
+                                deleteListDocument(listRef, listId)
+                            }
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e("Firestore", " שגיאה במחיקת פריט: ${e.message}", e)
+                        }
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("Firestore", " שגיאה באחזור פריטים למחיקה: ${e.message}", e)
+            }
+    }
+
+
+    private fun deleteListDocument(listRef: DocumentReference, listId: Int) {
+        listRef.delete()
             .addOnSuccessListener {
                 Log.d("Firestore", " רשימה נמחקה בהצלחה: $listId")
             }
             .addOnFailureListener {
-                Log.e("Firestore", " שגיאה במחיקת הרשימה: ${it.message}")
+                Log.e("Firestore", " שגיאה במחיקת הרשימה: ${it.message}", it)
             }
     }
+
 
     private fun saveItemToFirestore(item: ShoppingItem) {
         val listRef = db.collection("shoppingLists").document(item.listId.toString())
@@ -243,6 +297,69 @@ class ShoppingListRepository(
                 Log.e("Firestore", " שגיאה במחיקת הפריט: ${it.message}")
             }
     }
+
+    fun addItemToFirestore(item: ShoppingItem) {
+        val itemMap = hashMapOf(
+            "name" to item.name,
+            "amount" to item.amount
+        )
+
+        val itemRef = db.collection("shoppingLists")
+            .document(item.listId.toString())
+            .collection("items")
+            .document(item.id.toString())
+
+        itemRef.set(itemMap)
+            .addOnSuccessListener {
+                Log.d("Firestore", " פריט נשמר כתת-collection עם ID: ${item.id}")
+            }
+            .addOnFailureListener { e ->
+                Log.e("Firestore", " שגיאה בהוספת פריט ל־items: ${e.message}")
+            }
+    }
+
+//    suspend fun fetchItemsFromFirestore(listId: Int) {
+//        try {
+//            val snapshot = db.collection("shoppingLists")
+//                .document(listId.toString())
+//                .collection("items")
+//                .get()
+//                .await()
+//
+//            val items = snapshot.documents.mapNotNull { doc ->
+//                val name = doc.getString("name") ?: return@mapNotNull null
+//                val amount = doc.getLong("amount")?.toInt() ?: 1
+//                val id = doc.id.toIntOrNull() ?: return@mapNotNull null
+//                ShoppingItem(id = id, name = name, amount = amount, listId = listId)
+//            }
+//
+//            shoppingItemDao.insertAll(items)
+//            Log.d("Firestore", " נטענו ${items.size} פריטים מ־Firestore")
+//
+//        } catch (e: Exception) {
+//            Log.e("Firestore", " שגיאה בטעינת פריטים מ־Firestore: ${e.message}")
+//        }
+//    }
+
+    suspend fun deleteAllItemsForList(listId: Int) {
+
+        shoppingItemDao.deleteItemsByListId(listId)
+
+        try {
+            val itemsRef = db.collection("shoppingLists")
+                .document(listId.toString())
+                .collection("items")
+
+            val snapshot = itemsRef.get().await()
+            for (doc in snapshot.documents) {
+                doc.reference.delete().await()
+            }
+            Log.d("ShoppingListRepository", "All items deleted from Firestore for listId $listId")
+        } catch (e: Exception) {
+            Log.e("ShoppingListRepository", "Failed to delete items from Firestore: ${e.message}")
+        }
+    }
+
 }
 
 
