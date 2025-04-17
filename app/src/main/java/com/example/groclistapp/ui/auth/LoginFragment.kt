@@ -55,9 +55,17 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
             loginButton.text = getString(R.string.login)
 
             if (isSuccess) {
-                Log.d("LoginFragment", "Login successful. Navigating back...")
+                Log.d("LoginFragment", "Login successful. Navigating to MyCardsListFragment...")
 
-                findNavController().popBackStack()
+                val navOptions = androidx.navigation.NavOptions.Builder()
+                    .setPopUpTo(R.id.loginFragment, true)
+                    .build()
+
+                findNavController().navigate(
+                    R.id.myCardsListFragment,
+                    null,
+                    navOptions
+                )
             } else {
                 Toast.makeText(requireContext(), "Login failed. Please check your details.", Toast.LENGTH_SHORT).show()
             }

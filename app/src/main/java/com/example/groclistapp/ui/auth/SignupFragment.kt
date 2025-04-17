@@ -6,6 +6,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import com.example.groclistapp.R
 import com.example.groclistapp.viewmodel.AuthViewModel
@@ -86,7 +87,10 @@ class SignupFragment : Fragment(R.layout.fragment_signup) {
                                 userRef.set(userData)
                                     .addOnSuccessListener {
                                         Log.d("SignupFragment", "User added to Firestore: $userId")
-                                        Toast.makeText(requireContext(), "User registered successfully!", Toast.LENGTH_SHORT).show()
+                                        context?.let {
+                                            Toast.makeText(it, "User registered successfully!", Toast.LENGTH_SHORT).show()
+                                        }
+
                                     }
                                     .addOnFailureListener { e ->
                                         Log.e("SignupFragment", "Failed to add user to Firestore", e)
@@ -95,11 +99,19 @@ class SignupFragment : Fragment(R.layout.fragment_signup) {
                         }.addOnFailureListener { e ->
                             Log.e("SignupFragment", "Error checking user in Firestore", e)
                         }
-
-
-                        findNavController().popBackStack()
+                        if (isAdded) {
+                            findNavController().navigate(
+                                R.id.loginFragment,
+                                null,
+                                NavOptions.Builder()
+                                    .setPopUpTo(R.id.signupFragment, true)
+                                    .build()
+                            )
+                        }
                     } else {
-                        Toast.makeText(requireContext(), "Signup failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                        context?.let {
+                            Toast.makeText(it, "Signup failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                        }
                         Log.e("SignupFragment", "Signup failed", task.exception)
                     }
                 }
