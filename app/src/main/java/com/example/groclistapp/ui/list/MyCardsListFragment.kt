@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -21,6 +22,7 @@ import androidx.fragment.app.setFragmentResultListener
 import com.example.groclistapp.data.repository.ShoppingListDao
 import com.example.groclistapp.data.repository.ShoppingItemDao
 import com.example.groclistapp.data.adapter.card.OnItemClickListener
+import com.example.groclistapp.data.network.jokes.JokesClient.setJoke
 
 
 class MyCardsListFragment : Fragment() {
@@ -28,6 +30,7 @@ class MyCardsListFragment : Fragment() {
     private lateinit var cardsRecyclerView: RecyclerView
     private lateinit var adapter: CardsRecyclerAdapter
     private lateinit var viewModel: ShoppingListViewModel
+    private  lateinit var jokeTextView: TextView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -39,6 +42,7 @@ class MyCardsListFragment : Fragment() {
         val shoppingItemDao = AppDatabase.getDatabase(requireContext()).shoppingItemDao()
         val repository = ShoppingListRepository(shoppingListDao, shoppingItemDao)
 
+        jokeTextView = view.findViewById(R.id.tvMyCardsListJoke)
         viewModel = ViewModelProvider(
             this,
             ShoppingListViewModel.Factory(requireActivity().application, repository)
@@ -47,6 +51,7 @@ class MyCardsListFragment : Fragment() {
         setupRecyclerView(view, shoppingListDao, shoppingItemDao)
         observeShoppingLists()
         setupAddButton(view)
+        setJoke(jokeTextView)
 
         setFragmentResultListener("shoppingListUpdated") { _, bundle ->
             if (bundle.getBoolean("updated", false)) {

@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.groclistapp.R
@@ -12,11 +13,13 @@ import com.example.groclistapp.data.adapter.card.CardsRecyclerAdapter
 import com.example.groclistapp.data.adapter.card.OnItemClickListener
 import com.example.groclistapp.data.model.ShoppingList
 import com.example.groclistapp.data.model.ShoppingListSummary
+import com.example.groclistapp.data.network.jokes.JokesClient.setJoke
 import com.example.groclistapp.data.repository.AppDatabase
 
 class SharedCardsListFragment : Fragment() {
     private var adapter: CardsRecyclerAdapter? = null
     private var cardsRecyclerView: RecyclerView? = null
+    private  lateinit var jokeTextView: TextView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -42,8 +45,10 @@ class SharedCardsListFragment : Fragment() {
 //        noStudentsTextView = view.findViewById(R.id.tvStudentsListNoStudentsMessage)
 //        addStudentButton = view.findViewById(R.id.btnStudentsListAddStudent)
         cardsRecyclerView = view.findViewById(R.id.rvSharedCardsList)
-//
+        jokeTextView = view.findViewById(R.id.tvSharedCardsListJoke)
+
         setStudentsRecyclerView(view)
+        setJoke(jokeTextView)
 //        addStudentButton?.setOnClickListener(Navigation.createNavigateOnClickListener(R.id.action_studentsListFragment_to_addStudentFragment))
     }
 
