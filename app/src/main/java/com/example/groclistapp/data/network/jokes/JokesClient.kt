@@ -1,6 +1,7 @@
 package com.example.groclistapp.data.network.jokes
 
 import android.util.Log
+import android.widget.TextView
 import com.example.groclistapp.data.model.JokeResponse
 import com.example.groclistapp.data.network.HttpResponseHandler
 import retrofit2.Call
@@ -42,6 +43,19 @@ object JokesClient {
                 val errorMessage = "API Call Failed: ${t.message}"
                 Log.e("Jokes", errorMessage)
                 callback.onFailure(Throwable(errorMessage), DEFAULT_JOKE)
+            }
+        })
+    }
+
+     fun setJoke(jokeTextView: TextView) {
+        getFoodRandomJoke(object: HttpResponseHandler<String> {
+            override fun onComplete(data: String) {
+                jokeTextView.text = data
+            }
+
+            override fun onFailure(t: Throwable?, default: String?) {
+                Log.d("JokesClient", "Failed to fetch joke: $t?.message")
+                jokeTextView.text = default
             }
         })
     }
