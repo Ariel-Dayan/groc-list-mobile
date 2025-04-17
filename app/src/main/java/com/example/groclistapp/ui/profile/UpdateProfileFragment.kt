@@ -17,6 +17,9 @@ import com.example.groclistapp.viewmodel.ProfileViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.storage.FirebaseStorage
+import androidx.navigation.NavOptions
+import androidx.navigation.fragment.findNavController
+import com.example.groclistapp.R
 
 class UpdateProfileFragment : Fragment() {
 
@@ -99,8 +102,15 @@ class UpdateProfileFragment : Fragment() {
     private fun logout() {
         auth.signOut()
         Toast.makeText(requireContext(), "Successfully logged out!", Toast.LENGTH_SHORT).show()
-        requireActivity().finish()
+        findNavController().navigate(
+            R.id.loginFragment,
+            null,
+            NavOptions.Builder()
+                .setPopUpTo(R.id.updateProfileFragment, true)
+                .build()
+        )
     }
+
 
     private fun openGallery() {
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
