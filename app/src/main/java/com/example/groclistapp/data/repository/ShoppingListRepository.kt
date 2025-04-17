@@ -132,6 +132,8 @@ class ShoppingListRepository(
     }
 
     fun getCreatorName(creatorId: String, callback: (String) -> Unit) {
+        Log.d("CreatorLookup", "Looking up user by ID: $creatorId")
+
         if (creatorId.isBlank()) {
             callback("Unknown")
             return
@@ -139,6 +141,8 @@ class ShoppingListRepository(
         val userRef = db.collection("users").document(creatorId)
         userRef.get()
             .addOnSuccessListener { document ->
+                Log.d("CreatorLookup", "User exists=${document.exists()}, fullName=${document.getString("fullName")}")
+
                 if (document.exists()) {
                     val name = document.getString("fullName") ?: "Unknown"
                     callback(name)
@@ -375,6 +379,9 @@ class ShoppingListRepository(
                 if (!documents.isEmpty) {
                     val document = documents.documents[0]
                     val sharedList = document.toObject(ShoppingList::class.java)
+                    sharedList?.creatorId = document.getString("creatorId") ?: ""
+                    Log.d("DebugShared", "creatorId from Firestore: ${document.getString("creatorId")}")
+                    Log.d("DebugShared", "sharedList.creatorId: ${sharedList?.creatorId}")
 
                     if (sharedList != null) {
                         CoroutineScope(Dispatchers.IO).launch {
