@@ -8,7 +8,7 @@ class ProfileViewModel : ViewModel() {
 
     private val repository = ProfileRepository()
 
-    fun updateProfile(fullName: String, oldPassword: String, newPassword: String, imageUri: Uri?, callback: (Boolean, String) -> Unit) {
+    fun updateProfile(fullName: String?, oldPassword: String?, newPassword: String?, imageUri: Uri?, callback: (Boolean, String) -> Unit) {
         repository.updateUserProfile(fullName, oldPassword, newPassword, imageUri, callback)
     }
 }

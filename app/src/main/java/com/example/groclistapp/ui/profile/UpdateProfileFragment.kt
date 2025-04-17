@@ -66,38 +66,40 @@ class UpdateProfileFragment : Fragment() {
         val oldPassword = binding.tilUpdateProfileOldPassword.editText?.text.toString().trim()
         val newPassword = binding.tilUpdateProfilePassword.editText?.text.toString().trim()
         val confirmPassword = binding.tilUpdateProfileConfirmPassword.editText?.text.toString().trim()
-        val currentUser = auth.currentUser
 
-        if (fullName.isEmpty() || oldPassword.isEmpty() || newPassword.isEmpty() || confirmPassword.isEmpty()) {
-            Toast.makeText(requireContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show()
+        // אם לא הוזן כלום – לא לעשות כלום
+        if (fullName.isEmpty() && newPassword.isEmpty() && selectedImageUri == null) {
+            Toast.makeText(requireContext(), "Please enter at least one field to update", Toast.LENGTH_SHORT).show()
             return
         }
 
-        if (newPassword != confirmPassword) {
-            Toast.makeText(requireContext(), "Passwords do not match", Toast.LENGTH_SHORT).show()
-            return
+        // אם הוזנה סיסמה – נדרש אימות וסיסמה תואמת
+        if (newPassword.isNotEmpty()) {
+            if (oldPassword.isEmpty()) {
+                Toast.makeText(requireContext(), "Enter your current password to change password", Toast.LENGTH_SHORT).show()
+                return
+            }
+            if (newPassword != confirmPassword) {
+                Toast.makeText(requireContext(), "Passwords do not match", Toast.LENGTH_SHORT).show()
+                return
+            }
         }
 
         binding.btnUpdateProfileUpdate.isEnabled = false
         binding.btnUpdateProfileUpdate.text = "Updating..."
 
-        if (currentUser != null) {
-            val credential = EmailAuthProvider.getCredential(currentUser.email!!, oldPassword)
-            currentUser.reauthenticate(credential).addOnCompleteListener { authTask ->
-                if (authTask.isSuccessful) {
-                    viewModel.updateProfile(fullName, oldPassword, newPassword, selectedImageUri) { success, message ->
-                        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-                        binding.btnUpdateProfileUpdate.isEnabled = true
-                        binding.btnUpdateProfileUpdate.text = "Update"
-                    }
-                } else {
-                    Toast.makeText(requireContext(), "Re-authentication failed. Please check your old password.", Toast.LENGTH_SHORT).show()
-                    binding.btnUpdateProfileUpdate.isEnabled = true
-                    binding.btnUpdateProfileUpdate.text = "Update"
-                }
-            }
+        viewModel.updateProfile(
+            fullName = if (fullName.isNotEmpty()) fullName else null,
+            oldPassword = if (oldPassword.isNotEmpty()) oldPassword else null,
+            newPassword = if (newPassword.isNotEmpty()) newPassword else null,
+            imageUri = selectedImageUri
+        ) { success, message ->
+            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+            binding.btnUpdateProfileUpdate.isEnabled = true
+            binding.btnUpdateProfileUpdate.text = "Update"
         }
     }
+
 
     private fun logout() {
         auth.signOut()
