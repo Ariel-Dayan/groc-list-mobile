@@ -13,16 +13,21 @@ import com.example.groclistapp.data.adapter.card.OnItemClickListener
 import com.example.groclistapp.data.model.ShoppingList
 import com.example.groclistapp.data.model.ShoppingListSummary
 import com.example.groclistapp.data.repository.AppDatabase
+import com.example.groclistapp.viewmodel.SharedCardsViewModel
+import androidx.navigation.fragment.findNavController
+
 
 class SharedCardsListFragment : Fragment() {
     private var adapter: CardsRecyclerAdapter? = null
     private var cardsRecyclerView: RecyclerView? = null
+    private lateinit var viewModel: SharedCardsViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_shared_cards_list, container, false)
+        viewModel = androidx.lifecycle.ViewModelProvider(this).get(SharedCardsViewModel::class.java)
 
         setupView(view)
 //        toggleNoStudentsMessage()
@@ -39,50 +44,71 @@ class SharedCardsListFragment : Fragment() {
 //    }
 
     private fun setupView(view: View) {
-//        noStudentsTextView = view.findViewById(R.id.tvStudentsListNoStudentsMessage)
-//        addStudentButton = view.findViewById(R.id.btnStudentsListAddStudent)
         cardsRecyclerView = view.findViewById(R.id.rvSharedCardsList)
-//
-        setStudentsRecyclerView(view)
-//        addStudentButton?.setOnClickListener(Navigation.createNavigateOnClickListener(R.id.action_studentsListFragment_to_addStudentFragment))
-    }
 
-    private fun setStudentsRecyclerView(view: View) {
+        val inputLayout = view.findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.tilSharedCardsListSharedCode)
+        val shareCodeInput = inputLayout.editText
+
+        val addButton = view.findViewById<View>(R.id.btnSharedCardsListAdd)
+
         val shoppingListDao = AppDatabase.getDatabase(requireContext()).shoppingListDao()
         val shoppingItemDao = AppDatabase.getDatabase(requireContext()).shoppingItemDao()
-        var cards: MutableList<Any> = mutableListOf(
-            "Apples: 5",
-            "Bananas: 10",
-            "Oranges: 3"
-        )
 
-
-        cardsRecyclerView?.setHasFixedSize(true)
-//
         adapter = CardsRecyclerAdapter(
-            mutableListOf(),
+            mutableListOf(),  // יתעדכן בהמשך
             shoppingListDao,
             shoppingItemDao,
             object : OnItemClickListener {
                 override fun onItemClick(listId: Int) {
-
+                    val bundle = Bundle().apply {
+                        putInt("listId", listId)
+                    }
+                    val navController = findNavController()
+                    navController.navigate(R.id.action_sharedCardsListFragment_to_displayCardFragment, bundle)
                 }
             }
+
         )
 
+        cardsRecyclerView?.apply {
+            layoutManager = LinearLayoutManager(context)
+            setHasFixedSize(true)
+            adapter = this@SharedCardsListFragment.adapter
+        }
 
-//        adapter?.listener = object : OnItemClickListener {
-//            override fun onItemClick(student: Student?) {
-//                student?.let {
-//                    val action = StudentsListFragmentDirections.actionStudentsListFragmentToStudentDetailsFragment(it.id)
-//
-//                    Model.instance.currStudentId = it.id
-//                    Navigation.findNavController(view).navigate(action)
-//                }
-//            }
-//        }
-//
-        cardsRecyclerView?.layoutManager = LinearLayoutManager(context)
-        cardsRecyclerView?.adapter = adapter
+        // תצפית על הרשימות המשותפות מתוך ViewModel
+        viewModel.sharedLists.observe(viewLifecycleOwner) { list ->
+            adapter?.setData(list)
+        }
+
+        addButton.setOnClickListener {
+            val shareCode = shareCodeInput?.text?.toString()?.trim()
+
+            if (!shareCode.isNullOrEmpty()) {
+                val repository = com.example.groclistapp.data.repository.ShoppingListRepository(
+                    shoppingListDao,
+                    shoppingItemDao
+                )
+
+                repository.loadSharedListByCode(
+                    shareCode = shareCode,
+                    onSuccess = { list ->
+                        requireActivity().runOnUiThread {
+                            android.widget.Toast.makeText(requireContext(), "Shared list loaded: ${list.name}", android.widget.Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    onFailure = { e ->
+                        requireActivity().runOnUiThread {
+                            android.widget.Toast.makeText(requireContext(), "Error: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+                        }
+                    }
+                )
+            } else {
+                android.widget.Toast.makeText(requireContext(), "Please enter a valid share code", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
     }
+
+
+
 }

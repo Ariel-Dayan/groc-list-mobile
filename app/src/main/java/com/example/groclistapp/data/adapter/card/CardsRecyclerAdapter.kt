@@ -42,6 +42,13 @@ class CardsRecyclerAdapter(
         notifyDataSetChanged()
     }
 
+    fun setData(newLists: List<ShoppingListSummary>) {
+        shoppingLists.clear()
+        shoppingLists.addAll(newLists)
+        notifyDataSetChanged()
+    }
+
+
 }
 
 class ShoppingListDiffCallback(

@@ -12,6 +12,9 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
 import kotlin.random.Random
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class ShoppingListRepository(
     private val shoppingListDao: ShoppingListDao,
@@ -359,6 +362,70 @@ class ShoppingListRepository(
             Log.e("ShoppingListRepository", "Failed to delete items from Firestore: ${e.message}")
         }
     }
+
+    fun loadSharedListByCode(
+        shareCode: String,
+        onSuccess: (ShoppingList) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        db.collection("shoppingLists")
+            .whereEqualTo("shareCode", shareCode)
+            .get()
+            .addOnSuccessListener { documents ->
+                if (!documents.isEmpty) {
+                    val document = documents.documents[0]
+                    val sharedList = document.toObject(ShoppingList::class.java)
+
+                    if (sharedList != null) {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            try {
+
+                                val newId = shoppingListDao.insertShoppingList(sharedList)
+
+                                db.collection("shoppingLists")
+                                    .document(document.id)
+                                    .collection("items")
+                                    .get()
+                                    .addOnSuccessListener { itemsSnapshot ->
+                                        val items = itemsSnapshot.toObjects(ShoppingItem::class.java)
+
+                                        CoroutineScope(Dispatchers.IO).launch {
+
+                                            items.forEach { it.listId = newId.toInt() }
+
+                                            items.forEach { shoppingItemDao.insertItem(it) }
+
+                                            Log.d("SharedList", "Items saved successfully for listId=$newId")
+                                            onSuccess(sharedList)
+                                        }
+                                    }
+                                    .addOnFailureListener { e ->
+                                        Log.e("SharedList", "Failed to load items: ${e.message}")
+                                        onFailure(e)
+                                    }
+
+                                Log.d("SharedList", "Shared list successfully saved to local DB with id: $newId")
+
+                            } catch (e: Exception) {
+                                Log.e("SharedList", "Error saving shared list to local DB: ${e.message}")
+                                onFailure(e)
+                            }
+                        }
+                    } else {
+                        onFailure(Exception("Invalid shared list format"))
+                        Log.e("SharedList", "Failed to convert document to ShoppingList object")
+                    }
+                } else {
+                    onFailure(Exception("No list found with this share code"))
+                    Log.e("SharedList", "No documents found for the given share code")
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("SharedList", "Error retrieving list from Firebase: ${e.message}")
+                onFailure(e)
+            }
+    }
+
 
 }
 

@@ -26,4 +26,9 @@ interface ShoppingItemDao {
 
     @Query("SELECT * FROM shopping_items WHERE listId = :listId ORDER BY name ASC")
     fun getItemsForList(listId: Int): LiveData<List<ShoppingItem>>
+
+    @Query("SELECT * FROM shopping_items WHERE listId = :listId ORDER BY name ASC")
+    suspend fun getItemsForListNow(listId: Int): List<ShoppingItem>
+
+
 }

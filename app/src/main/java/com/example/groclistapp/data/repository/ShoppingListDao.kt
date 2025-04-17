@@ -42,7 +42,6 @@ interface ShoppingListDao {
 """)
     suspend fun getAllShoppingListsNow(): List<ShoppingListSummary>
 
-
     @Query("""
     SELECT shopping_lists.id, shopping_lists.name, shopping_lists.description, 
            shopping_lists.creatorId, shopping_lists.shareCode, shopping_lists.imageUrl,
@@ -50,6 +49,16 @@ interface ShoppingListDao {
     FROM shopping_lists WHERE shopping_lists.shareCode = :shareCode LIMIT 1
 """)
     suspend fun getListByShareCode(shareCode: String): ShoppingListSummary?
+
+    @Query("""
+    SELECT shopping_lists.id, shopping_lists.name, shopping_lists.description, 
+           shopping_lists.creatorId, shopping_lists.shareCode, shopping_lists.imageUrl,
+           (SELECT COUNT(*) FROM shopping_items WHERE shopping_items.listId = shopping_lists.id) AS itemsCount 
+    FROM shopping_lists 
+    WHERE creatorId != :userId
+    ORDER BY name ASC
+""")
+    fun getAllShoppingListsFiltered(userId: String?): LiveData<List<ShoppingListSummary>>
 
 }
 

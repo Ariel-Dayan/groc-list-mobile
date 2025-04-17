@@ -16,16 +16,16 @@ import androidx.room.*
 )
 data class ShoppingItem(
     @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    var id: Int = 0,
 
     @ColumnInfo(name = "name")
-    val name: String = "",
+    var name: String = "",
 
     @ColumnInfo(name = "amount")
-    val amount: Int = 0,
+    var amount: Int = 0,
 
     @ColumnInfo(name = "listId")
-    var listId: Int
-)
-
-
+    var listId: Int = 0
+) {
+    constructor() : this(0, "", 0, 0)
+}
