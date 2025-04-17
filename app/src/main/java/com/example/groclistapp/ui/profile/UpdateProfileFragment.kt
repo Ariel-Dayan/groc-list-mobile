@@ -19,6 +19,7 @@ import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.storage.FirebaseStorage
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
+import com.bumptech.glide.Glide
 import com.example.groclistapp.R
 
 class UpdateProfileFragment : Fragment() {
@@ -40,6 +41,18 @@ class UpdateProfileFragment : Fragment() {
         storage = FirebaseStorage.getInstance()
 
         setupListeners()
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+        if (userId != null) {
+            viewModel.loadProfileImage(userId) { imageUrl ->
+                if (!imageUrl.isNullOrEmpty()) {
+                    Glide.with(requireContext())
+                        .load(imageUrl)
+                        .placeholder(R.drawable.user_placeholder)
+                        .into(binding.civUpdateProfileUserImage)
+                }
+            }
+        }
+
         return binding.root
     }
 
@@ -67,13 +80,11 @@ class UpdateProfileFragment : Fragment() {
         val newPassword = binding.tilUpdateProfilePassword.editText?.text.toString().trim()
         val confirmPassword = binding.tilUpdateProfileConfirmPassword.editText?.text.toString().trim()
 
-        // אם לא הוזן כלום – לא לעשות כלום
         if (fullName.isEmpty() && newPassword.isEmpty() && selectedImageUri == null) {
             Toast.makeText(requireContext(), "Please enter at least one field to update", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // אם הוזנה סיסמה – נדרש אימות וסיסמה תואמת
         if (newPassword.isNotEmpty()) {
             if (oldPassword.isEmpty()) {
                 Toast.makeText(requireContext(), "Enter your current password to change password", Toast.LENGTH_SHORT).show()

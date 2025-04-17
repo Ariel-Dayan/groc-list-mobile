@@ -29,7 +29,6 @@ class ProfileRepository {
             return
         }
 
-        // אם המשתמש רוצה לעדכן סיסמה – חייב אימות קודם
         if (!oldPassword.isNullOrEmpty() && !newPassword.isNullOrEmpty()) {
             val credential = EmailAuthProvider.getCredential(user.email!!, oldPassword)
             user.reauthenticate(credential).addOnCompleteListener { authTask ->
@@ -40,7 +39,6 @@ class ProfileRepository {
                 }
             }
         } else {
-            // אין שינוי סיסמה – נמשיך לעדכן שם ותמונה בלבד
             updateNameAndPasswordAndImage(user, fullName, null, imageUri, callback)
         }
     }
@@ -94,6 +92,11 @@ class ProfileRepository {
                             .build()
 
                         user.updateProfile(profileUpdates).addOnCompleteListener { updateTask ->
+                            FirebaseFirestore.getInstance()
+                                .collection("users")
+                                .document(user.uid)
+                                .update("imageUrl", uri.toString())
+
                             if (updateTask.isSuccessful) {
                                 callback(true, "Profile updated successfully!")
                             } else {
@@ -109,6 +112,20 @@ class ProfileRepository {
             callback(true, "Profile updated successfully!")
         }
     }
+
+    fun getProfileImageUrl(userId: String, callback: (String?) -> Unit) {
+        FirebaseFirestore.getInstance()
+            .collection("users")
+            .document(userId)
+            .get()
+            .addOnSuccessListener { document ->
+                callback(document.getString("imageUrl"))
+            }
+            .addOnFailureListener {
+                callback(null)
+            }
+    }
+
 }
 
 
