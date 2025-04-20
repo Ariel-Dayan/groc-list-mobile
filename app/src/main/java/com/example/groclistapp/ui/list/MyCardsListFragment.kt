@@ -31,6 +31,8 @@ class MyCardsListFragment : Fragment() {
     private lateinit var adapter: CardsRecyclerAdapter
     private lateinit var viewModel: ShoppingListViewModel
     private lateinit var jokeTextView: TextView
+    private lateinit var noCardsTextView: TextView
+    private val listUtils = ListUtils.instance
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -43,6 +45,8 @@ class MyCardsListFragment : Fragment() {
         val repository = ShoppingListRepository(shoppingListDao, shoppingItemDao)
 
         jokeTextView = view.findViewById(R.id.tvMyCardsListJoke)
+        noCardsTextView = view.findViewById(R.id.tvMyCardsListNoCardsMessage)
+
         viewModel = ViewModelProvider(
             this,
             ShoppingListViewModel.Factory(requireActivity().application, repository)
@@ -88,6 +92,7 @@ class MyCardsListFragment : Fragment() {
 
     private fun observeShoppingLists() {
         viewModel.localShoppingLists.observe(viewLifecycleOwner) { shoppingLists ->
+            listUtils.toggleNoCardListsMessage(noCardsTextView, shoppingLists)
             shoppingLists?.let { adapter.updateData(it) }
         }
     }
