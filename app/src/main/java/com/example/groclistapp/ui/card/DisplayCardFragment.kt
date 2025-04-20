@@ -22,13 +22,13 @@ import androidx.navigation.fragment.findNavController
 
 
 class DisplayCardFragment : Fragment() {
-    private var listId: Int = -1
+    private var listId: String = "-1"
     private lateinit var shoppingListDao: ShoppingListDao
     private lateinit var shoppingItemDao: ShoppingItemDao
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        listId = arguments?.getInt("listId") ?: -1
+        listId = arguments?.getString("listId") ?: "-1"
     }
 
     override fun onCreateView(
@@ -44,7 +44,7 @@ class DisplayCardFragment : Fragment() {
         shoppingListDao = AppDatabase.getDatabase(requireContext()).shoppingListDao()
         shoppingItemDao = AppDatabase.getDatabase(requireContext()).shoppingItemDao()
 
-        if (listId == -1) {
+        if (listId == "-1") {
             Toast.makeText(requireContext(), "Invalid list ID", Toast.LENGTH_SHORT).show()
             return
         }

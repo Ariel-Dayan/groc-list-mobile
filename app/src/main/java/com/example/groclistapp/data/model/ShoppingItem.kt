@@ -25,7 +25,7 @@ data class ShoppingItem(
     var amount: Int = 0,
 
     @ColumnInfo(name = "listId")
-    var listId: Int = 0
+    var listId: String = "0"
 ) {
-    constructor() : this(0, "", 0, 0)
+    constructor() : this(0, "", 0, "0")
 }

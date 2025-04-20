@@ -5,12 +5,13 @@ import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import com.example.groclistapp.utils.Converters
 import androidx.room.Ignore
+import java.util.UUID
 
 @Entity(tableName = "shopping_lists")
 @TypeConverters(Converters::class)
 data class ShoppingList(
-    @PrimaryKey(autoGenerate = true)
-    var id: Int = 0,
+    @PrimaryKey
+    var id: String = UUID.randomUUID().toString(),
     var name: String = "",
     var description: String = "",
     var items: List<ShoppingItem> = emptyList(),
@@ -19,7 +20,7 @@ data class ShoppingList(
     var shareCode: String = ""
 ) {
     @Ignore
-    constructor() : this(0, "","", emptyList(), null, "", "")
+    constructor() : this(UUID.randomUUID().toString(), "","", emptyList(), null, "", "")
 }
 
 

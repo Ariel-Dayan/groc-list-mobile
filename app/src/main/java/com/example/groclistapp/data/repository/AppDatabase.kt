@@ -11,7 +11,7 @@ import com.example.groclistapp.data.model.ShoppingListSummary
 @Database(
     entities = [ShoppingList::class, ShoppingItem::class],
     views = [ShoppingListSummary::class],
-    version = 10,
+    version = 1,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -30,52 +30,11 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "shopping_list_database"
                 )
-
-                    .addMigrations(MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10)
+                    .fallbackToDestructiveMigration()
                     .build()
+
                 INSTANCE = instance
                 instance
-            }
-        }
-
-        private val MIGRATION_7_8 = object : Migration(7, 8) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL("DROP VIEW IF EXISTS ShoppingListSummary")
-                database.execSQL(
-                    "CREATE VIEW ShoppingListSummary AS " +
-                            "SELECT shopping_lists.id, shopping_lists.name, shopping_lists.creatorId, " +
-                            "shopping_lists.shareCode, " +
-                            "(SELECT COUNT(*) FROM shopping_items WHERE shopping_items.listId = shopping_lists.id) AS itemsCount " +
-                            "FROM shopping_lists"
-                )
-            }
-        }
-
-        private val MIGRATION_8_9 = object : Migration(8, 9) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL("ALTER TABLE shopping_lists ADD COLUMN description TEXT NOT NULL DEFAULT ''")
-                database.execSQL("DROP VIEW IF EXISTS ShoppingListSummary")
-                database.execSQL(
-                    "CREATE VIEW `ShoppingListSummary` AS " +
-                            "SELECT shopping_lists.id, shopping_lists.name, shopping_lists.creatorId, " +
-                            "shopping_lists.shareCode, shopping_lists.description, " +
-                            "(SELECT COUNT(*) FROM shopping_items WHERE shopping_items.listId = shopping_lists.id) AS itemsCount " +
-                            "FROM shopping_lists"
-                )
-            }
-        }
-
-        private val MIGRATION_9_10 = object : Migration(9, 10) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL("ALTER TABLE shopping_lists ADD COLUMN imageUrl TEXT NOT NULL DEFAULT ''")
-                database.execSQL("DROP VIEW IF EXISTS ShoppingListSummary")
-                database.execSQL(
-                    "CREATE VIEW `ShoppingListSummary` AS " +
-                            "SELECT shopping_lists.id, shopping_lists.name, shopping_lists.creatorId, " +
-                            "shopping_lists.shareCode, shopping_lists.description, shopping_lists.imageUrl, " +
-                            "(SELECT COUNT(*) FROM shopping_items WHERE shopping_items.listId = shopping_lists.id) AS itemsCount " +
-                            "FROM shopping_lists"
-                )
             }
         }
     }

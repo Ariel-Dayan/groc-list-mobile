@@ -17,13 +17,14 @@ import com.example.groclistapp.data.network.jokes.JokesClient.setJoke
 import com.example.groclistapp.data.repository.AppDatabase
 import com.example.groclistapp.viewmodel.SharedCardsViewModel
 import androidx.navigation.fragment.findNavController
+import com.example.groclistapp.utils.ListUtils
 
 
 class SharedCardsListFragment : Fragment() {
     private var adapter: CardsRecyclerAdapter? = null
     private var cardsRecyclerView: RecyclerView? = null
     private lateinit var viewModel: SharedCardsViewModel
-    private  lateinit var jokeTextView: TextView
+    private lateinit var jokeTextView: TextView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -33,18 +34,9 @@ class SharedCardsListFragment : Fragment() {
         viewModel = androidx.lifecycle.ViewModelProvider(this).get(SharedCardsViewModel::class.java)
 
         setupView(view)
-//        toggleNoStudentsMessage()
 
         return view
     }
-
-    //    private fun toggleNoStudentsMessage() {
-//        if (students == null || students?.isEmpty() == true) {
-//            noStudentsTextView?.visibility = TextView.VISIBLE
-//        } else {
-//            noStudentsTextView?.visibility = TextView.GONE
-//        }
-//    }
 
     private fun setupView(view: View) {
         cardsRecyclerView = view.findViewById(R.id.rvSharedCardsList)
@@ -63,9 +55,9 @@ class SharedCardsListFragment : Fragment() {
             shoppingListDao,
             shoppingItemDao,
             object : OnItemClickListener {
-                override fun onItemClick(listId: Int) {
+                override fun onItemClick(listId: String) {
                     val bundle = Bundle().apply {
-                        putInt("listId", listId)
+                        putString("listId", listId)
                     }
                     val navController = findNavController()
                     navController.navigate(R.id.action_sharedCardsListFragment_to_displayCardFragment, bundle)
@@ -114,7 +106,4 @@ class SharedCardsListFragment : Fragment() {
             }
         }
     }
-
-
-
 }

@@ -9,7 +9,7 @@ import androidx.room.DatabaseView
             "FROM shopping_lists"
 )
 data class ShoppingListSummary(
-    val id: Int,
+    val id: String,
     val name: String,
     val creatorId: String,
     val shareCode: String,

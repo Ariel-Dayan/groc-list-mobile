@@ -21,14 +21,14 @@ interface ShoppingItemDao {
     suspend fun deleteItem(item: ShoppingItem): Int
 
     @Query("DELETE FROM shopping_items WHERE listId = :listId")
-    suspend fun deleteItemsByListId(listId: Int)
+    suspend fun deleteItemsByListId(listId: String)
 
 
     @Query("SELECT * FROM shopping_items WHERE listId = :listId ORDER BY name ASC")
-    fun getItemsForList(listId: Int): LiveData<List<ShoppingItem>>
+    fun getItemsForList(listId: String): LiveData<List<ShoppingItem>>
 
     @Query("SELECT * FROM shopping_items WHERE listId = :listId ORDER BY name ASC")
-    suspend fun getItemsForListNow(listId: Int): List<ShoppingItem>
+    suspend fun getItemsForListNow(listId: String): List<ShoppingItem>
 
 
 }

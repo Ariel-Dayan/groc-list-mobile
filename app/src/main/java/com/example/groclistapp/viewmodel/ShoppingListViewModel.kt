@@ -22,12 +22,12 @@ class ShoppingListViewModel(
     val localShoppingLists: LiveData<List<ShoppingListSummary>> get() = _shoppingLists
 
 
-    suspend fun addShoppingList(shoppingList: ShoppingListSummary): Long {
+    suspend fun addShoppingList(shoppingList: ShoppingListSummary): Boolean {
         Log.d("ShoppingListViewModel", "addShoppingList called with list: ${shoppingList.name}")
         return withContext(Dispatchers.IO) {
-            val listId = repository.insertAndGetId(shoppingList)
-            Log.d("ShoppingListViewModel", "addShoppingList received listId: $listId")
-            listId
+            val isSaved = repository.insertAndGetId(shoppingList)
+            Log.d("ShoppingListViewModel", "addShoppingList isSaved: $isSaved")
+            isSaved
         }
     }
 
@@ -56,11 +56,11 @@ class ShoppingListViewModel(
         }
     }
 
-    suspend fun getShoppingListById(listId: Int): ShoppingListSummary? {
+    suspend fun getShoppingListById(listId: String): ShoppingListSummary? {
         return repository.getShoppingListById(listId)
     }
 
-    fun getItemsForList(listId: Int): LiveData<List<ShoppingItem>> {
+    fun getItemsForList(listId: String): LiveData<List<ShoppingItem>> {
         return repository.getItemsForList(listId)
     }
 
@@ -89,7 +89,7 @@ class ShoppingListViewModel(
         }
     }
 
-    fun deleteAllItemsForList(listId: Int) {
+    fun deleteAllItemsForList(listId: String) {
         viewModelScope.launch {
             repository.deleteAllItemsForList(listId)
         }
@@ -153,7 +153,7 @@ class ShoppingListViewModel(
     }
 
 
-    suspend fun deleteAllItemsForListNow(listId: Int) {
+    suspend fun deleteAllItemsForListNow(listId: String) {
         repository.deleteAllItemsForList(listId)
     }
 

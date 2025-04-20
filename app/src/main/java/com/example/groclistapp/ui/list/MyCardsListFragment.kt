@@ -23,14 +23,14 @@ import com.example.groclistapp.data.repository.ShoppingListDao
 import com.example.groclistapp.data.repository.ShoppingItemDao
 import com.example.groclistapp.data.adapter.card.OnItemClickListener
 import com.example.groclistapp.data.network.jokes.JokesClient.setJoke
+import com.example.groclistapp.utils.ListUtils
 
 
 class MyCardsListFragment : Fragment() {
-
     private lateinit var cardsRecyclerView: RecyclerView
     private lateinit var adapter: CardsRecyclerAdapter
     private lateinit var viewModel: ShoppingListViewModel
-    private  lateinit var jokeTextView: TextView
+    private lateinit var jokeTextView: TextView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -74,8 +74,8 @@ class MyCardsListFragment : Fragment() {
             shoppingListDao,
             shoppingItemDao,
             object : OnItemClickListener {
-                override fun onItemClick(listId: Int) {
-                    val bundle = Bundle().apply { putInt("listId", listId) }
+                override fun onItemClick(listId: String) {
+                    val bundle = Bundle().apply { putString("listId", listId) }
                     findNavController().navigate(R.id.action_myCardsListFragment_to_updateCardFragment, bundle)
                 }
             }

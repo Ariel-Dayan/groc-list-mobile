@@ -1,6 +1,5 @@
 package com.example.groclistapp.ui.card
 
-import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -8,7 +7,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.Toast
@@ -22,19 +20,22 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import com.example.groclistapp.data.model.ShoppingItem
 import com.google.android.material.textfield.TextInputLayout
 import androidx.navigation.fragment.findNavController
-import com.bumptech.glide.Glide
 import com.example.groclistapp.data.model.ShoppingListSummary
-import com.google.firebase.auth.FirebaseAuth
+import com.example.groclistapp.utils.DialogUtils
+import com.example.groclistapp.utils.InputUtils
+import com.example.groclistapp.utils.ItemUtils
 import kotlinx.coroutines.launch
 
 class UpdateCardFragment : Fragment() {
-
     private lateinit var viewModel: ShoppingListViewModel
     private var currentListSummary: ShoppingListSummary? = null
     private lateinit var imageHandler: ImageHandler
+    private lateinit var chipGroup: ChipGroup
+    private val itemUtils = ItemUtils.instance
+    private val inputUtils = InputUtils.instance
+    private val dialogUtils = DialogUtils.instance
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -45,7 +46,7 @@ class UpdateCardFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val listId = arguments?.getInt("listId") ?: return
+        val listId = arguments?.getString("listId") ?: return
 
         val repository = ShoppingListRepository(
             AppDatabase.getDatabase(requireContext()).shoppingListDao(),
@@ -60,6 +61,12 @@ class UpdateCardFragment : Fragment() {
         val ivTop = view.findViewById<ImageView>(R.id.ivUpdateCardTop)
         val ibGallery = view.findViewById<ImageButton>(R.id.ibUpdateCardUploadImageFromGallery)
         val ibCamera = view.findViewById<ImageButton>(R.id.ibUpdateCardTakePhoto)
+        val tilName = view.findViewById<TextInputLayout>(R.id.tilUpdateCardItemName)
+        val tilAmount = view.findViewById<TextInputLayout>(R.id.tilUpdateCardItemAmount)
+        val btnAddItem = view.findViewById<Button>(R.id.btnUpdateCardAddItem)
+
+        inputUtils.addCleanErrorMessageOnInputListener(tilTitle)
+        inputUtils.addCleanErrorMessageOnInputListener(tilDescription)
 
         imageHandler = ImageHandler(this, ivTop, ibGallery, ibCamera)
 
@@ -74,18 +81,14 @@ class UpdateCardFragment : Fragment() {
             }
         }
 
-        val chipGroup = view.findViewById<ChipGroup>(R.id.cgUpdateCardItemsContainer)
+        chipGroup = view.findViewById(R.id.cgUpdateCardItemsContainer)
         chipGroup.layoutDirection = View.LAYOUT_DIRECTION_LOCALE
         viewModel.getItemsForList(listId).observe(viewLifecycleOwner) { items ->
             items.forEach { item ->
-                val chip = createChip(item.name, item.amount.toString(), chipGroup)
+                val chip = createChip(item.name, item.amount.toString(), chipGroup, listId)
                 chipGroup.addView(chip)
             }
         }
-
-        val tilName = view.findViewById<TextInputLayout>(R.id.tilUpdateCardItemName)
-        val tilAmount = view.findViewById<TextInputLayout>(R.id.tilUpdateCardItemAmount)
-        val btnAddItem = view.findViewById<Button>(R.id.btnUpdateCardAddItem)
 
         val etName = tilName.editText
         val etAmount = tilAmount.editText
@@ -93,20 +96,30 @@ class UpdateCardFragment : Fragment() {
         btnAddItem.setOnClickListener {
             val name = etName?.text?.toString()?.trim().orEmpty()
             val amountText = etAmount?.text?.toString()?.trim().orEmpty()
-            val amount = amountText.toIntOrNull() ?: 1
+            val previousItems = itemUtils.extractItemsFromChips(chipGroup, listId)
 
-            if (name.isEmpty()) {
-                Toast.makeText(requireContext(), "please enter an item name", Toast.LENGTH_SHORT).show()
+            val nameError = itemUtils.validateName(name, previousItems.map { it.name })
+
+            if (nameError != null) {
+                Toast.makeText(requireContext(), "Invalid item name: $nameError", Toast.LENGTH_SHORT).show()
+                Log.d("UpdateCardFragment", "Invalid item input: name='$name', nameError='$nameError'")
                 return@setOnClickListener
             }
 
-            val chip = createChip(name, amount.toString(), chipGroup)
+            val (amount, amountError) = itemUtils.validateAmount(amountText)
+
+            if (amountError != null) {
+                Toast.makeText(requireContext(), "Invalid item amount: $amountError", Toast.LENGTH_SHORT).show()
+                Log.d("UpdateCardFragment", "Invalid item input: name='$amount', amountError='$amountError'")
+                return@setOnClickListener
+            }
+
+            val chip = createChip(name, (amount ?: 0).toString(), chipGroup, listId)
             chipGroup.addView(chip)
 
             etName?.text?.clear()
             etAmount?.text?.clear()
         }
-
 
         val btnCancel = view.findViewById<Button>(R.id.btnUpdateCardCancel)
         btnCancel.setOnClickListener {
@@ -117,9 +130,19 @@ class UpdateCardFragment : Fragment() {
         btnUpdate.setOnClickListener {
             val updatedName = tilTitle.editText?.text?.toString()?.trim()
             val updatedDescription = tilDescription.editText?.text?.toString()?.trim()
+            var isValid = true
 
-            if (updatedName.isNullOrEmpty() || updatedDescription.isNullOrEmpty()) {
-                Toast.makeText(requireContext(), "Name and description cannot be empty", Toast.LENGTH_SHORT).show()
+            if (updatedName.isNullOrEmpty()) {
+                tilTitle.error = "Name cannot be empty"
+                isValid = false
+            }
+
+            if (updatedDescription.isNullOrEmpty()) {
+                tilDescription.error = "Description cannot be empty"
+                isValid = false
+            }
+
+            if (!isValid) {
                 return@setOnClickListener
             }
 
@@ -127,8 +150,8 @@ class UpdateCardFragment : Fragment() {
                 val selectedImageUri = imageHandler.selectedImageUri
 
                 val updatedList = oldList.copy(
-                    name = updatedName,
-                    description = updatedDescription,
+                    name = updatedName ?: "",
+                    description = updatedDescription?: "",
                     creatorId = oldList.creatorId
                 )
                 Log.d("UpdateFragment", "Before image upload, updatedList.imageUrl: ${updatedList.imageUrl}")
@@ -169,83 +192,38 @@ class UpdateCardFragment : Fragment() {
 
 }
 
-    private fun createChip(name: String, amount: String, chipGroup: ChipGroup): Chip {
+    private fun createChip(name: String, amount: String, chipGroup: ChipGroup, listId: String): Chip {
         val chip = Chip(requireContext())
-        chip.text = "$name: $amount"
+        chip.text = itemUtils.createItemChipText(name, amount)
         chip.isCloseIconVisible = true
 
         chip.setOnCloseIconClickListener {
             chipGroup.removeView(chip)
         }
 
+
         chip.setOnClickListener {
-            showEditItemDialog(
+            val updatedItemInfo = itemUtils.parseItemChipText(chip.text.toString())
+
+            dialogUtils.showEditItemDialog(
                 context = requireContext(),
-                currentName = name,
-                currentAmount = amount
+                parent = view as? ViewGroup,
+                currentName = updatedItemInfo.first,
+                currentAmount = updatedItemInfo.second.toString(),
+                existingNames = itemUtils.extractItemsFromChips(chipGroup, listId).map { it.name },
             ) { newName, newAmount ->
-                chip.text = "$newName: $newAmount"
+                chip.text = itemUtils.createItemChipText(newName, newAmount.toString())
             }
         }
 
         return chip
     }
 
-    fun showEditItemDialog(
-        context: Context,
-        currentName: String,
-        currentAmount: String,
-        onUpdate: (String, String) -> Unit
-    ) {
-        val inputLayout = LayoutInflater.from(context).inflate(R.layout.dialog_item, null)
-        val nameInputLayout = inputLayout.findViewById<TextInputLayout>(R.id.tilDialogItemName)
-        val amountInputLayout = inputLayout.findViewById<TextInputLayout>(R.id.tilDialogItemAmount)
-
-        val nameInput = nameInputLayout.editText
-        val amountInput = amountInputLayout.editText
-
-        nameInput?.setText(currentName)
-        amountInput?.setText(currentAmount)
-
-        AlertDialog.Builder(context)
-            .setTitle("Edit Item")
-            .setView(inputLayout)
-            .setPositiveButton("Update") { _, _ ->
-                val newName = nameInput?.text.toString()
-                val newAmount = amountInput?.text.toString()
-                if (newName.isNotEmpty() && newAmount.isNotEmpty()) {
-                    onUpdate(newName, newAmount)
-                }
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
-    }
-
-    private fun extractItemsFromChips(chipGroup: ChipGroup, listId: Int): List<ShoppingItem> {
-        val items = mutableListOf<ShoppingItem>()
-
-        for (i in 0 until chipGroup.childCount) {
-            val chip = chipGroup.getChildAt(i) as? Chip ?: continue
-            val text = chip.text.toString()
-
-            val parts = text.split(":")
-            if (parts.size == 2) {
-                val name = parts[0].trim()
-                val amount = parts[1].trim().toIntOrNull() ?: 1
-                val item = ShoppingItem(id = 0, name = name, amount = amount, listId = listId)
-                items.add(item)
-            }
-        }
-
-        return items
-    }
-
-    private suspend fun updateItemsAndFinish(listId: Int, updatedList: ShoppingListSummary) {
+    private suspend fun updateItemsAndFinish(listId: String, updatedList: ShoppingListSummary) {
         viewModel.deleteAllItemsForListNow(listId)
 
-
-        val newItems = extractItemsFromChips(
-            requireView().findViewById(R.id.cgUpdateCardItemsContainer),
+        val newItems = itemUtils.extractItemsFromChips(
+            chipGroup,
             listId
         )
 

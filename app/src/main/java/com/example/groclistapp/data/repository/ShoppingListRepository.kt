@@ -34,14 +34,14 @@ class ShoppingListRepository(
         return combined.toString(36).uppercase()
     }
 
-    suspend fun insertAndGetId(shoppingList: ShoppingListSummary): Long {
+    suspend fun insertAndGetId(shoppingList: ShoppingListSummary): Boolean {
         val user = FirebaseAuth.getInstance().currentUser
 
         Log.d("ShoppingListRepository", "insertAndGetId() called. user=$user, uid=${user?.uid}")
 
         if (user == null) {
             Log.e("ShoppingListRepository", "Cannot create list. User is not logged in!")
-            return -1
+            return false
         }
 
         Log.d("ShoppingListRepository", "ShoppingListSummary received: id=${shoppingList.id}, name=${shoppingList.name}, itemsCount=${shoppingList.itemsCount}, creatorId=${shoppingList.creatorId}")
@@ -59,24 +59,21 @@ class ShoppingListRepository(
         Log.d("ShoppingListRepository", "Creating newList: id=${newList.id}, name=${newList.name}, creatorId=${newList.creatorId}, shareCode=${newList.shareCode}")
 
         val listId = shoppingListDao.insertShoppingList(newList)
-        val listWithUpdatedId = newList.copy(id = listId.toInt())
 
         Log.d("ShoppingListRepository", "Local DB saved. listId=$listId. Proceeding to save to Firestore...")
 
         try {
             db.collection("shoppingLists")
-                .document(listId.toString())
-                .set(listWithUpdatedId, SetOptions.merge())
+                .document(newList.id)
+                .set(newList, SetOptions.merge())
                 .await()
-            Log.d("ShoppingListRepository", "List successfully saved to Firestore with ID: $listId, creatorId=${user.uid}, shareCode=${listWithUpdatedId.shareCode}")
+            Log.d("ShoppingListRepository", "List successfully saved to Firestore with ID: $listId, creatorId=${user.uid}, shareCode=${newList.shareCode}")
+            return true
         } catch (e: Exception) {
             Log.e("ShoppingListRepository", "Error saving list to Firestore: ${e.message}")
+            return false
         }
-
-        return listId
     }
-
-
 
     suspend fun update(shoppingList: ShoppingListSummary) {
         shoppingListDao.updateShoppingList(
@@ -101,7 +98,7 @@ class ShoppingListRepository(
         deleteShoppingListFromFirestore(shoppingList.id)
     }
 
-    suspend fun getShoppingListById(listId: Int): ShoppingListSummary? {
+    suspend fun getShoppingListById(listId: String): ShoppingListSummary? {
 
         val localList = shoppingListDao.getListById(listId)
         if (localList != null) return localList
@@ -127,7 +124,7 @@ class ShoppingListRepository(
     }
 
 
-    fun getItemsForList(listId: Int): LiveData<List<ShoppingItem>> {
+    fun getItemsForList(listId: String): LiveData<List<ShoppingItem>> {
         return shoppingItemDao.getItemsForList(listId)
     }
 
@@ -218,7 +215,7 @@ class ShoppingListRepository(
 
 
 
-    fun deleteShoppingListFromFirestore(listId: Int) {
+    fun deleteShoppingListFromFirestore(listId: String) {
         Log.d("Firestore", ">>> התחיל deleteShoppingListFromFirestore עבור ID=$listId")
         val listRef = db.collection("shoppingLists").document(listId.toString())
         val itemsRef = listRef.collection("items")
@@ -256,7 +253,7 @@ class ShoppingListRepository(
     }
 
 
-    private fun deleteListDocument(listRef: DocumentReference, listId: Int) {
+    private fun deleteListDocument(listRef: DocumentReference, listId: String) {
         listRef.delete()
             .addOnSuccessListener {
                 Log.d("Firestore", " רשימה נמחקה בהצלחה: $listId")
@@ -348,7 +345,7 @@ class ShoppingListRepository(
 //        }
 //    }
 
-    suspend fun deleteAllItemsForList(listId: Int) {
+    suspend fun deleteAllItemsForList(listId: String) {
 
         shoppingItemDao.deleteItemsByListId(listId)
 
@@ -386,7 +383,6 @@ class ShoppingListRepository(
                     if (sharedList != null) {
                         CoroutineScope(Dispatchers.IO).launch {
                             try {
-
                                 val newId = shoppingListDao.insertShoppingList(sharedList)
 
                                 db.collection("shoppingLists")
@@ -398,7 +394,7 @@ class ShoppingListRepository(
 
                                         CoroutineScope(Dispatchers.IO).launch {
 
-                                            items.forEach { it.listId = newId.toInt() }
+                                            items.forEach { it.listId = sharedList.id }
 
                                             items.forEach { shoppingItemDao.insertItem(it) }
 

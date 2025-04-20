@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.Toast
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -30,18 +31,24 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.fragment.app.setFragmentResult
 import androidx.core.os.bundleOf
+import com.example.groclistapp.utils.DialogUtils
+import com.example.groclistapp.utils.InputUtils
+import com.example.groclistapp.utils.ItemUtils
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.storage.FirebaseStorage
 import java.io.File
+import java.util.UUID
 
 class AddCardFragment : Fragment() {
-
-    private var listId: Int = -1
+    private var listId: String = "-1"
     private lateinit var viewModel: ShoppingListViewModel
     private lateinit var repository: ShoppingListRepository
     private val pendingItems = mutableListOf<ShoppingItem>()
     private lateinit var ivImagePreview: ImageView
     private lateinit var imageHandler: ImageHandler
+    private val itemUtils = ItemUtils.instance
+    private val dialogUtils = DialogUtils.instance
+    private val inputUtils = InputUtils.instance
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -77,31 +84,55 @@ class AddCardFragment : Fragment() {
         val btnSave = view.findViewById<Button>(R.id.btnAddCardSave)
         val btnCancel = view.findViewById<Button>(R.id.btnAddCardCancel)
 
+        inputUtils.addCleanErrorMessageOnInputListener(tilListName)
+        inputUtils.addCleanErrorMessageOnInputListener(tilListDescription)
+
         btnAddItem.setOnClickListener {
             val name = tilItemName.editText?.text?.toString()?.trim().orEmpty()
             val amountStr = tilItemAmount.editText?.text?.toString()?.trim().orEmpty()
-            val amount = amountStr.toIntOrNull() ?: 0
 
-            if (name.isNotEmpty() && amount > 0) {
-                Log.d("AddCardFragment", "Adding new pending item: name=$name, amount=$amount")
-                val chip = createChip(name, amountStr, chipGroup)
-                chipGroup.addView(chip)
-                pendingItems.add(ShoppingItem(name = name, amount = amount, listId = -1))
+            val nameError = itemUtils.validateName(name, pendingItems.map { it.name })
 
-                tilItemName.editText?.text?.clear()
-                tilItemAmount.editText?.text?.clear()
-            } else {
-                Log.d("AddCardFragment", "Invalid item input: name='$name', amount='$amount'")
+            if (nameError != null) {
+                Toast.makeText(requireContext(), "Invalid item name: $nameError", Toast.LENGTH_SHORT).show()
+                Log.d("AddCardFragment", "Invalid item input: name='$name', nameError='$nameError'")
+                return@setOnClickListener
             }
+
+            val (amount, amountError) = itemUtils.validateAmount(amountStr)
+
+            if (amountError != null) {
+                Toast.makeText(requireContext(), "Invalid item amount: $amountError", Toast.LENGTH_SHORT).show()
+                Log.d("AddCardFragment", "Invalid item input: name='$amount', amountError='$amountError'")
+                return@setOnClickListener
+            }
+
+            Log.d("AddCardFragment", "Adding new pending item: name=$name, amount=$amount")
+            val chip = createChip(name, amountStr, chipGroup)
+            chipGroup.addView(chip)
+            pendingItems.add(ShoppingItem(name = name, amount = amount ?: 0, listId = "-1"))
+
+            tilItemName.editText?.text?.clear()
+            tilItemAmount.editText?.text?.clear()
         }
 
 
         btnSave.setOnClickListener {
             val listName = tilListName.editText?.text.toString().trim()
             val listDescription = tilListDescription.editText?.text.toString().trim()
+            var isValid = true
 
             if (listName.isEmpty()) {
                 tilListName.error = "The list name cannot be empty"
+                isValid = false
+            }
+
+            if (listDescription.isEmpty()) {
+                tilListDescription.error = "Description cannot be empty"
+                isValid = false
+            }
+
+            if (!isValid) {
                 return@setOnClickListener
             }
 
@@ -136,9 +167,24 @@ class AddCardFragment : Fragment() {
 
     private fun createChip(name: String, amount: String, chipGroup: ChipGroup): Chip {
         val chip = Chip(requireContext())
-        chip.text = "$name: $amount"
+        chip.text = itemUtils.createItemChipText(name, amount)
         chip.isCloseIconVisible = true
         chip.setOnCloseIconClickListener { chipGroup.removeView(chip) }
+
+        chip.setOnClickListener {
+            val updatedItemInfo = itemUtils.parseItemChipText(chip.text.toString())
+
+            dialogUtils.showEditItemDialog(
+                context = requireContext(),
+                parent = view as? ViewGroup,
+                currentName = updatedItemInfo.first,
+                currentAmount = updatedItemInfo.second.toString(),
+                existingNames = itemUtils.extractItemsFromChips(chipGroup, listId).map { it.name },
+            ) { newName, newAmount ->
+                chip.text = itemUtils.createItemChipText(newName, newAmount.toString())
+            }
+        }
+
         return chip
     }
 
@@ -205,7 +251,7 @@ class AddCardFragment : Fragment() {
     ) {
         lifecycleScope.launch(Dispatchers.IO) {
             val newList = ShoppingListSummary(
-                id = 0,
+                id = UUID.randomUUID().toString(),
                 name = listName,
                 description = listDescription,
                 imageUrl = imageUrlString,
@@ -216,13 +262,19 @@ class AddCardFragment : Fragment() {
 
             Log.d("AddCardFragment", "Before adding shopping list: $newList")
 
-            val newListIdLong = viewModel.addShoppingList(newList)
-            val newListId = newListIdLong.toInt()
-            Log.d("AddCardFragment", "New shopping list added with ID: $newListId")
+            val isSaved = viewModel.addShoppingList(newList)
+
+            if(!isSaved) {
+                Log.e("AddCardFragment", "Failed to save shopping list, listId: ${newList.id}")
+                Toast.makeText(requireContext(), "Failed to save shopping list", Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+
+            Log.d("AddCardFragment", "New shopping list added with ID: ${newList.id}")
 
             pendingItems.forEachIndexed { index, item ->
                 Log.d("AddCardFragment", "Before update: pendingItems[$index] - name: ${item.name}, old listId: ${item.listId}")
-                item.listId = newListId
+                item.listId = newList.id
                 Log.d("AddCardFragment", "After update: pendingItems[$index] - name: ${item.name}, new listId: ${item.listId}")
             }
 
@@ -241,15 +293,13 @@ class AddCardFragment : Fragment() {
             Log.d("AddCardFragment", "Pending items list cleared after saving.")
 
             withContext(Dispatchers.Main) {
-                listId = newListId
+                listId = newList.id
                 Log.d("AddCardFragment", "Finalizing list with ID: $listId and shareCode: $shareCode")
                 setFragmentResult("shoppingListUpdated", bundleOf("updated" to true))
                 findNavController().navigateUp()
             }
         }
     }
-
-
 }
 
 

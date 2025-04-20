@@ -31,7 +31,7 @@ interface ShoppingListDao {
            (SELECT COUNT(*) FROM shopping_items WHERE shopping_items.listId = shopping_lists.id) AS itemsCount 
     FROM shopping_lists WHERE shopping_lists.id = :listId LIMIT 1
 """)
-    suspend fun getListById(listId: Int): ShoppingListSummary?
+    suspend fun getListById(listId: String): ShoppingListSummary?
 
 
     @Query("""
