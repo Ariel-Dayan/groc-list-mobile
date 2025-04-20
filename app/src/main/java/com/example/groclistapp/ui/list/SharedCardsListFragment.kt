@@ -25,6 +25,8 @@ class SharedCardsListFragment : Fragment() {
     private var cardsRecyclerView: RecyclerView? = null
     private lateinit var viewModel: SharedCardsViewModel
     private lateinit var jokeTextView: TextView
+    private lateinit var noCardsMessageTextView: TextView
+    private val listUtils = ListUtils.instance
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -49,6 +51,8 @@ class SharedCardsListFragment : Fragment() {
 
         val shoppingListDao = AppDatabase.getDatabase(requireContext()).shoppingListDao()
         val shoppingItemDao = AppDatabase.getDatabase(requireContext()).shoppingItemDao()
+
+        noCardsMessageTextView = view.findViewById(R.id.tvSharedCardsListNoCardsMessage)
 
         adapter = CardsRecyclerAdapter(
             mutableListOf(),  // יתעדכן בהמשך
@@ -76,6 +80,7 @@ class SharedCardsListFragment : Fragment() {
 
         // תצפית על הרשימות המשותפות מתוך ViewModel
         viewModel.sharedLists.observe(viewLifecycleOwner) { list ->
+            listUtils.toggleNoCardListsMessage(noCardsMessageTextView, list)
             adapter?.setData(list)
         }
 

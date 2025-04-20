@@ -74,14 +74,15 @@
         app:layout_constraintTop_toBottomOf="@+id/tilSharedCardsListSharedCode" />
 
     <TextView
-        android:id="@+id/tvMyCardsListNoCardsMessage"
+        android:id="@+id/tvSharedCardsListNoCardsMessage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:gravity="center_horizontal|center_vertical"
         android:text="@string/no_cards_message"
         android:textSize="20sp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/tilSharedCardsListSharedCode" />
 </androidx.constraintlayout.widget.ConstraintLayout>
