@@ -1,9 +1,11 @@
 package com.example.groclistapp.viewmodel
 
+import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import android.util.Log
+import com.example.groclistapp.data.repository.AuthRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
@@ -13,6 +15,7 @@ class AuthViewModel : ViewModel() {
 
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
+    private val repository = AuthRepository()
 
     private val _loginStatus = MutableLiveData<Boolean>()
     val loginStatus: LiveData<Boolean> get() = _loginStatus
@@ -49,8 +52,9 @@ class AuthViewModel : ViewModel() {
             }
     }
 
-    fun signup(email: String, password: String, fullName: String) {
+    fun signup(email: String, password: String, fullName: String, imageUri: Uri?) {
         _signupStatus.value = false
+
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
@@ -58,16 +62,25 @@ class AuthViewModel : ViewModel() {
                     val profileUpdates = UserProfileChangeRequest.Builder()
                         .setDisplayName(fullName)
                         .build()
+
                     user?.updateProfile(profileUpdates)?.addOnCompleteListener { profileTask ->
                         if (profileTask.isSuccessful) {
-                            saveUserToFirestore(user.uid, fullName, email)
+                            repository.registerUserWithProfileImage(
+                                fullName = fullName,
+                                email = email,
+                                imageUri = imageUri
+                            ) { success, error ->
+                                _signupStatus.postValue(success)
+                                _errorMessage.postValue(error ?: "Unknown error")
+
+                            }
                         } else {
-                            Log.e("SignupError", "❌ Failed to update profile")
+                            _signupStatus.value = false
+                            _errorMessage.value = "Failed to update profile"
                         }
                     }
                 } else {
                     _signupStatus.value = false
-                    Log.e("SignupError", task.exception?.message ?: "Unknown error")
                     _errorMessage.value = task.exception?.message ?: "Signup failed"
                 }
             }
