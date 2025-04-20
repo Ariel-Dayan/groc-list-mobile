@@ -1,20 +1,19 @@
-package com.example.groclistapp.ui.utils
+package com.example.groclistapp.utils
 
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import com.example.groclistapp.R
-import com.example.groclistapp.utils.InputUtils
-import com.example.groclistapp.utils.ItemUtils
 import com.google.android.material.textfield.TextInputLayout
 
 class DialogUtils private constructor() {
     private val inputUtils = InputUtils.instance
     private val itemUtils = ItemUtils.instance
 
-    private fun inflateDialogItemLayout(context: Context): Triple<View, TextInputLayout, TextInputLayout> {
-        val layout = LayoutInflater.from(context).inflate(R.layout.dialog_item, null)
+    private fun inflateDialogItemLayout(context: Context, parent: ViewGroup?): Triple<View, TextInputLayout, TextInputLayout> {
+        val layout = LayoutInflater.from(context).inflate(R.layout.dialog_item, parent, false)
         val nameLayout = layout.findViewById<TextInputLayout>(R.id.tilDialogItemName)
         val amountLayout = layout.findViewById<TextInputLayout>(R.id.tilDialogItemAmount)
         return Triple(layout, nameLayout, amountLayout)
@@ -22,12 +21,13 @@ class DialogUtils private constructor() {
 
     fun showEditItemDialog(
         context: Context,
+        parent: ViewGroup?,
         currentName: String,
         currentAmount: String,
         existingNames: List<String>,
         onUpdate: (String, Int) -> Unit
     ) {
-        val (layout, nameLayout, amountLayout) = inflateDialogItemLayout(context)
+        val (layout, nameLayout, amountLayout) = inflateDialogItemLayout(context, parent)
 
         inputUtils.addCleanErrorMessageOnInputListener(nameLayout)
         inputUtils.addCleanErrorMessageOnInputListener(amountLayout)

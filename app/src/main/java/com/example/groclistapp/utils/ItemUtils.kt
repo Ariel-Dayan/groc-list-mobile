@@ -5,7 +5,7 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 
 class ItemUtils private constructor() {
-    val itemSeparator = ":"
+    private val itemSeparator = ":"
 
     fun extractItemsFromChips(chipGroup: ChipGroup, listId: String): List<ShoppingItem> {
         val items = mutableListOf<ShoppingItem>()
@@ -15,7 +15,7 @@ class ItemUtils private constructor() {
             val text = chip.text.toString()
 
             val (name, amount) = parseItemChipText(text)
-            if (!name.isNullOrEmpty()) {
+            if (name.isNotEmpty()) {
                 val item = ShoppingItem(id = 0, name = name, amount = amount, listId = listId)
                 items.add(item)
             }
