@@ -37,7 +37,6 @@ class AuthViewModel : ViewModel() {
     }
 
     fun login(email: String, password: String) {
-        _loginStatus.value = false
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
