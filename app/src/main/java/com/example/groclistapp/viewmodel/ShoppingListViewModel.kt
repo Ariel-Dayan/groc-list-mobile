@@ -163,6 +163,19 @@ class ShoppingListViewModel(
         }
     }
 
+    suspend fun syncUserDataFromFirebase() {
+        repository.loadAllUserDataFromFirebase()
+    }
+
+    suspend fun syncSharedListsFromFirebase() {
+        repository.loadAllSharedListsFromFirebase()
+    }
+
+    fun removeSharedListReference(listId: String) {
+        repository.removeListIdFromSharedListArray(listId)
+    }
+
+
     class Factory(
         private val application: Application,
         private val repository: ShoppingListRepository

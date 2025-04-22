@@ -8,6 +8,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.example.groclistapp.R
@@ -19,24 +20,41 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import kotlinx.coroutines.launch
 import androidx.navigation.fragment.findNavController
+import com.example.groclistapp.data.repository.ShoppingListRepository
+import com.example.groclistapp.viewmodel.ShoppingListViewModel
 
 
 class DisplayCardFragment : Fragment() {
     private var listId: String = "-1"
     private lateinit var shoppingListDao: ShoppingListDao
     private lateinit var shoppingItemDao: ShoppingItemDao
+    private lateinit var viewModel: ShoppingListViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        viewModel = ViewModelProvider(
+            this,
+            ShoppingListViewModel.Factory(
+                requireActivity().application,
+                ShoppingListRepository(
+                    AppDatabase.getDatabase(requireContext()).shoppingListDao(),
+                    AppDatabase.getDatabase(requireContext()).shoppingItemDao()
+                )
+            )
+        )[ShoppingListViewModel::class.java]
+
         listId = arguments?.getString("listId") ?: "-1"
     }
 
     override fun onCreateView(
+
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
+
     ): View? {
         return inflater.inflate(R.layout.fragment_display_card, container, false)
     }
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -81,10 +99,8 @@ class DisplayCardFragment : Fragment() {
             lifecycleScope.launch {
                 shoppingItemDao.deleteItemsByListId(listId)
 
-                // מחזירים את הרשימה המקורית מה-DB למחיקה
                 val list = shoppingListDao.getListById(listId)
                 if (list != null) {
-                    // המרה ל- ShoppingList מתוך ShoppingListSummary
                     val shoppingList = ShoppingList(
                         id = list.id,
                         name = list.name,
@@ -94,6 +110,8 @@ class DisplayCardFragment : Fragment() {
                         imageUrl = list.imageUrl
                     )
                     shoppingListDao.deleteShoppingList(shoppingList)
+                    viewModel.removeSharedListReference(listId)
+
                 }
 
                 requireActivity().runOnUiThread {

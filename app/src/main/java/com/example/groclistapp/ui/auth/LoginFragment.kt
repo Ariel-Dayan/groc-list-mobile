@@ -7,17 +7,24 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import com.example.groclistapp.R
+import com.example.groclistapp.data.repository.AppDatabase
+import com.example.groclistapp.data.repository.ShoppingListRepository
 import com.example.groclistapp.viewmodel.AuthViewModel
+import com.example.groclistapp.viewmodel.ShoppingListViewModel
 import com.google.android.material.textfield.TextInputLayout
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.button.MaterialButton
+import kotlinx.coroutines.launch
 
 class LoginFragment : Fragment(R.layout.fragment_login) {
 
     private val authViewModel: AuthViewModel by viewModels()
-
+    private lateinit var shoppingListViewModel: ShoppingListViewModel
     private lateinit var emailInput: TextInputEditText
     private lateinit var passwordInput: TextInputEditText
     private lateinit var loginButton: MaterialButton
@@ -25,6 +32,18 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        shoppingListViewModel = ViewModelProvider(
+            this,
+            ShoppingListViewModel.Factory(
+                requireActivity().application,
+                ShoppingListRepository(
+                    AppDatabase.getDatabase(requireContext()).shoppingListDao(),
+                    AppDatabase.getDatabase(requireContext()).shoppingItemDao()
+                )
+            )
+        )[ShoppingListViewModel::class.java]
+
 
         val emailLayout = view.findViewById<TextInputLayout>(R.id.tilLoginEmail)
         val passwordLayout = view.findViewById<TextInputLayout>(R.id.tilLoginPassword)
@@ -55,18 +74,17 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
             loginButton.text = getString(R.string.login)
 
             if (isSuccess) {
-                Log.d("LoginFragment", "Login successful. Navigating to MyCardsListFragment...")
+                lifecycleScope.launch {
+                    shoppingListViewModel.syncUserDataFromFirebase()
+                    shoppingListViewModel.syncSharedListsFromFirebase()
+                    val navOptions = NavOptions.Builder()
+                        .setPopUpTo(R.id.loginFragment, true)
+                        .build()
 
-                val navOptions = androidx.navigation.NavOptions.Builder()
-                    .setPopUpTo(R.id.loginFragment, true)
-                    .build()
-
-                findNavController().navigate(
-                    R.id.myCardsListFragment,
-                    null,
-                    navOptions
-                )
-            } else {
+                    findNavController().navigate(R.id.myCardsListFragment, null, navOptions)
+                }
+            }
+            else {
                 Toast.makeText(requireContext(), "Login failed. Please check your details.", Toast.LENGTH_SHORT).show()
             }
         })

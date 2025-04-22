@@ -15,6 +15,8 @@ import kotlin.random.Random
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import com.google.firebase.firestore.FieldPath
+
 
 class ShoppingListRepository(
     private val shoppingListDao: ShoppingListDao,
@@ -395,12 +397,36 @@ class ShoppingListRepository(
                                         CoroutineScope(Dispatchers.IO).launch {
 
                                             items.forEach { it.listId = sharedList.id }
-
                                             items.forEach { shoppingItemDao.insertItem(it) }
 
                                             Log.d("SharedList", "Items saved successfully for listId=$newId")
                                             onSuccess(sharedList)
+
+                                            val currentUser = FirebaseAuth.getInstance().currentUser
+                                            if (currentUser != null) {
+                                                val userDoc = db.collection("users").document(currentUser.uid)
+                                                userDoc.get()
+                                                    .addOnSuccessListener { userSnapshot ->
+                                                        if (!userSnapshot.exists() || !userSnapshot.contains("sharedListIds")) {
+                                                            userDoc.set(
+                                                                mapOf("sharedListIds" to listOf(sharedList.id)),
+                                                                SetOptions.merge()
+                                                            ).addOnSuccessListener {
+                                                                Log.d("SharedList", "Created sharedListIds array for user")
+                                                            }
+                                                        } else {
+                                                            userDoc.update("sharedListIds", FieldValue.arrayUnion(sharedList.id))
+                                                                .addOnSuccessListener {
+                                                                    Log.d("SharedList", "Added listId to user's sharedListIds")
+                                                                }
+                                                        }
+                                                    }
+                                                    .addOnFailureListener { e ->
+                                                        Log.e("SharedList", "Failed to read user doc: ${e.message}")
+                                                    }
+                                            }
                                         }
+
                                     }
                                     .addOnFailureListener { e ->
                                         Log.e("SharedList", "Failed to load items: ${e.message}")
@@ -429,10 +455,92 @@ class ShoppingListRepository(
             }
     }
 
+
     suspend fun clearAllLocalData() {
         shoppingItemDao.deleteAllShoppingItems()
         shoppingListDao.deleteAllShoppingLists()
     }
+
+    suspend fun loadAllUserDataFromFirebase() {
+       val user = FirebaseAuth.getInstance().currentUser ?: return
+        Log.d("Sync", "Fetching lists for UID: ${user.uid}")
+        try {
+            val snapshot = db.collection("shoppingLists")
+                .whereEqualTo("creatorId", user.uid)
+                .get()
+                .await()
+            Log.d("Sync", "Fetched ${snapshot.documents.size} lists from Firebase")
+            for (doc in snapshot.documents) {
+                val list = doc.toObject(ShoppingList::class.java) ?: continue
+                shoppingListDao.insertShoppingList(list)
+
+                val itemsSnapshot = doc.reference.collection("items").get().await()
+                val items = itemsSnapshot.toObjects(ShoppingItem::class.java)
+                items.forEach { item ->
+                    item.listId = list.id
+                    shoppingItemDao.insertItem(item)
+                }
+            }
+
+            Log.d("Sync", "User data successfully loaded from Firebase")
+
+        } catch (e: Exception) {
+            Log.e("Sync", "Error loading user data from Firebase: ${e.message}")
+        }
+    }
+
+    suspend fun loadAllSharedListsFromFirebase() {
+        val user = FirebaseAuth.getInstance().currentUser ?: return
+
+        try {
+            val userDoc = db.collection("users").document(user.uid).get().await()
+            val sharedListIds = userDoc.get("sharedListIds") as? List<String> ?: emptyList()
+
+            if (sharedListIds.isEmpty()) {
+                Log.d("SharedSync", "No sharedListIds found for user ${user.uid}")
+                return
+            }
+
+            Log.d("SharedSync", "Found ${sharedListIds.size} sharedListIds for user ${user.uid}")
+
+            val chunks = sharedListIds.chunked(10)
+            for (chunk in chunks) {
+                val listsSnapshot = db.collection("shoppingLists")
+                    .whereIn(FieldPath.documentId(), chunk)
+                    .get()
+                    .await()
+
+                for (doc in listsSnapshot.documents) {
+                    val list = doc.toObject(ShoppingList::class.java) ?: continue
+                    shoppingListDao.insertShoppingList(list)
+
+                    val itemsSnapshot = doc.reference.collection("items").get().await()
+                    val items = itemsSnapshot.toObjects(ShoppingItem::class.java)
+                    items.forEach { it.listId = list.id }
+                    items.forEach { shoppingItemDao.insertItem(it) }
+
+                    Log.d("SharedSync", "Inserted shared list ${list.id} with ${items.size} items")
+                }
+            }
+
+        } catch (e: Exception) {
+            Log.e("SharedSync", "Failed loading shared lists: ${e.message}")
+        }
+    }
+
+    fun removeListIdFromSharedListArray(listId: String) {
+        val user = FirebaseAuth.getInstance().currentUser ?: return
+
+        val userDoc = db.collection("users").document(user.uid)
+        userDoc.update("sharedListIds", FieldValue.arrayRemove(listId))
+            .addOnSuccessListener {
+                Log.d("SharedList", "Removed listId=$listId from sharedListIds of user ${user.uid}")
+            }
+            .addOnFailureListener { e ->
+                Log.e("SharedList", "Failed to remove listId from sharedListIds: ${e.message}")
+            }
+    }
+
 
 }
 
