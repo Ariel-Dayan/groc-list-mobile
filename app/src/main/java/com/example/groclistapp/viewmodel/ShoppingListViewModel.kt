@@ -157,6 +157,11 @@ class ShoppingListViewModel(
         repository.deleteAllItemsForList(listId)
     }
 
+    fun clearAllLocalData() {
+        viewModelScope.launch {
+            repository.clearAllLocalData()
+        }
+    }
 
     class Factory(
         private val application: Application,

@@ -20,6 +20,9 @@ interface ShoppingItemDao {
     @Delete
     suspend fun deleteItem(item: ShoppingItem): Int
 
+    @Query("DELETE FROM shopping_items")
+    suspend fun deleteAllShoppingItems()
+
     @Query("DELETE FROM shopping_items WHERE listId = :listId")
     suspend fun deleteItemsByListId(listId: String)
 

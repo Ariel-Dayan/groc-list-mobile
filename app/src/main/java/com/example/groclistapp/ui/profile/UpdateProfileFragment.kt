@@ -21,6 +21,9 @@ import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.example.groclistapp.R
+import com.example.groclistapp.data.repository.AppDatabase
+import com.example.groclistapp.data.repository.ShoppingListRepository
+import com.example.groclistapp.viewmodel.ShoppingListViewModel
 
 class UpdateProfileFragment : Fragment() {
 
@@ -30,11 +33,22 @@ class UpdateProfileFragment : Fragment() {
     private lateinit var viewModel: ProfileViewModel
     private lateinit var auth: FirebaseAuth
     private lateinit var storage: FirebaseStorage
+    private lateinit var shoppingListViewModel: ShoppingListViewModel
     private var selectedImageUri: Uri? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+
     ): View {
+        shoppingListViewModel = ViewModelProvider(
+            this,
+            ShoppingListViewModel.Factory(requireActivity().application, ShoppingListRepository(
+                AppDatabase.getDatabase(requireContext()).shoppingListDao(),
+                AppDatabase.getDatabase(requireContext()).shoppingItemDao()
+            )
+            )
+        )[ShoppingListViewModel::class.java]
+
         _binding = FragmentUpdateProfileBinding.inflate(inflater, container, false)
         viewModel = ViewModelProvider(this)[ProfileViewModel::class.java]
         auth = FirebaseAuth.getInstance()
@@ -113,6 +127,7 @@ class UpdateProfileFragment : Fragment() {
 
 
     private fun logout() {
+        shoppingListViewModel.clearAllLocalData()
         auth.signOut()
         Toast.makeText(requireContext(), "Successfully logged out!", Toast.LENGTH_SHORT).show()
         findNavController().navigate(

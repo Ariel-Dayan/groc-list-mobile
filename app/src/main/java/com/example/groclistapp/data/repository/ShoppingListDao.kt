@@ -17,6 +17,10 @@ interface ShoppingListDao {
     @Delete
     suspend fun deleteShoppingList(shoppingList: ShoppingList): Int
 
+    @Query("DELETE FROM shopping_lists")
+    suspend fun deleteAllShoppingLists()
+
+
     @Query("""
     SELECT shopping_lists.id, shopping_lists.name, shopping_lists.description, 
            shopping_lists.creatorId, shopping_lists.shareCode, shopping_lists.imageUrl,

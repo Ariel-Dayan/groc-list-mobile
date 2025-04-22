@@ -429,6 +429,10 @@ class ShoppingListRepository(
             }
     }
 
+    suspend fun clearAllLocalData() {
+        shoppingItemDao.deleteAllShoppingItems()
+        shoppingListDao.deleteAllShoppingLists()
+    }
 
 }
 
