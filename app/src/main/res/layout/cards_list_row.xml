@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/mcvCardsListRow"
         android:layout_width="0dp"
-        android:layout_height="310dp"
+        android:layout_height="360dp"
         android:layout_margin="16dp"
         android:checkable="false"
         android:focusable="false"
@@ -33,14 +34,17 @@
 
             <TextView
                 android:id="@+id/tvCardsListRowTitle"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="8dp"
                 android:ellipsize="end"
                 android:gravity="center"
+                android:maxLines="1"
+                android:nestedScrollingEnabled="false"
                 android:textAppearance="?attr/textAppearanceTitleMedium"
                 android:textSize="20sp"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/ivCardsListRowTop" />
 
@@ -49,13 +53,14 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="8dp"
                 android:ellipsize="end"
                 android:maxLines="2"
                 android:nestedScrollingEnabled="false"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
                 android:textColor="?android:attr/textColorSecondary"
                 android:textSize="14sp"
+                app:layout_constraintBottom_toTopOf="@+id/tvCardsListRowCreatedByHint"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/tvCardsListRowTitle" />
@@ -65,13 +70,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:layout_marginBottom="4dp"
+                android:layout_marginTop="16dp"
                 android:text="@string/created_by_hint"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
                 android:textColor="?android:attr/textColorSecondary"
                 android:textSize="12sp"
-                app:layout_constraintBottom_toTopOf="@+id/tvCardsListRowUpdateAtHint"
-                app:layout_constraintStart_toStartOf="parent" />
+                app:layout_constraintBottom_toTopOf="@+id/tvCardsListRowSharedCodeHint"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tvCardsListRowDescription" />
 
             <TextView
                 android:id="@+id/tvCardsListRowCreatedByName"
@@ -79,49 +85,28 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
                 android:ellipsize="end"
+                android:maxLines="1"
+                android:nestedScrollingEnabled="false"
                 android:singleLine="true"
                 android:textSize="12sp"
                 app:layout_constraintBaseline_toBaselineOf="@+id/tvCardsListRowCreatedByHint"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/tvCardsListRowCreatedByHint" />
 
-            <TextView
-                android:id="@+id/tvCardsListRowUpdateAtHint"
-                android:layout_width="wrap_content"
-                android:layout_height="0dp"
-                android:layout_marginStart="16dp"
-                android:layout_marginBottom="4dp"
-                android:text="@string/update_at_hint"
-                android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="?android:attr/textColorSecondary"
-                android:textSize="12sp"
-                app:layout_constraintBottom_toTopOf="@+id/tvCardsListRowSharedCodeHint"
-                app:layout_constraintStart_toStartOf="parent" />
-
-            <TextView
-                android:id="@+id/tvCardsListRowUpdateAtTime"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:ellipsize="end"
-                android:singleLine="true"
-                android:textSize="12sp"
-                app:layout_constraintBaseline_toBaselineOf="@+id/tvCardsListRowUpdateAtHint"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/tvCardsListRowUpdateAtHint" />
 
             <TextView
                 android:id="@+id/tvCardsListRowSharedCodeHint"
                 android:layout_width="wrap_content"
                 android:layout_height="0dp"
                 android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
                 android:layout_marginBottom="8dp"
                 android:text="@string/shared_code_hint"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
                 android:textColor="?android:attr/textColorSecondary"
                 android:textSize="12sp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent" />
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tvCardsListRowCreatedByName" />
 
             <TextView
                 android:id="@+id/tvCardsListRowSharedCodeValue"
@@ -129,11 +114,30 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
                 android:ellipsize="end"
+                android:maxLines="1"
+                android:nestedScrollingEnabled="false"
                 android:singleLine="true"
                 android:textSize="12sp"
                 app:layout_constraintBaseline_toBaselineOf="@+id/tvCardsListRowSharedCodeHint"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/tvCardsListRowSharedCodeHint" />
+
+            <ImageButton
+                android:id="@+id/ivShareIcon"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="4dp"
+                android:layout_marginBottom="4dp"
+                android:clickable="true"
+                android:contentDescription="@string/share_icon_description"
+                android:focusable="true"
+                android:scaleType="centerInside"
+                android:src="@android:drawable/ic_menu_share"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tvCardsListRowSharedCodeValue"
+                app:tint="@android:color/black" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </com.google.android.material.card.MaterialCardView>

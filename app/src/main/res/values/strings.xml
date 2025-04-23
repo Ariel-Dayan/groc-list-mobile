@@ -48,4 +48,5 @@
     <string name="logging_in">Logging in...</string>
     <string name="signing_up">Signing up...</string>
     <string name="old_password_hint">Old Password</string>
- </resources>
+    <string name="share_icon_description">share code action</string>
+</resources>
