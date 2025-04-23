@@ -24,6 +24,7 @@ import com.example.groclistapp.data.repository.ShoppingItemDao
 import com.example.groclistapp.data.adapter.card.OnItemClickListener
 import com.example.groclistapp.data.network.jokes.JokesClient.setJoke
 import com.example.groclistapp.utils.ListUtils
+import com.example.groclistapp.utils.MessageUtils
 
 
 class MyCardsListFragment : Fragment() {
@@ -33,6 +34,7 @@ class MyCardsListFragment : Fragment() {
     private lateinit var jokeTextView: TextView
     private lateinit var noCardsTextView: TextView
     private val listUtils = ListUtils.instance
+    private val messageUtils = MessageUtils.instance
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -81,6 +83,10 @@ class MyCardsListFragment : Fragment() {
                 override fun onItemClick(listId: String) {
                     val bundle = Bundle().apply { putString("listId", listId) }
                     findNavController().navigate(R.id.action_myCardsListFragment_to_updateCardFragment, bundle)
+                }
+
+                override fun onShareCodeClick(code: String, itemView: View) {
+                    messageUtils.shareShoppingListCode(code, itemView)
                 }
             }
         )

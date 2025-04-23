@@ -18,6 +18,7 @@ import com.example.groclistapp.data.repository.AppDatabase
 import com.example.groclistapp.viewmodel.SharedCardsViewModel
 import androidx.navigation.fragment.findNavController
 import com.example.groclistapp.utils.ListUtils
+import com.example.groclistapp.utils.MessageUtils
 
 
 class SharedCardsListFragment : Fragment() {
@@ -27,6 +28,7 @@ class SharedCardsListFragment : Fragment() {
     private lateinit var jokeTextView: TextView
     private lateinit var noCardsMessageTextView: TextView
     private val listUtils = ListUtils.instance
+    private val messageUtils = MessageUtils.instance
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -65,6 +67,10 @@ class SharedCardsListFragment : Fragment() {
                     }
                     val navController = findNavController()
                     navController.navigate(R.id.action_sharedCardsListFragment_to_displayCardFragment, bundle)
+                }
+
+                override fun onShareCodeClick(code: String, itemView: View) {
+                    messageUtils.shareShoppingListCode(code, itemView)
                 }
             }
 

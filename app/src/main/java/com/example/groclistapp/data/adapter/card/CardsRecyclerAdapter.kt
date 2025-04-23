@@ -10,7 +10,6 @@ import com.example.groclistapp.data.model.ShoppingListSummary
 import com.example.groclistapp.data.repository.ShoppingItemDao
 import com.example.groclistapp.data.repository.ShoppingListDao
 import com.example.groclistapp.data.repository.ShoppingListRepository
-import com.example.groclistapp.data.adapter.card.OnItemClickListener
 
 class CardsRecyclerAdapter(
     private var shoppingLists: MutableList<ShoppingListSummary>,

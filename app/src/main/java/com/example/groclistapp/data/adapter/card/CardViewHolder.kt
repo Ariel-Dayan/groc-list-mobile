@@ -17,26 +17,28 @@ class CardViewHolder(itemView: View, private val listener: OnItemClickListener?)
     private val titleTextView: TextView = itemView.findViewById(R.id.tvCardsListRowTitle)
     private val descriptionTextView: TextView = itemView.findViewById(R.id.tvCardsListRowDescription)
     val creatorTextView: TextView = itemView.findViewById(R.id.tvCardsListRowCreatedByHint)
-    private val shareCodeTextView: TextView = itemView.findViewById(R.id.tvCardsListRowSharedCodeValue) // ✅ ודא שזה ה-ID הנכון מ-XML
-    val ivTop: ImageView = itemView.findViewById(R.id.ivCardsListRowTop)
+    private val shareCodeTextView: TextView = itemView.findViewById(R.id.tvCardsListRowSharedCodeValue)
+    private val ivTop: ImageView = itemView.findViewById(R.id.ivCardsListRowTop)
+    private val shareCodeIcon: ImageView = itemView.findViewById(R.id.ivShareIcon)
 
     fun bind(shoppingList: ShoppingListSummary) {
         titleTextView.text = shoppingList.name
-        descriptionTextView.text = if (!shoppingList.description.isNullOrEmpty()) {
-            shoppingList.description
-        } else {
+        descriptionTextView.text = shoppingList.description.ifEmpty {
             "No description available"
         }
 
-        shareCodeTextView.text = if (!shoppingList.shareCode.isNullOrEmpty()) {
-            shoppingList.shareCode
-        } else {
+        shareCodeTextView.text = shoppingList.shareCode.ifEmpty {
             "No share code"
         }
 
         itemView.setOnClickListener {
             Log.d("CardViewHolder", "Item clicked: ${shoppingList.id}")
             listener?.onItemClick(shoppingList.id)
+        }
+
+        shareCodeIcon.setOnClickListener {
+            Log.d("CardViewHolder", "Share icon clicked for list: ${shoppingList.id}")
+            listener?.onShareCodeClick(shoppingList.shareCode, itemView)
         }
 
         if (!shoppingList.imageUrl.isNullOrEmpty()) {
