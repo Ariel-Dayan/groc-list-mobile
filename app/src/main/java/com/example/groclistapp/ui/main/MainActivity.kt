@@ -38,11 +38,9 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // בדיקה אם המשתמש כבר מחובר
         val user = FirebaseAuth.getInstance().currentUser
-        if (user == null) {
-
-            navController?.navigate(R.id.loginFragment)
+        if (user != null) {
+            navController?.navigate(R.id.myCardsListFragment)
         }
 
     }

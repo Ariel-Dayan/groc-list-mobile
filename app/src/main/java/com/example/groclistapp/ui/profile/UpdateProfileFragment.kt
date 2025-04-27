@@ -130,11 +130,13 @@ class UpdateProfileFragment : Fragment() {
         shoppingListViewModel.clearAllLocalData()
         auth.signOut()
         Toast.makeText(requireContext(), "Successfully logged out!", Toast.LENGTH_SHORT).show()
-        findNavController().navigate(
+
+        val navController = findNavController()
+        navController.navigate(
             R.id.loginFragment,
             null,
             NavOptions.Builder()
-                .setPopUpTo(R.id.updateProfileFragment, true)
+                .setPopUpTo(navController.graph.id, true)
                 .build()
         )
     }

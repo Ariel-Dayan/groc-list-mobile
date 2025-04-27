@@ -52,12 +52,11 @@ class AuthViewModel : ViewModel() {
     }
 
     fun signup(email: String, password: String, fullName: String, imageUri: Uri?) {
-        _signupStatus.value = false
-
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val user = auth.currentUser
+
                     val profileUpdates = UserProfileChangeRequest.Builder()
                         .setDisplayName(fullName)
                         .build()
@@ -70,12 +69,16 @@ class AuthViewModel : ViewModel() {
                                 imageUri = imageUri
                             ) { success, error ->
                                 _signupStatus.postValue(success)
-                                _errorMessage.postValue(error ?: "Unknown error")
+                                if (!success || error?.isNotEmpty() == true) {
+                                    _errorMessage.postValue(error ?: "Unknown error")
+                                }
 
+                                auth.signOut()
                             }
                         } else {
                             _signupStatus.value = false
                             _errorMessage.value = "Failed to update profile"
+                            auth.signOut()
                         }
                     }
                 } else {

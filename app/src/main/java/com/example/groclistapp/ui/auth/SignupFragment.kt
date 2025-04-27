@@ -96,29 +96,22 @@ class SignupFragment : Fragment(R.layout.fragment_signup) {
                 fullName = fullName,
                 imageUri = imageHandler.selectedImageUri
             )
+        }
 
-            authViewModel.signupStatus.observe(viewLifecycleOwner) { success ->
-                if (success) {
-                    Toast.makeText(requireContext(), "User registered successfully!", Toast.LENGTH_SHORT).show()
-                    findNavController().navigate(
-                        R.id.loginFragment,
-                        null,
-                        NavOptions.Builder()
-                            .setPopUpTo(R.id.signupFragment, true)
-                            .build()
-                    )
-                } else {
-                    registerButton.isEnabled = true
-                    registerButton.text = getString(R.string.sign_up)
-                }
+        authViewModel.signupStatus.observe(viewLifecycleOwner) { success ->
+            if (success) {
+                Toast.makeText(requireContext(), "User registered successfully!", Toast.LENGTH_SHORT).show()
+                findNavController().navigateUp()
+            } else {
+                registerButton.isEnabled = true
+                registerButton.text = getString(R.string.sign_up)
             }
+        }
 
-            authViewModel.errorMessage.observe(viewLifecycleOwner) { message ->
-                message?.let {
-                    Toast.makeText(requireContext(), "Signup failed: $it", Toast.LENGTH_SHORT).show()
-                }
+        authViewModel.errorMessage.observe(viewLifecycleOwner) { message ->
+            message?.let {
+                Toast.makeText(requireContext(), "Signup failed: $it", Toast.LENGTH_SHORT).show()
             }
-
         }
     }
 }
