@@ -3,6 +3,7 @@ package com.example.groclistapp.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.example.groclistapp.data.model.ShoppingListSummary
 import com.example.groclistapp.data.repository.AppDatabase
 import com.google.firebase.auth.FirebaseAuth
@@ -14,4 +15,6 @@ class SharedCardsViewModel(application: Application) : AndroidViewModel(applicat
 
     val sharedLists: LiveData<List<ShoppingListSummary>> =
         shoppingListDao.getAllShoppingListsFiltered(currentUserId)
+
+    val isLoading = MutableLiveData<Boolean>()
 }

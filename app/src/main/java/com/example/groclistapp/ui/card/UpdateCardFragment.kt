@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.Toast
 import com.example.groclistapp.data.image.ImageHandler
 import androidx.appcompat.app.AlertDialog
@@ -33,6 +34,7 @@ class UpdateCardFragment : Fragment() {
     private var currentListSummary: ShoppingListSummary? = null
     private lateinit var imageHandler: ImageHandler
     private lateinit var chipGroup: ChipGroup
+    private lateinit var progressBar: ProgressBar
     private val itemUtils = ItemUtils.instance
     private val inputUtils = InputUtils.instance
     private val dialogUtils = DialogUtils.instance
@@ -64,6 +66,7 @@ class UpdateCardFragment : Fragment() {
         val tilName = view.findViewById<TextInputLayout>(R.id.tilUpdateCardItemName)
         val tilAmount = view.findViewById<TextInputLayout>(R.id.tilUpdateCardItemAmount)
         val btnAddItem = view.findViewById<Button>(R.id.btnUpdateCardAddItem)
+        progressBar = view.findViewById(R.id.progressBar)
 
         inputUtils.addCleanErrorMessageOnInputListener(tilTitle)
         inputUtils.addCleanErrorMessageOnInputListener(tilDescription)
@@ -71,6 +74,7 @@ class UpdateCardFragment : Fragment() {
         imageHandler = ImageHandler(this, ivTop, ibGallery, ibCamera)
 
         lifecycleScope.launch {
+            progressBar.visibility = View.VISIBLE
             currentListSummary = viewModel.getShoppingListById(listId)
             currentListSummary?.let {
                 tilTitle.editText?.setText(it.name)
@@ -88,6 +92,7 @@ class UpdateCardFragment : Fragment() {
                 val chip = createChip(item.name, item.amount.toString(), chipGroup, listId)
                 chipGroup.addView(chip)
             }
+            progressBar.visibility = View.GONE
         }
 
         val etName = tilName.editText
@@ -128,6 +133,7 @@ class UpdateCardFragment : Fragment() {
 
         val btnUpdate = view.findViewById<Button>(R.id.btnUpdateCardUpdate)
         btnUpdate.setOnClickListener {
+            progressBar.visibility = View.VISIBLE
             val updatedName = tilTitle.editText?.text?.toString()?.trim()
             val updatedDescription = tilDescription.editText?.text?.toString()?.trim()
             var isValid = true
@@ -181,7 +187,9 @@ class UpdateCardFragment : Fragment() {
                 .setTitle("Delete List")
                 .setMessage("Are you sure you want to delete this list?")
                 .setPositiveButton("Yes") { _, _ ->
+                    progressBar.visibility = View.VISIBLE
                     viewModel.deleteShoppingList(list)
+                    progressBar.visibility = View.GONE
                     Toast.makeText(requireContext(), "List deleted successfully", Toast.LENGTH_SHORT).show()
                     findNavController().navigateUp()
                 }
@@ -232,7 +240,7 @@ class UpdateCardFragment : Fragment() {
         }
 
         viewModel.updateShoppingList(updatedList)
-
+        progressBar.visibility = View.GONE
         Toast.makeText(requireContext(), "List updated successfully", Toast.LENGTH_SHORT).show()
         findNavController().navigateUp()
     }

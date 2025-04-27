@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -36,9 +37,8 @@ class SharedCardsListFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_shared_cards_list, container, false)
         viewModel = androidx.lifecycle.ViewModelProvider(this).get(SharedCardsViewModel::class.java)
-
+        viewModel.isLoading.value = true
         setupView(view)
-
         return view
     }
 
@@ -56,8 +56,18 @@ class SharedCardsListFragment : Fragment() {
 
         noCardsMessageTextView = view.findViewById(R.id.tvSharedCardsListNoCardsMessage)
 
+        val progressBar = view.findViewById<ProgressBar>(R.id.progressBar)
+
+        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            if (isLoading == true) {
+                progressBar.visibility = View.VISIBLE
+            } else {
+                progressBar.visibility = View.GONE
+            }
+        }
+
         adapter = CardsRecyclerAdapter(
-            mutableListOf(),  // יתעדכן בהמשך
+            mutableListOf(),
             shoppingListDao,
             shoppingItemDao,
             object : OnItemClickListener {
@@ -84,8 +94,8 @@ class SharedCardsListFragment : Fragment() {
             adapter = this@SharedCardsListFragment.adapter
         }
 
-        // תצפית על הרשימות המשותפות מתוך ViewModel
         viewModel.sharedLists.observe(viewLifecycleOwner) { list ->
+            viewModel.isLoading.value = false
             listUtils.toggleNoCardListsMessage(noCardsMessageTextView, list)
             adapter?.setData(list)
         }
@@ -98,16 +108,18 @@ class SharedCardsListFragment : Fragment() {
                     shoppingListDao,
                     shoppingItemDao
                 )
-
+                progressBar.visibility = View.VISIBLE
                 repository.loadSharedListByCode(
                     shareCode = shareCode,
                     onSuccess = { list ->
                         requireActivity().runOnUiThread {
+                            progressBar.visibility = View.GONE
                             android.widget.Toast.makeText(requireContext(), "Shared list loaded: ${list.name}", android.widget.Toast.LENGTH_SHORT).show()
                         }
                     },
                     onFailure = { e ->
                         requireActivity().runOnUiThread {
+                            progressBar.visibility = View.GONE
                             android.widget.Toast.makeText(requireContext(), "Error: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
                         }
                     }

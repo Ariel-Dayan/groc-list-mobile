@@ -9,6 +9,7 @@ import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -34,6 +35,7 @@ class UpdateProfileFragment : Fragment() {
     private lateinit var auth: FirebaseAuth
     private lateinit var storage: FirebaseStorage
     private lateinit var shoppingListViewModel: ShoppingListViewModel
+    private lateinit var progressBar: ProgressBar
     private var selectedImageUri: Uri? = null
 
     override fun onCreateView(
@@ -109,7 +111,7 @@ class UpdateProfileFragment : Fragment() {
                 return
             }
         }
-
+        binding.progressBar.visibility = View.VISIBLE
         binding.btnUpdateProfileUpdate.isEnabled = false
         binding.btnUpdateProfileUpdate.text = "Updating..."
 
@@ -120,6 +122,7 @@ class UpdateProfileFragment : Fragment() {
             imageUri = selectedImageUri
         ) { success, message ->
             Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+            binding.progressBar.visibility = View.GONE
             binding.btnUpdateProfileUpdate.isEnabled = true
             binding.btnUpdateProfileUpdate.text = "Update"
         }
@@ -127,8 +130,10 @@ class UpdateProfileFragment : Fragment() {
 
 
     private fun logout() {
+        binding.progressBar.visibility = View.VISIBLE
         shoppingListViewModel.clearAllLocalData()
         auth.signOut()
+        binding.progressBar.visibility = View.GONE
         Toast.makeText(requireContext(), "Successfully logged out!", Toast.LENGTH_SHORT).show()
         findNavController().navigate(
             R.id.loginFragment,

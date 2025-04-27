@@ -18,6 +18,8 @@ import com.google.android.material.button.MaterialButton
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import de.hdodenhof.circleimageview.CircleImageView
+import android.widget.ProgressBar
+
 
 class SignupFragment : Fragment(R.layout.fragment_signup) {
 
@@ -32,6 +34,7 @@ class SignupFragment : Fragment(R.layout.fragment_signup) {
     private lateinit var takePhotoButton: ImageButton
     private lateinit var uploadGalleryButton: ImageButton
     private lateinit var imageHandler: ImageHandler
+    private lateinit var progressBar: ProgressBar
 
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
@@ -55,6 +58,11 @@ class SignupFragment : Fragment(R.layout.fragment_signup) {
         imageHandler = ImageHandler(this, userImageView, uploadGalleryButton, takePhotoButton)
 
         registerButton = view.findViewById(R.id.btnSignupRegister)
+        progressBar = view.findViewById(R.id.progressBar)
+
+        authViewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+        }
 
         registerButton.setOnClickListener {
             val email = emailInput.text?.toString()?.trim()
@@ -90,6 +98,8 @@ class SignupFragment : Fragment(R.layout.fragment_signup) {
             registerButton.isEnabled = false
             registerButton.text = getString(R.string.signing_up)
 
+            authViewModel.setLoading(true)
+
             authViewModel.signup(
                 email = email,
                 password = password,
@@ -98,6 +108,7 @@ class SignupFragment : Fragment(R.layout.fragment_signup) {
             )
 
             authViewModel.signupStatus.observe(viewLifecycleOwner) { success ->
+                authViewModel.setLoading(false)
                 if (success) {
                     Toast.makeText(requireContext(), "User registered successfully!", Toast.LENGTH_SHORT).show()
                     findNavController().navigate(
@@ -115,6 +126,7 @@ class SignupFragment : Fragment(R.layout.fragment_signup) {
 
             authViewModel.errorMessage.observe(viewLifecycleOwner) { message ->
                 message?.let {
+                    authViewModel.setLoading(false)
                     Toast.makeText(requireContext(), "Signup failed: $it", Toast.LENGTH_SHORT).show()
                 }
             }

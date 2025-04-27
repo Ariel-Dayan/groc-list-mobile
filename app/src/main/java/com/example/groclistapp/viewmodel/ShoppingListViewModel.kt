@@ -12,6 +12,8 @@ import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.delay
+
 
 class ShoppingListViewModel(
     application: Application,
@@ -21,6 +23,8 @@ class ShoppingListViewModel(
     private val _shoppingLists = MediatorLiveData<List<ShoppingListSummary>>()
     val localShoppingLists: LiveData<List<ShoppingListSummary>> get() = _shoppingLists
 
+    private val _isLoading = MutableLiveData<Boolean>()
+    val isLoading: LiveData<Boolean> get() = _isLoading
 
     suspend fun addShoppingList(shoppingList: ShoppingListSummary): Boolean {
         Log.d("ShoppingListViewModel", "addShoppingList called with list: ${shoppingList.name}")
@@ -118,9 +122,11 @@ class ShoppingListViewModel(
 
     fun loadShoppingLists() {
         viewModelScope.launch {
+            _isLoading.value = true
             val lists = repository.allShoppingLists.value
             Log.d("ShoppingListViewModel", " מספר הרשימות שנמשכו: ${lists?.size ?: 0}")
             _shoppingLists.postValue(lists ?: emptyList())
+            _isLoading.value = false
         }
     }
 
