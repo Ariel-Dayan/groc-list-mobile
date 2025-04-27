@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
@@ -46,6 +47,7 @@ class AddCardFragment : Fragment() {
     private val pendingItems = mutableListOf<ShoppingItem>()
     private lateinit var ivImagePreview: ImageView
     private lateinit var imageHandler: ImageHandler
+    private lateinit var progressBar: ProgressBar
     private val itemUtils = ItemUtils.instance
     private val dialogUtils = DialogUtils.instance
     private val inputUtils = InputUtils.instance
@@ -63,6 +65,7 @@ class AddCardFragment : Fragment() {
         ivImagePreview = view.findViewById(R.id.ivAddCardTop)
         val btnGallery = view.findViewById<ImageButton>(R.id.ibAddCardUploadImageFromGallery)
         val btnCamera = view.findViewById<ImageButton>(R.id.ibAddCardTakePhoto)
+        progressBar = view.findViewById(R.id.progressBar)
 
         imageHandler = ImageHandler(this, ivImagePreview, btnGallery, btnCamera)
 
@@ -135,6 +138,8 @@ class AddCardFragment : Fragment() {
             if (!isValid) {
                 return@setOnClickListener
             }
+
+            progressBar.visibility = View.VISIBLE
 
             val user = FirebaseAuth.getInstance().currentUser
             val creatorId = user?.uid ?: ""
@@ -293,6 +298,7 @@ class AddCardFragment : Fragment() {
             Log.d("AddCardFragment", "Pending items list cleared after saving.")
 
             withContext(Dispatchers.Main) {
+                progressBar.visibility = View.GONE
                 listId = newList.id
                 Log.d("AddCardFragment", "Finalizing list with ID: $listId and shareCode: $shareCode")
                 setFragmentResult("shoppingListUpdated", bundleOf("updated" to true))

@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
@@ -29,6 +30,7 @@ class DisplayCardFragment : Fragment() {
     private lateinit var shoppingListDao: ShoppingListDao
     private lateinit var shoppingItemDao: ShoppingItemDao
     private lateinit var viewModel: ShoppingListViewModel
+    private lateinit var progressBar: ProgressBar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,11 +72,12 @@ class DisplayCardFragment : Fragment() {
         val chipGroup = view.findViewById<ChipGroup>(R.id.cgDisplayCardItemsContainer)
         chipGroup.layoutDirection = View.LAYOUT_DIRECTION_LOCALE
 
+        progressBar = view.findViewById(R.id.progressBar)
+
         lifecycleScope.launch {
+            progressBar.visibility = View.VISIBLE
             val list = shoppingListDao.getListById(listId)
             val items = shoppingItemDao.getItemsForListNow(listId)
-
-
 
             list?.let {
                 view.findViewById<TextView>(R.id.tvDisplayCardTitle).text = it.name
@@ -91,11 +94,13 @@ class DisplayCardFragment : Fragment() {
             for (item in items) {
                 chipGroup.addView(createChip(item.name, item.amount.toString(), chipGroup))
             }
+            progressBar.visibility = View.GONE
         }
 
         val deleteButton = view.findViewById<View>(R.id.btnDisplayCardRemove)
 
         deleteButton.setOnClickListener {
+            progressBar.visibility = View.VISIBLE
             lifecycleScope.launch {
                 shoppingItemDao.deleteItemsByListId(listId)
 
@@ -115,6 +120,7 @@ class DisplayCardFragment : Fragment() {
                 }
 
                 requireActivity().runOnUiThread {
+                    progressBar.visibility = View.GONE
                     Toast.makeText(requireContext(), "List deleted", Toast.LENGTH_SHORT).show()
                     findNavController().popBackStack()
                 }

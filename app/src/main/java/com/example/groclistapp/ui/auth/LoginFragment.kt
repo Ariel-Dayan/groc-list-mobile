@@ -20,6 +20,8 @@ import com.google.android.material.textfield.TextInputLayout
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.launch
+import android.widget.ProgressBar
+
 
 class LoginFragment : Fragment(R.layout.fragment_login) {
 
@@ -29,6 +31,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
     private lateinit var passwordInput: TextInputEditText
     private lateinit var loginButton: MaterialButton
     private lateinit var signupNavigationButton: MaterialButton
+    private lateinit var progressBar: ProgressBar
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -53,6 +56,11 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
 
         loginButton = view.findViewById(R.id.btnLoginEnter)
         signupNavigationButton = view.findViewById(R.id.btnSignupNavigation)
+        progressBar = view.findViewById(R.id.progressBar)
+
+        authViewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+        }
 
         loginButton.setOnClickListener {
             val email = emailInput.text?.toString()?.trim()

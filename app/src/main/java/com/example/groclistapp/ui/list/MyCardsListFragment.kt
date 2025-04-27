@@ -25,7 +25,7 @@ import com.example.groclistapp.data.adapter.card.OnItemClickListener
 import com.example.groclistapp.data.network.jokes.JokesClient.setJoke
 import com.example.groclistapp.utils.ListUtils
 import com.example.groclistapp.utils.MessageUtils
-
+import android.widget.ProgressBar
 
 class MyCardsListFragment : Fragment() {
     private lateinit var cardsRecyclerView: RecyclerView
@@ -33,6 +33,8 @@ class MyCardsListFragment : Fragment() {
     private lateinit var viewModel: ShoppingListViewModel
     private lateinit var jokeTextView: TextView
     private lateinit var noCardsTextView: TextView
+    private lateinit var progressBar: ProgressBar
+
     private val listUtils = ListUtils.instance
     private val messageUtils = MessageUtils.instance
 
@@ -48,6 +50,7 @@ class MyCardsListFragment : Fragment() {
 
         jokeTextView = view.findViewById(R.id.tvMyCardsListJoke)
         noCardsTextView = view.findViewById(R.id.tvMyCardsListNoCardsMessage)
+        progressBar = view.findViewById(R.id.progressBar)
 
         viewModel = ViewModelProvider(
             this,
@@ -56,13 +59,16 @@ class MyCardsListFragment : Fragment() {
 
         setupRecyclerView(view, shoppingListDao, shoppingItemDao)
         observeShoppingLists()
+        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+        }
         setupAddButton(view)
         setJoke(jokeTextView)
 
         setFragmentResultListener("shoppingListUpdated") { _, bundle ->
             if (bundle.getBoolean("updated", false)) {
-                Log.d("MyCardsListFragment", "📌 רשימה חדשה נוספה, טוען מחדש נתונים...")
-                viewModel.loadShoppingLists() // טוען מחדש
+                Log.d("MyCardsListFragment", " רשימה חדשה נוספה, טוען מחדש נתונים...")
+                viewModel.loadShoppingLists()
             }
         }
         return view
