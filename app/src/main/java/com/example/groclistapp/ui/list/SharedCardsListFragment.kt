@@ -1,6 +1,7 @@
 package com.example.groclistapp.ui.list
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -11,12 +12,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.groclistapp.R
 import com.example.groclistapp.data.adapter.card.CardsRecyclerAdapter
 import com.example.groclistapp.data.adapter.card.OnItemClickListener
-import com.example.groclistapp.data.model.ShoppingList
-import com.example.groclistapp.data.model.ShoppingListSummary
 import com.example.groclistapp.data.network.jokes.JokesClient.setJoke
 import com.example.groclistapp.data.repository.AppDatabase
 import com.example.groclistapp.viewmodel.SharedCardsViewModel
 import androidx.navigation.fragment.findNavController
+import com.example.groclistapp.data.repository.ShoppingListRepository
 import com.example.groclistapp.utils.ListUtils
 import com.example.groclistapp.utils.MessageUtils
 
@@ -94,21 +94,22 @@ class SharedCardsListFragment : Fragment() {
             val shareCode = shareCodeInput?.text?.toString()?.trim()
 
             if (!shareCode.isNullOrEmpty()) {
-                val repository = com.example.groclistapp.data.repository.ShoppingListRepository(
+                val repository = ShoppingListRepository(
                     shoppingListDao,
                     shoppingItemDao
                 )
 
-                repository.loadSharedListByCode(
+                repository.addSharedListByCode(
                     shareCode = shareCode,
                     onSuccess = { list ->
                         requireActivity().runOnUiThread {
-                            android.widget.Toast.makeText(requireContext(), "Shared list loaded: ${list.name}", android.widget.Toast.LENGTH_SHORT).show()
+                            android.widget.Toast.makeText(requireContext(), "List added successfully: ${list.name}", android.widget.Toast.LENGTH_SHORT).show()
                         }
                     },
                     onFailure = { e ->
                         requireActivity().runOnUiThread {
                             android.widget.Toast.makeText(requireContext(), "Error: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+                            Log.d("SharedCardsListFragment", "Error adding shared list: ${e.message}")
                         }
                     }
                 )

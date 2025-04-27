@@ -7,6 +7,7 @@ import com.example.groclistapp.data.model.ShoppingItem
 import com.example.groclistapp.data.model.ShoppingListSummary
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
@@ -366,95 +367,160 @@ class ShoppingListRepository(
         }
     }
 
-    fun loadSharedListByCode(
+    fun addSharedListByCode(
         shareCode: String,
         onSuccess: (ShoppingList) -> Unit,
         onFailure: (Exception) -> Unit
+    ) {
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (currentUser == null) {
+            onFailure(Exception("User is not authenticated"))
+            return
+        }
+
+        fetchSharedList(shareCode,
+            onFailure = onFailure,
+            onListFetched = { document, sharedList ->
+                if (sharedList.creatorId == currentUser.uid) {
+                    onFailure(Exception("You cannot add your own list"))
+                    return@fetchSharedList
+                }
+
+                checkIfUserAlreadyHasList(
+                    userId = currentUser.uid,
+                    listId = sharedList.id,
+                    onAlreadyExists = {
+                        onFailure(Exception("This list is already added to your account"))
+                    },
+                    onNotExists = {
+                        saveListAndItemsLocallyAndLinkUser(
+                            documentId = document.id,
+                            sharedList = sharedList,
+                            userId = currentUser.uid,
+                            onSuccess = onSuccess,
+                            onFailure = onFailure
+                        )
+                    },
+                    onFailure = onFailure
+                )
+            }
+        )
+    }
+
+    private fun fetchSharedList(
+        shareCode: String,
+        onFailure: (Exception) -> Unit,
+        onListFetched: (DocumentSnapshot, ShoppingList) -> Unit
     ) {
         db.collection("shoppingLists")
             .whereEqualTo("shareCode", shareCode)
             .get()
             .addOnSuccessListener { documents ->
-                if (!documents.isEmpty) {
-                    val document = documents.documents[0]
-                    val sharedList = document.toObject(ShoppingList::class.java)
-                    sharedList?.creatorId = document.getString("creatorId") ?: ""
-                    Log.d("DebugShared", "creatorId from Firestore: ${document.getString("creatorId")}")
-                    Log.d("DebugShared", "sharedList.creatorId: ${sharedList?.creatorId}")
-
-                    if (sharedList != null) {
-                        CoroutineScope(Dispatchers.IO).launch {
-                            try {
-                                val newId = shoppingListDao.insertShoppingList(sharedList)
-
-                                db.collection("shoppingLists")
-                                    .document(document.id)
-                                    .collection("items")
-                                    .get()
-                                    .addOnSuccessListener { itemsSnapshot ->
-                                        val items = itemsSnapshot.toObjects(ShoppingItem::class.java)
-
-                                        CoroutineScope(Dispatchers.IO).launch {
-
-                                            items.forEach { it.listId = sharedList.id }
-                                            items.forEach { shoppingItemDao.insertItem(it) }
-
-                                            Log.d("SharedList", "Items saved successfully for listId=$newId")
-                                            onSuccess(sharedList)
-
-                                            val currentUser = FirebaseAuth.getInstance().currentUser
-                                            if (currentUser != null) {
-                                                val userDoc = db.collection("users").document(currentUser.uid)
-                                                userDoc.get()
-                                                    .addOnSuccessListener { userSnapshot ->
-                                                        if (!userSnapshot.exists() || !userSnapshot.contains("sharedListIds")) {
-                                                            userDoc.set(
-                                                                mapOf("sharedListIds" to listOf(sharedList.id)),
-                                                                SetOptions.merge()
-                                                            ).addOnSuccessListener {
-                                                                Log.d("SharedList", "Created sharedListIds array for user")
-                                                            }
-                                                        } else {
-                                                            userDoc.update("sharedListIds", FieldValue.arrayUnion(sharedList.id))
-                                                                .addOnSuccessListener {
-                                                                    Log.d("SharedList", "Added listId to user's sharedListIds")
-                                                                }
-                                                        }
-                                                    }
-                                                    .addOnFailureListener { e ->
-                                                        Log.e("SharedList", "Failed to read user doc: ${e.message}")
-                                                    }
-                                            }
-                                        }
-
-                                    }
-                                    .addOnFailureListener { e ->
-                                        Log.e("SharedList", "Failed to load items: ${e.message}")
-                                        onFailure(e)
-                                    }
-
-                                Log.d("SharedList", "Shared list successfully saved to local DB with id: $newId")
-
-                            } catch (e: Exception) {
-                                Log.e("SharedList", "Error saving shared list to local DB: ${e.message}")
-                                onFailure(e)
-                            }
-                        }
-                    } else {
-                        onFailure(Exception("Invalid shared list format"))
-                        Log.e("SharedList", "Failed to convert document to ShoppingList object")
-                    }
-                } else {
+                if (documents.isEmpty) {
                     onFailure(Exception("No list found with this share code"))
-                    Log.e("SharedList", "No documents found for the given share code")
+                    return@addOnSuccessListener
                 }
+
+                val document = documents.documents[0]
+                val sharedList = document.toObject(ShoppingList::class.java)
+                sharedList?.creatorId = document.getString("creatorId") ?: ""
+
+                if (sharedList == null) {
+                    Log.e("SharedList", "Failed to convert document to ShoppingList object")
+                    onFailure(Exception("Invalid shared list format"))
+                    return@addOnSuccessListener
+                }
+
+                onListFetched(document, sharedList)
             }
             .addOnFailureListener { e ->
-                Log.e("SharedList", "Error retrieving list from Firebase: ${e.message}")
-                onFailure(e)
+                onFailure(Exception("Failed to retrieve list: ${e.message}"))
             }
     }
 
+    private fun checkIfUserAlreadyHasList(
+        userId: String,
+        listId: String,
+        onAlreadyExists: () -> Unit,
+        onNotExists: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        db.collection("users").document(userId).get()
+            .addOnSuccessListener { userSnapshot ->
+                val sharedListIds = userSnapshot.get("sharedListIds") as? List<*> ?: emptyList<Any>()
+                if (sharedListIds.contains(listId)) {
+                    onAlreadyExists()
+                } else {
+                    onNotExists()
+                }
+            }
+            .addOnFailureListener { e ->
+                onFailure(Exception("Failed to retrieve user data: ${e.message}"))
+            }
+    }
+
+    private fun saveListAndItemsLocallyAndLinkUser(
+        documentId: String,
+        sharedList: ShoppingList,
+        userId: String,
+        onSuccess: (ShoppingList) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                shoppingListDao.insertShoppingList(sharedList)
+                fetchAndInsertItems(
+                    documentId = documentId,
+                    listId = sharedList.id,
+                    onSuccess = {
+                        linkListToUser(userId, sharedList.id, onSuccess, onFailure, sharedList)
+                    },
+                    onFailure = onFailure
+                )
+            } catch (e: Exception) {
+                onFailure(Exception("Error saving shared list locally: ${e.message}"))
+            }
+        }
+    }
+
+    private fun fetchAndInsertItems(
+        documentId: String,
+        listId: String,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        db.collection("shoppingLists").document(documentId)
+            .collection("items")
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val items = snapshot.toObjects(ShoppingItem::class.java).onEach {
+                    it.listId = listId
+                }
+
+                CoroutineScope(Dispatchers.IO).launch {
+                    items.forEach { shoppingItemDao.insertItem(it) }
+                    onSuccess()
+                }
+            }
+            .addOnFailureListener { e ->
+                onFailure(Exception("Failed to load items: ${e.message}"))
+            }
+    }
+
+    private fun linkListToUser(
+        userId: String,
+        listId: String,
+        onSuccess: (ShoppingList) -> Unit,
+        onFailure: (Exception) -> Unit,
+        sharedList: ShoppingList
+    ) {
+        db.collection("users").document(userId)
+            .update("sharedListIds", FieldValue.arrayUnion(listId))
+            .addOnSuccessListener { onSuccess(sharedList) }
+            .addOnFailureListener { e ->
+                onFailure(Exception("Failed to update user with shared list: ${e.message}"))
+            }
+    }
 
     suspend fun clearAllLocalData() {
         shoppingItemDao.deleteAllShoppingItems()

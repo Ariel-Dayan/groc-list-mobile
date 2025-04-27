@@ -75,9 +75,6 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
         }
 
         authViewModel.loginStatus.observe(viewLifecycleOwner, Observer { isSuccess ->
-            loginButton.isEnabled = true
-            loginButton.text = getString(R.string.login)
-
             if (isSuccess) {
                 lifecycleScope.launch {
                     shoppingListViewModel.syncUserDataFromFirebase()
@@ -90,6 +87,9 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                 }
             }
             else {
+                loginButton.isEnabled = true
+                loginButton.text = getString(R.string.login)
+
                 Toast.makeText(requireContext(), "Login failed. Please check your details.", Toast.LENGTH_SHORT).show()
             }
         })
