@@ -21,10 +21,6 @@
             android:name="com.google.firebase.auth.API_KEY"
             android:value="@string/google_api_key"/>
 
-        <meta-data
-            android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="@string/admob_app_id"/>
-
         <activity
             android:name=".ui.main.MainActivity"
             android:exported="true">
