@@ -109,7 +109,7 @@ class SharedCardsListFragment : Fragment() {
                     shoppingItemDao
                 )
                 progressBar.visibility = View.VISIBLE
-                repository.loadSharedListByCode(
+                repository.addSharedListByCode(
                     shareCode = shareCode,
                     onSuccess = { list ->
                         requireActivity().runOnUiThread {

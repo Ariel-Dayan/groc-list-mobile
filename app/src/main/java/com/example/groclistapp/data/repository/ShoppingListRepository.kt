@@ -25,7 +25,7 @@ class ShoppingListRepository(
 ) {
     private val db = FirebaseFirestore.getInstance()
 
-    val allShoppingLists: LiveData<List<ShoppingListSummary>> = shoppingListDao.getAllShoppingLists().also {
+    val allShoppingLists: LiveData<List<ShoppingListSummary>> = shoppingListDao.getAllShoppingLists(FirebaseAuth.getInstance().uid).also {
         Log.d("ShoppingListRepository", " משיכת רשימות מהמסד: ${it.value?.size ?: 0}")
     }
 
@@ -520,11 +520,6 @@ class ShoppingListRepository(
             .addOnFailureListener { e ->
                 onFailure(Exception("Failed to update user with shared list: ${e.message}"))
             }
-    }
-
-    suspend fun clearAllLocalData() {
-        shoppingItemDao.deleteAllShoppingItems()
-        shoppingListDao.deleteAllShoppingLists()
     }
 
     suspend fun loadAllUserDataFromFirebase() {

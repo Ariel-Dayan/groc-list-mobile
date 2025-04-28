@@ -163,12 +163,6 @@ class ShoppingListViewModel(
         repository.deleteAllItemsForList(listId)
     }
 
-    fun clearAllLocalData() {
-        viewModelScope.launch {
-            repository.clearAllLocalData()
-        }
-    }
-
     suspend fun syncUserDataFromFirebase() {
         repository.loadAllUserDataFromFirebase()
     }

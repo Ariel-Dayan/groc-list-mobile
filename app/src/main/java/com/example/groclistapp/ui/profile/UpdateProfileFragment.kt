@@ -131,7 +131,6 @@ class UpdateProfileFragment : Fragment() {
 
     private fun logout() {
         binding.progressBar.visibility = View.VISIBLE
-        shoppingListViewModel.clearAllLocalData()
         auth.signOut()
         binding.progressBar.visibility = View.GONE
         Toast.makeText(requireContext(), "Successfully logged out!", Toast.LENGTH_SHORT).show()

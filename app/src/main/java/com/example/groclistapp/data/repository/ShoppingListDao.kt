@@ -24,9 +24,9 @@ interface ShoppingListDao {
     SELECT shopping_lists.id, shopping_lists.name, shopping_lists.description, 
            shopping_lists.creatorId, shopping_lists.shareCode, shopping_lists.imageUrl,
            (SELECT COUNT(*) FROM shopping_items WHERE shopping_items.listId = shopping_lists.id) AS itemsCount 
-    FROM shopping_lists ORDER BY name ASC
+    FROM shopping_lists WHERE creatorId = :userId ORDER BY name ASC
     """)
-    fun getAllShoppingLists(): LiveData<List<ShoppingListSummary>>
+    fun getAllShoppingLists(userId: String?): LiveData<List<ShoppingListSummary>>
 
     @Query("""
     SELECT shopping_lists.id, shopping_lists.name, shopping_lists.description, 
@@ -54,14 +54,13 @@ interface ShoppingListDao {
     suspend fun getListByShareCode(shareCode: String): ShoppingListSummary?
 
     @Query("""
-    SELECT shopping_lists.id, shopping_lists.name, shopping_lists.description, 
-           shopping_lists.creatorId, shopping_lists.shareCode, shopping_lists.imageUrl,
-           (SELECT COUNT(*) FROM shopping_items WHERE shopping_items.listId = shopping_lists.id) AS itemsCount 
-    FROM shopping_lists 
-    WHERE creatorId != :userId
+    SELECT sl.id, sl.name, sl.description, sl.creatorId, sl.shareCode, sl.imageUrl,
+           (SELECT COUNT(*) FROM shopping_items WHERE shopping_items.listId = sl.id) AS itemsCount
+    FROM shopping_lists sl
+    WHERE sl.id IN (:ids)
     ORDER BY name ASC
 """)
-    fun getAllShoppingListsFiltered(userId: String?): LiveData<List<ShoppingListSummary>>
+    fun getAllShoppingListsFiltered(ids: List<String>): LiveData<List<ShoppingListSummary>>
 
 }
 
