@@ -72,6 +72,16 @@ class UpdateProfileFragment : Fragment() {
         return binding.root
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        viewModel.loadDisplayName()
+
+        viewModel.displayName.observe(viewLifecycleOwner) { name ->
+            binding.tilUpdateProfileFullName.editText?.setText(name)
+        }
+    }
+
     private fun setupListeners() {
         binding.btnUpdateProfileUpdate.setOnClickListener {
             updateProfile()
