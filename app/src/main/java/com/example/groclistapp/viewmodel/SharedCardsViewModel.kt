@@ -60,4 +60,10 @@ class SharedCardsViewModel(application: Application) : AndroidViewModel(applicat
             return emptyList()
         }
     }
+
+    fun addSharedListId(listId: String) {
+        val updatedListIds = (_sharedListIds.value ?: emptyList()) + listId
+        _sharedListIds.postValue(updatedListIds)
+    }
+
 }

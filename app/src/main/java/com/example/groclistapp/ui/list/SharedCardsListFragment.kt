@@ -30,6 +30,8 @@ class SharedCardsListFragment : Fragment() {
     private lateinit var noCardsMessageTextView: TextView
     private val listUtils = ListUtils.instance
     private val messageUtils = MessageUtils.instance
+    private lateinit var cardsProgressBar: ProgressBar
+    private lateinit var jokeProgressBar: ProgressBar
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -45,6 +47,10 @@ class SharedCardsListFragment : Fragment() {
     private fun setupView(view: View) {
         cardsRecyclerView = view.findViewById(R.id.rvSharedCardsList)
         jokeTextView = view.findViewById(R.id.tvSharedCardsListJoke)
+        cardsProgressBar = view.findViewById(R.id.pbSharedCardsListCardsSpinner)
+        jokeProgressBar = view.findViewById(R.id.pbSharedCardsListJokeSpinner)
+
+        cardsProgressBar.visibility = View.VISIBLE
 
         val inputLayout = view.findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.tilSharedCardsListSharedCode)
         val shareCodeInput = inputLayout.editText
@@ -55,16 +61,6 @@ class SharedCardsListFragment : Fragment() {
         val shoppingItemDao = AppDatabase.getDatabase(requireContext()).shoppingItemDao()
 
         noCardsMessageTextView = view.findViewById(R.id.tvSharedCardsListNoCardsMessage)
-
-        val progressBar = view.findViewById<ProgressBar>(R.id.progressBar)
-
-        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-            if (isLoading == true) {
-                progressBar.visibility = View.VISIBLE
-            } else {
-                progressBar.visibility = View.GONE
-            }
-        }
 
         adapter = CardsRecyclerAdapter(
             mutableListOf(),
@@ -86,7 +82,7 @@ class SharedCardsListFragment : Fragment() {
 
         )
 
-        setJoke(jokeTextView)
+        setJoke(jokeTextView, jokeProgressBar)
 
         cardsRecyclerView?.apply {
             layoutManager = LinearLayoutManager(context)
@@ -95,9 +91,11 @@ class SharedCardsListFragment : Fragment() {
         }
 
         viewModel.sharedLists.observe(viewLifecycleOwner) { list ->
-            viewModel.isLoading.value = false
             listUtils.toggleNoCardListsMessage(noCardsMessageTextView, list)
-            adapter?.setData(list)
+            adapter?.updateData(list)
+            cardsRecyclerView?.post {
+                cardsProgressBar.visibility = View.GONE
+            }
         }
 
         addButton.setOnClickListener {
@@ -108,18 +106,23 @@ class SharedCardsListFragment : Fragment() {
                     shoppingListDao,
                     shoppingItemDao
                 )
-                progressBar.visibility = View.VISIBLE
+                cardsProgressBar.visibility = View.VISIBLE
                 repository.addSharedListByCode(
                     shareCode = shareCode,
                     onSuccess = { list ->
                         requireActivity().runOnUiThread {
-                            progressBar.visibility = View.GONE
-                            android.widget.Toast.makeText(requireContext(), "Shared list loaded: ${list.name}", android.widget.Toast.LENGTH_SHORT).show()
+                            android.widget.Toast.makeText(
+                                requireContext(),
+                                "Shared list loaded: ${list.name}",
+                                android.widget.Toast.LENGTH_SHORT
+                            ).show()
+                            viewModel.addSharedListId(list.id)
+                            cardsProgressBar.visibility = View.GONE
                         }
                     },
                     onFailure = { e ->
                         requireActivity().runOnUiThread {
-                            progressBar.visibility = View.GONE
+                            cardsProgressBar.visibility = View.GONE
                             android.widget.Toast.makeText(requireContext(), "Error: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
                             Log.d("SharedCardsListFragment", "Error adding shared list: ${e.message}")
                         }
