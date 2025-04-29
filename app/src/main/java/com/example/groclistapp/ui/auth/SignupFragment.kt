@@ -1,13 +1,11 @@
 package com.example.groclistapp.ui.auth
 
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import com.example.groclistapp.R
 import com.example.groclistapp.data.image.ImageHandler
@@ -58,11 +56,7 @@ class SignupFragment : Fragment(R.layout.fragment_signup) {
         imageHandler = ImageHandler(this, userImageView, uploadGalleryButton, takePhotoButton)
 
         registerButton = view.findViewById(R.id.btnSignupRegister)
-        progressBar = view.findViewById(R.id.progressBar)
-
-        authViewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-            progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
-        }
+        progressBar = view.findViewById(R.id.pbSignupSpinner)
 
         registerButton.setOnClickListener {
             val email = emailInput.text?.toString()?.trim()
@@ -95,11 +89,7 @@ class SignupFragment : Fragment(R.layout.fragment_signup) {
             registerButton.isEnabled = false
             registerButton.text = getString(R.string.signing_up)
 
-            registerButton.isEnabled = false
-            registerButton.text = getString(R.string.signing_up)
-
-            authViewModel.setLoading(true)
-
+            progressBar.visibility = View.VISIBLE
             authViewModel.signup(
                 email = email,
                 password = password,
@@ -109,7 +99,7 @@ class SignupFragment : Fragment(R.layout.fragment_signup) {
         }
 
         authViewModel.signupStatus.observe(viewLifecycleOwner) { success ->
-            authViewModel.setLoading(false)
+            progressBar.visibility = View.GONE
             if (success) {
                 Toast.makeText(requireContext(), "User registered successfully!", Toast.LENGTH_SHORT).show()
                 findNavController().navigateUp()
@@ -121,7 +111,6 @@ class SignupFragment : Fragment(R.layout.fragment_signup) {
 
         authViewModel.errorMessage.observe(viewLifecycleOwner) { message ->
             message?.let {
-                authViewModel.setLoading(false)
                 Toast.makeText(requireContext(), "Signup failed: $it", Toast.LENGTH_SHORT).show()
             }
         }

@@ -32,18 +32,14 @@ class AuthViewModel : ViewModel() {
     private val _errorMessage = MutableLiveData<String>()
     val errorMessage: LiveData<String> get() = _errorMessage
 
-    private val _isLoading = MutableLiveData<Boolean>()
-    val isLoading: LiveData<Boolean> get() = _isLoading
 
     init {
         checkUserLoggedIn()
     }
 
     fun login(email: String, password: String) {
-        _isLoading.value = true
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
-                _isLoading.value = false
                 if (task.isSuccessful) {
                     _loginStatus.value = true
                     _currentUser.value = auth.currentUser
@@ -135,10 +131,6 @@ class AuthViewModel : ViewModel() {
         } else {
             _currentUser.value = null
         }
-    }
-
-    fun setLoading(loading: Boolean) {
-        _isLoading.value = loading
     }
 
 
