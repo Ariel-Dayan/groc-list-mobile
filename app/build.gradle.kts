@@ -50,7 +50,6 @@ kapt {
 dependencies {
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
-    implementation(libs.picasso)
     implementation (libs.circleimageview)
     implementation(libs.androidx.navigation.fragmentktx)
     implementation(libs.androidx.navigation.ui)

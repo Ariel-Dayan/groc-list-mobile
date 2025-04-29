@@ -11,8 +11,6 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
-import com.example.groclistapp.R
-import com.squareup.picasso.Picasso
 
 class ImageHandler(
     private val imageView: ImageView,
