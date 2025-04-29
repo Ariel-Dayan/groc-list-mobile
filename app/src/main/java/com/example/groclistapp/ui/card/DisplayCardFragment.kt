@@ -11,7 +11,6 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import com.bumptech.glide.Glide
 import com.example.groclistapp.R
 import com.example.groclistapp.data.model.ShoppingList
 import com.example.groclistapp.data.repository.AppDatabase
@@ -21,6 +20,7 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import kotlinx.coroutines.launch
 import androidx.navigation.fragment.findNavController
+import com.example.groclistapp.data.image.ImageHandler
 import com.example.groclistapp.data.repository.ShoppingListRepository
 import com.example.groclistapp.utils.ItemUtils
 import com.example.groclistapp.viewmodel.ShoppingListViewModel
@@ -86,21 +86,24 @@ class DisplayCardFragment : Fragment() {
 
         chipGroup.layoutDirection = View.LAYOUT_DIRECTION_LOCALE
 
+        imageHandler = ImageHandler(
+            imageView,
+            this,
+            null,
+            null
+        )
 
         lifecycleScope.launch {
             progressBar.visibility = View.VISIBLE
             val list = shoppingListDao.getListById(listId)
             val items = shoppingItemDao.getItemsForListNow(listId)
-            
-            list?.let {
-                view.findViewById<TextView>(R.id.tvDisplayCardTitle).text = it.name
-                view.findViewById<TextView>(R.id.tvDisplayCardDescription).text = it.description
 
-                val imageView = view.findViewById<ImageView>(R.id.ivDisplayCardTop)
-                Glide.with(requireContext())
-                    .load(it.imageUrl)
-                    .placeholder(R.drawable.shopping_card_placeholder)
-                    .into(imageView)
+            list?.let { cardList ->
+                cardTitle.text = cardList.name
+                cardDescription.text = cardList.description
+                cardList.imageUrl?.let {
+                    imageHandler.loadImage(it, R.drawable.shopping_card_placeholder)
+                }
             }
 
             chipGroup.removeAllViews()

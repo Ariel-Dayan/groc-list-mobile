@@ -53,7 +53,7 @@ class SignupFragment : Fragment(R.layout.fragment_signup) {
         takePhotoButton = view.findViewById(R.id.ibSignupTakePhoto)
         uploadGalleryButton = view.findViewById(R.id.ibSignupUploadImageFromGallery)
 
-        imageHandler = ImageHandler(this, userImageView, uploadGalleryButton, takePhotoButton)
+        imageHandler = ImageHandler(userImageView, this, uploadGalleryButton, takePhotoButton)
 
         registerButton = view.findViewById(R.id.btnSignupRegister)
         progressBar = view.findViewById(R.id.pbSignupSpinner)
