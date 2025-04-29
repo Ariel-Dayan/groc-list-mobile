@@ -2,6 +2,8 @@ package com.example.groclistapp.data.repository
 
 import android.net.Uri
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 
@@ -51,4 +53,52 @@ class AuthRepository {
             saveUserData(null)
         }
     }
+
+    fun registerUser(
+        fullName: String,
+        email: String,
+        password: String,
+        imageUri: Uri?,
+        onComplete: (Boolean, String?) -> Unit
+    ) {
+        auth.createUserWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val user = auth.currentUser
+
+                    val profileUpdates = UserProfileChangeRequest.Builder()
+                        .setDisplayName(fullName)
+                        .build()
+
+                    user?.updateProfile(profileUpdates)?.addOnCompleteListener { profileTask ->
+                        if (profileTask.isSuccessful) {
+                            registerUserWithProfileImage(
+                                fullName = fullName,
+                                email = email,
+                                imageUri = imageUri,
+                                onComplete = onComplete
+                            )
+                        } else {
+                            onComplete(false, "Failed to update profile")
+                        }
+                    }
+                } else {
+                    onComplete(false, task.exception?.message ?: "Signup failed")
+                }
+            }
+    }
+
+    fun login(email: String, password: String, onComplete: (Boolean, FirebaseUser?, String?) -> Unit) {
+        auth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val user = auth.currentUser
+                    onComplete(true, user, null)
+                } else {
+                    onComplete(false, null, task.exception?.message ?: "Login failed")
+                }
+            }
+    }
+
+
 }

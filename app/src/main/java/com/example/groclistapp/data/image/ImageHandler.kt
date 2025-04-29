@@ -62,8 +62,7 @@ class ImageHandler(
     }
 
     fun loadImage(url: String) {
-        Log.d("ImageHandler", "Loading image URL: $url")
-        Picasso.get().load(url).into(imageView)
+       Picasso.get().load(url).into(imageView)
     }
 
     fun getBitmapPhoto(): Bitmap? {

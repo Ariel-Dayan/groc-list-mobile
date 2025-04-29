@@ -1,13 +1,11 @@
 package com.example.groclistapp.ui.auth
 
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import com.example.groclistapp.R
 import com.example.groclistapp.data.image.ImageHandler
@@ -15,8 +13,6 @@ import com.example.groclistapp.viewmodel.AuthViewModel
 import com.google.android.material.textfield.TextInputLayout
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.button.MaterialButton
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import de.hdodenhof.circleimageview.CircleImageView
 import android.widget.ProgressBar
 
@@ -35,9 +31,6 @@ class SignupFragment : Fragment(R.layout.fragment_signup) {
     private lateinit var uploadGalleryButton: ImageButton
     private lateinit var imageHandler: ImageHandler
     private lateinit var progressBar: ProgressBar
-
-    private val db = FirebaseFirestore.getInstance()
-    private val auth = FirebaseAuth.getInstance()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

@@ -325,29 +325,6 @@ class ShoppingListRepository(
             }
     }
 
-//    suspend fun fetchItemsFromFirestore(listId: Int) {
-//        try {
-//            val snapshot = db.collection("shoppingLists")
-//                .document(listId.toString())
-//                .collection("items")
-//                .get()
-//                .await()
-//
-//            val items = snapshot.documents.mapNotNull { doc ->
-//                val name = doc.getString("name") ?: return@mapNotNull null
-//                val amount = doc.getLong("amount")?.toInt() ?: 1
-//                val id = doc.id.toIntOrNull() ?: return@mapNotNull null
-//                ShoppingItem(id = id, name = name, amount = amount, listId = listId)
-//            }
-//
-//            shoppingItemDao.insertAll(items)
-//            Log.d("Firestore", " נטענו ${items.size} פריטים מ־Firestore")
-//
-//        } catch (e: Exception) {
-//            Log.e("Firestore", " שגיאה בטעינת פריטים מ־Firestore: ${e.message}")
-//        }
-//    }
-
     suspend fun deleteAllItemsForList(listId: String) {
 
         shoppingItemDao.deleteItemsByListId(listId)

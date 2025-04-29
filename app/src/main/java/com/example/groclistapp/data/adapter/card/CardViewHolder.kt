@@ -5,7 +5,6 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import com.bumptech.glide.Glide
-
 import androidx.recyclerview.widget.RecyclerView
 import com.example.groclistapp.R
 import com.example.groclistapp.data.model.ShoppingListSummary

@@ -141,19 +141,27 @@ class UpdateProfileFragment : Fragment() {
 
     private fun logout() {
         binding.progressBar.visibility = View.VISIBLE
-        auth.signOut()
-        binding.progressBar.visibility = View.GONE
-        Toast.makeText(requireContext(), "Successfully logged out!", Toast.LENGTH_SHORT).show()
+        viewModel.logout()
 
-        val navController = findNavController()
-        navController.navigate(
-            R.id.loginFragment,
-            null,
-            NavOptions.Builder()
-                .setPopUpTo(navController.graph.id, true)
-                .build()
-        )
+        viewModel.logoutStatus.observe(viewLifecycleOwner) { success ->
+            binding.progressBar.visibility = View.GONE
+            if (success) {
+                Toast.makeText(requireContext(), "Successfully logged out!", Toast.LENGTH_SHORT).show()
+
+                val navController = findNavController()
+                navController.navigate(
+                    R.id.loginFragment,
+                    null,
+                    NavOptions.Builder()
+                        .setPopUpTo(navController.graph.id, true)
+                        .build()
+                )
+            } else {
+                Toast.makeText(requireContext(), "Logout failed. Please try again.", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
+
 
 
     private fun openGallery() {

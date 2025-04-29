@@ -3,7 +3,6 @@ package com.example.groclistapp.data.adapter.card
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.groclistapp.R
 import com.example.groclistapp.data.model.ShoppingListSummary
@@ -53,21 +52,6 @@ class CardsRecyclerAdapter(
 
 }
 
-class ShoppingListDiffCallback(
-    private val oldList: List<ShoppingListSummary>,
-    private val newList: List<ShoppingListSummary>
-) : DiffUtil.Callback() {
 
-    override fun getOldListSize(): Int = oldList.size
-    override fun getNewListSize(): Int = newList.size
-
-    override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-        return oldList[oldItemPosition].id == newList[newItemPosition].id
-    }
-
-    override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-        return oldList[oldItemPosition] == newList[newItemPosition]
-    }
-}
 
 
