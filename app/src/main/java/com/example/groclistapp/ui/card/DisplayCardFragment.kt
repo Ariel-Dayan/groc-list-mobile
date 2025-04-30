@@ -57,10 +57,8 @@ class DisplayCardFragment : Fragment() {
     }
 
     override fun onCreateView(
-
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-
     ): View? {
         return inflater.inflate(R.layout.fragment_display_card, container, false)
     }
@@ -108,7 +106,7 @@ class DisplayCardFragment : Fragment() {
 
             chipGroup.removeAllViews()
             for (item in items) {
-                chipGroup.addView(createChip(item.name, item.amount.toString(), chipGroup))
+                chipGroup.addView(createChip(item.name, item.amount.toString()))
             }
             progressBar.visibility = View.GONE
         }
@@ -143,7 +141,7 @@ class DisplayCardFragment : Fragment() {
 
     }
 
-    private fun createChip(name: String, amount: String, chipGroup: ChipGroup): Chip {
+    private fun createChip(name: String, amount: String): Chip {
         val chip = Chip(requireContext())
         chip.text = itemUtils.createItemChipText(name, amount)
         chip.isCloseIconVisible = false

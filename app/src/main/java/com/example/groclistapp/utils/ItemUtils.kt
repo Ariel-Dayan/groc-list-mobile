@@ -3,6 +3,7 @@ package com.example.groclistapp.utils
 import com.example.groclistapp.data.model.ShoppingItem
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
+import java.util.UUID
 
 class ItemUtils private constructor() {
     private val itemSeparator = ":"
@@ -16,7 +17,7 @@ class ItemUtils private constructor() {
 
             val (name, amount) = parseItemChipText(text)
             if (name.isNotEmpty()) {
-                val item = ShoppingItem(id = 0, name = name, amount = amount, listId = listId)
+                val item = ShoppingItem(id = UUID.randomUUID().toString(), name = name, amount = amount, listId = listId)
                 items.add(item)
             }
         }

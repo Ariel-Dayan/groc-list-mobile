@@ -1,6 +1,7 @@
 package com.example.groclistapp.data.model
 
 import androidx.room.*
+import java.util.UUID
 
 @Entity(
     tableName = "shopping_items",
@@ -15,8 +16,8 @@ import androidx.room.*
     indices = [Index(value = ["listId"])]
 )
 data class ShoppingItem(
-    @PrimaryKey(autoGenerate = true)
-    var id: Int = 0,
+    @PrimaryKey
+    var id: String = UUID.randomUUID().toString(),
 
     @ColumnInfo(name = "name")
     var name: String = "",
@@ -27,5 +28,5 @@ data class ShoppingItem(
     @ColumnInfo(name = "listId")
     var listId: String = "0"
 ) {
-    constructor() : this(0, "", 0, "0")
+    constructor() : this(UUID.randomUUID().toString(), "", 0, "0")
 }

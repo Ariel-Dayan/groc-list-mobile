@@ -32,13 +32,13 @@ class ShoppingListViewModel(
         }
     }
 
-    suspend fun addItemSuspend(item: ShoppingItem) {
+    suspend fun addItems(items: List<ShoppingItem>) {
         withContext(Dispatchers.IO) {
             try {
-                repository.insertItem(item)
-                Log.d("ShoppingListViewModel", "addItemSuspend: Item '${item.name}' added successfully, listId: ${item.listId}")
+                repository.insertItems(items)
+                Log.d("ShoppingListViewModel", "addItems: ${items.size} items added successfully")
             } catch (e: Exception) {
-                Log.e("ShoppingListViewModel", "addItemSuspend: Error adding item '${item.name}': ${e.message}")
+                Log.e("ShoppingListViewModel", "addItems: Error adding items: ${e.message}")
                 throw e
             }
         }
@@ -64,19 +64,6 @@ class ShoppingListViewModel(
     fun getItemsForList(listId: String): LiveData<List<ShoppingItem>> {
         return repository.getItemsForList(listId)
     }
-
-    fun addItem(item: ShoppingItem) {
-        Log.d("ShoppingListViewModel", "addItem called with item: ${item.name}, listId: ${item.listId}, amount: ${item.amount}")
-        viewModelScope.launch {
-            try {
-                repository.insertItem(item)
-                Log.d("ShoppingListViewModel", "Item '${item.name}' added successfully to repository.")
-            } catch (e: Exception) {
-                Log.e("ShoppingListViewModel", "Error adding item '${item.name}': ${e.message}")
-            }
-        }
-    }
-
 
     fun updateItem(item: ShoppingItem) {
         viewModelScope.launch {
