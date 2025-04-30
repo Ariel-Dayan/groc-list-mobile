@@ -9,21 +9,25 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.groclistapp.data.model.ShoppingListSummary
 import com.example.groclistapp.data.repository.AppDatabase
+import com.example.groclistapp.data.repository.ShoppingListRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 class SharedCardsViewModel(application: Application) : AndroidViewModel(application) {
-
     private val shoppingListDao = AppDatabase.getDatabase(application).shoppingListDao()
+    private val shoppingItemDao = AppDatabase.getDatabase(application).shoppingItemDao()
+    private val repository = ShoppingListRepository(
+        shoppingListDao,
+        shoppingItemDao
+    )
+
     private val userId = FirebaseAuth.getInstance().currentUser?.uid
 
     private val _sharedListIds = MutableLiveData<List<String>>()
 
     val sharedLists = MediatorLiveData<List<ShoppingListSummary>>()
-
-    val isLoading = MutableLiveData<Boolean>()
 
     init {
         userId?.let { fetchSharedListIds(it) }
@@ -66,4 +70,7 @@ class SharedCardsViewModel(application: Application) : AndroidViewModel(applicat
         _sharedListIds.postValue(updatedListIds)
     }
 
+    suspend fun syncSharedListsFromFirebase() {
+        repository.loadAllSharedListsFromFirebase()
+    }
 }

@@ -153,10 +153,6 @@ class ShoppingListViewModel(
         repository.loadAllUserDataFromFirebase()
     }
 
-    suspend fun syncSharedListsFromFirebase() {
-        repository.loadAllSharedListsFromFirebase()
-    }
-
     fun removeSharedListReference(listId: String) {
         repository.removeListIdFromSharedListArray(listId)
     }

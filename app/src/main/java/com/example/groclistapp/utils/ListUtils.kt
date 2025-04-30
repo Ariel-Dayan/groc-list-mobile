@@ -1,5 +1,6 @@
 package com.example.groclistapp.utils
 
+import android.util.Log
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.groclistapp.data.model.ShoppingListSummary
@@ -14,15 +15,10 @@ class ListUtils private constructor() {
     }
 
      fun refreshData(cardsRecyclerView: RecyclerView?,
-                    updateData: (List<ShoppingListSummary>) -> Unit,
-                    newData: List<ShoppingListSummary>?,
+                    updateData: () -> Unit,
                     swipeRefreshLayout: androidx.swiperefreshlayout.widget.SwipeRefreshLayout) {
-        if (newData != null) {
-            updateData(newData)
-            cardsRecyclerView?.post {
-                swipeRefreshLayout.isRefreshing = false
-            }
-        } else {
+        updateData()
+        cardsRecyclerView?.post {
             swipeRefreshLayout.isRefreshing = false
         }
     }
