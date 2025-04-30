@@ -24,6 +24,7 @@ import com.example.groclistapp.data.network.jokes.JokesClient.setJoke
 import com.example.groclistapp.utils.ListUtils
 import com.example.groclistapp.utils.MessageUtils
 import android.widget.ProgressBar
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 
 class MyCardsListFragment : Fragment() {
     private lateinit var cardsRecyclerView: RecyclerView
@@ -33,6 +34,7 @@ class MyCardsListFragment : Fragment() {
     private lateinit var noCardsTextView: TextView
     private lateinit var cardsProgressBar: ProgressBar
     private lateinit var jokeProgressBar: ProgressBar
+    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
 
     private val listUtils = ListUtils.instance
     private val messageUtils = MessageUtils.instance
@@ -51,6 +53,7 @@ class MyCardsListFragment : Fragment() {
         noCardsTextView = view.findViewById(R.id.tvMyCardsListNoCardsMessage)
         cardsProgressBar = view.findViewById(R.id.pbMyCardsListCardsSpinner)
         jokeProgressBar = view.findViewById(R.id.pbMyCardsListJokeSpinner)
+        swipeRefreshLayout = view.findViewById(R.id.srlMyCardsListSwipeRefresh)
 
         cardsProgressBar.visibility = View.VISIBLE
 
@@ -70,6 +73,13 @@ class MyCardsListFragment : Fragment() {
                 viewModel.loadShoppingLists()
             }
         }
+
+        swipeRefreshLayout.setOnRefreshListener {
+            refreshData()
+        }
+
+        refreshData()
+
         return view
     }
 
@@ -116,5 +126,21 @@ class MyCardsListFragment : Fragment() {
         view.findViewById<View>(R.id.btnMyCardsListAddCard).setOnClickListener {
             findNavController().navigate(R.id.action_myCardsListFragment_to_addCardFragment)
         }
+    }
+
+    private fun refreshData() {
+        val newData = viewModel.localShoppingLists.value
+
+        if (newData != null) {
+            adapter.updateData(newData)
+
+            cardsRecyclerView.post {
+                swipeRefreshLayout.isRefreshing = false
+            }
+        } else {
+            swipeRefreshLayout.isRefreshing = false
+        }
+
+        swipeRefreshLayout.isRefreshing = false
     }
 }

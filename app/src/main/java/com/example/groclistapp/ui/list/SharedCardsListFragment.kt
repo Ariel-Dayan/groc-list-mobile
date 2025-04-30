@@ -17,6 +17,7 @@ import com.example.groclistapp.data.network.jokes.JokesClient.setJoke
 import com.example.groclistapp.data.repository.AppDatabase
 import com.example.groclistapp.viewmodel.SharedCardsViewModel
 import androidx.navigation.fragment.findNavController
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.groclistapp.data.repository.ShoppingListRepository
 import com.example.groclistapp.utils.ListUtils
 import com.example.groclistapp.utils.MessageUtils
@@ -32,6 +33,7 @@ class SharedCardsListFragment : Fragment() {
     private val messageUtils = MessageUtils.instance
     private lateinit var cardsProgressBar: ProgressBar
     private lateinit var jokeProgressBar: ProgressBar
+    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -49,6 +51,7 @@ class SharedCardsListFragment : Fragment() {
         jokeTextView = view.findViewById(R.id.tvSharedCardsListJoke)
         cardsProgressBar = view.findViewById(R.id.pbSharedCardsListCardsSpinner)
         jokeProgressBar = view.findViewById(R.id.pbSharedCardsListJokeSpinner)
+        swipeRefreshLayout = view.findViewById(R.id.srlSharedCardsListSwipeRefresh)
 
         cardsProgressBar.visibility = View.VISIBLE
 
@@ -89,6 +92,12 @@ class SharedCardsListFragment : Fragment() {
             setHasFixedSize(true)
             adapter = this@SharedCardsListFragment.adapter
         }
+
+        swipeRefreshLayout.setOnRefreshListener {
+            refreshData()
+        }
+
+        refreshData()
 
         viewModel.sharedLists.observe(viewLifecycleOwner) { list ->
             listUtils.toggleNoCardListsMessage(noCardsMessageTextView, list)
@@ -131,6 +140,19 @@ class SharedCardsListFragment : Fragment() {
             } else {
                 android.widget.Toast.makeText(requireContext(), "Please enter a valid share code", android.widget.Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+
+    private fun refreshData() {
+        val newData = viewModel.sharedLists.value
+
+        if (newData != null) {
+            adapter?.updateData(newData)
+            cardsRecyclerView?.post {
+                swipeRefreshLayout.isRefreshing = false
+            }
+        } else {
+            swipeRefreshLayout.isRefreshing = false
         }
     }
 }
