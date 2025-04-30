@@ -84,7 +84,7 @@ class UpdateCardFragment : Fragment() {
                 tilTitle.editText?.setText(it.name)
                 tilDescription.editText?.setText(it.description)
                 if (!it.imageUrl.isNullOrEmpty()) {
-                    imageHandler.loadImage(it.imageUrl, R.drawable.shopping_card_placeholder)
+                    imageHandler.loadImage(it.imageUrl, R.drawable.shopping_card_default)
                 }
             }
 
