@@ -23,9 +23,6 @@ class ShoppingListViewModel(
     private val _shoppingLists = MediatorLiveData<List<ShoppingListSummary>>()
     val localShoppingLists: LiveData<List<ShoppingListSummary>> get() = _shoppingLists
 
-    private val _isLoading = MutableLiveData<Boolean>()
-    val isLoading: LiveData<Boolean> get() = _isLoading
-
     suspend fun addShoppingList(shoppingList: ShoppingListSummary): Boolean {
         Log.d("ShoppingListViewModel", "addShoppingList called with list: ${shoppingList.name}")
         return withContext(Dispatchers.IO) {
@@ -122,11 +119,13 @@ class ShoppingListViewModel(
 
     fun loadShoppingLists() {
         viewModelScope.launch {
-            _isLoading.value = true
             val lists = repository.allShoppingLists.value
-            Log.d("ShoppingListViewModel", " מספר הרשימות שנמשכו: ${lists?.size ?: 0}")
-            _shoppingLists.postValue(lists ?: emptyList())
-            _isLoading.value = false
+            if (lists == null) {
+                Log.d("ShoppingListViewModel", "No lists found in local database")
+            } else {
+                Log.d("ShoppingListViewModel", "Found ${lists.size} lists in local database.")
+                _shoppingLists.postValue(lists ?: emptyList())
+            }
         }
     }
 

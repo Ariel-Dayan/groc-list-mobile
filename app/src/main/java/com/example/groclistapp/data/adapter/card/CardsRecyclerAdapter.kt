@@ -16,7 +16,6 @@ class CardsRecyclerAdapter(
     private val shoppingItemDao: ShoppingItemDao,
     var listener: OnItemClickListener
 ) : RecyclerView.Adapter<CardViewHolder>() {
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CardViewHolder {
         val itemView = LayoutInflater.from(parent.context)
             .inflate(R.layout.cards_list_row, parent, false)
@@ -42,14 +41,6 @@ class CardsRecyclerAdapter(
         shoppingLists = newLists.toMutableList()
         notifyDataSetChanged()
     }
-
-    fun setData(newLists: List<ShoppingListSummary>) {
-        shoppingLists.clear()
-        shoppingLists.addAll(newLists)
-        notifyDataSetChanged()
-    }
-
-
 }
 
 

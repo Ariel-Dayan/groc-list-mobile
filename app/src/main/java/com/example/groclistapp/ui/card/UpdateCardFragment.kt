@@ -48,6 +48,9 @@ class UpdateCardFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        var isLoadItems = false
+        var isLoadBasicInfo = false
+
         val listId = arguments?.getString("listId") ?: return
 
         val repository = ShoppingListRepository(
@@ -66,22 +69,28 @@ class UpdateCardFragment : Fragment() {
         val tilName = view.findViewById<TextInputLayout>(R.id.tilUpdateCardItemName)
         val tilAmount = view.findViewById<TextInputLayout>(R.id.tilUpdateCardItemAmount)
         val btnAddItem = view.findViewById<Button>(R.id.btnUpdateCardAddItem)
-        progressBar = view.findViewById(R.id.progressBar)
+        progressBar = view.findViewById(R.id.pbUpdateCardSpinner)
 
         inputUtils.addCleanErrorMessageOnInputListener(tilTitle)
         inputUtils.addCleanErrorMessageOnInputListener(tilDescription)
 
-        imageHandler = ImageHandler(this, ivTop, ibGallery, ibCamera)
+        imageHandler = ImageHandler(ivTop, this, ibGallery, ibCamera)
+
+        progressBar.visibility = View.VISIBLE
 
         lifecycleScope.launch {
-            progressBar.visibility = View.VISIBLE
             currentListSummary = viewModel.getShoppingListById(listId)
             currentListSummary?.let {
                 tilTitle.editText?.setText(it.name)
                 tilDescription.editText?.setText(it.description)
                 if (!it.imageUrl.isNullOrEmpty()) {
-                    imageHandler.loadImage(it.imageUrl)
+                    imageHandler.loadImage(it.imageUrl, R.drawable.shopping_card_placeholder)
                 }
+            }
+
+            isLoadBasicInfo = true
+            if (isLoadItems) {
+                progressBar.visibility = View.GONE
             }
         }
 
@@ -92,7 +101,11 @@ class UpdateCardFragment : Fragment() {
                 val chip = createChip(item.name, item.amount.toString(), chipGroup, listId)
                 chipGroup.addView(chip)
             }
-            progressBar.visibility = View.GONE
+
+            isLoadItems = true
+            if (isLoadBasicInfo) {
+                progressBar.visibility = View.GONE
+            }
         }
 
         val etName = tilName.editText
@@ -133,7 +146,6 @@ class UpdateCardFragment : Fragment() {
 
         val btnUpdate = view.findViewById<Button>(R.id.btnUpdateCardUpdate)
         btnUpdate.setOnClickListener {
-            progressBar.visibility = View.VISIBLE
             val updatedName = tilTitle.editText?.text?.toString()?.trim()
             val updatedDescription = tilDescription.editText?.text?.toString()?.trim()
             var isValid = true
@@ -153,6 +165,8 @@ class UpdateCardFragment : Fragment() {
             }
 
             currentListSummary?.let { oldList ->
+                progressBar.visibility = View.VISIBLE
+
                 val selectedImageUri = imageHandler.selectedImageUri
 
                 val updatedList = oldList.copy(
@@ -173,8 +187,6 @@ class UpdateCardFragment : Fragment() {
                         updateItemsAndFinish(listId, updatedList)
                     }
                 }
-
-
             } ?: run {
                 Log.e("UpdateTest", "currentListSummary היה null")
             }

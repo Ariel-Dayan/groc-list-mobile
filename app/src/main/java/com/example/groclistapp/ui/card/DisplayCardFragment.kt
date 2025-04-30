@@ -11,7 +11,6 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import com.bumptech.glide.Glide
 import com.example.groclistapp.R
 import com.example.groclistapp.data.model.ShoppingList
 import com.example.groclistapp.data.repository.AppDatabase
@@ -21,16 +20,25 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import kotlinx.coroutines.launch
 import androidx.navigation.fragment.findNavController
+import com.example.groclistapp.data.image.ImageHandler
 import com.example.groclistapp.data.repository.ShoppingListRepository
+import com.example.groclistapp.utils.ItemUtils
 import com.example.groclistapp.viewmodel.ShoppingListViewModel
 
 
 class DisplayCardFragment : Fragment() {
     private var listId: String = "-1"
+    private val itemUtils = ItemUtils.instance
     private lateinit var shoppingListDao: ShoppingListDao
     private lateinit var shoppingItemDao: ShoppingItemDao
     private lateinit var viewModel: ShoppingListViewModel
     private lateinit var progressBar: ProgressBar
+    private lateinit var imageHandler: ImageHandler
+    private lateinit var chipGroup: ChipGroup
+    private lateinit var cardTitle: TextView
+    private lateinit var cardDescription: TextView
+    private lateinit var imageView: ImageView
+    private lateinit var deleteButton: View
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,6 +69,13 @@ class DisplayCardFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        chipGroup = view.findViewById(R.id.cgDisplayCardItemsContainer)
+        cardTitle = view.findViewById(R.id.tvDisplayCardTitle)
+        cardDescription = view.findViewById(R.id.tvDisplayCardDescription)
+        imageView = view.findViewById(R.id.ivDisplayCardTop)
+        progressBar = view.findViewById(R.id.pbDisplayCardSpinner)
+        deleteButton = view.findViewById(R.id.btnDisplayCardRemove)
+
         shoppingListDao = AppDatabase.getDatabase(requireContext()).shoppingListDao()
         shoppingItemDao = AppDatabase.getDatabase(requireContext()).shoppingItemDao()
 
@@ -69,25 +84,26 @@ class DisplayCardFragment : Fragment() {
             return
         }
 
-        val chipGroup = view.findViewById<ChipGroup>(R.id.cgDisplayCardItemsContainer)
         chipGroup.layoutDirection = View.LAYOUT_DIRECTION_LOCALE
 
-        progressBar = view.findViewById(R.id.progressBar)
+        imageHandler = ImageHandler(
+            imageView,
+            this,
+            null,
+            null
+        )
 
         lifecycleScope.launch {
             progressBar.visibility = View.VISIBLE
             val list = shoppingListDao.getListById(listId)
             val items = shoppingItemDao.getItemsForListNow(listId)
 
-            list?.let {
-                view.findViewById<TextView>(R.id.tvDisplayCardTitle).text = it.name
-                view.findViewById<TextView>(R.id.tvDisplayCardDescription).text = it.description
-
-                val imageView = view.findViewById<ImageView>(R.id.ivDisplayCardTop)
-                Glide.with(requireContext())
-                    .load(it.imageUrl)
-                    .placeholder(R.drawable.shopping_card_placeholder)
-                    .into(imageView)
+            list?.let { cardList ->
+                cardTitle.text = cardList.name
+                cardDescription.text = cardList.description
+                cardList.imageUrl?.let {
+                    imageHandler.loadImage(it, R.drawable.shopping_card_placeholder)
+                }
             }
 
             chipGroup.removeAllViews()
@@ -96,8 +112,6 @@ class DisplayCardFragment : Fragment() {
             }
             progressBar.visibility = View.GONE
         }
-
-        val deleteButton = view.findViewById<View>(R.id.btnDisplayCardRemove)
 
         deleteButton.setOnClickListener {
             progressBar.visibility = View.VISIBLE
@@ -131,7 +145,7 @@ class DisplayCardFragment : Fragment() {
 
     private fun createChip(name: String, amount: String, chipGroup: ChipGroup): Chip {
         val chip = Chip(requireContext())
-        chip.text = "$name: $amount"
+        chip.text = itemUtils.createItemChipText(name, amount)
         chip.isCloseIconVisible = false
         return chip
     }

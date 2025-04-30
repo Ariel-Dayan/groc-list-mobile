@@ -8,7 +8,6 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -17,7 +16,6 @@ import com.example.groclistapp.data.adapter.card.CardsRecyclerAdapter
 import com.example.groclistapp.data.repository.AppDatabase
 import com.example.groclistapp.data.repository.ShoppingListRepository
 import com.example.groclistapp.viewmodel.ShoppingListViewModel
-import kotlinx.coroutines.launch
 import androidx.fragment.app.setFragmentResultListener
 import com.example.groclistapp.data.repository.ShoppingListDao
 import com.example.groclistapp.data.repository.ShoppingItemDao
@@ -33,7 +31,8 @@ class MyCardsListFragment : Fragment() {
     private lateinit var viewModel: ShoppingListViewModel
     private lateinit var jokeTextView: TextView
     private lateinit var noCardsTextView: TextView
-    private lateinit var progressBar: ProgressBar
+    private lateinit var cardsProgressBar: ProgressBar
+    private lateinit var jokeProgressBar: ProgressBar
 
     private val listUtils = ListUtils.instance
     private val messageUtils = MessageUtils.instance
@@ -50,7 +49,10 @@ class MyCardsListFragment : Fragment() {
 
         jokeTextView = view.findViewById(R.id.tvMyCardsListJoke)
         noCardsTextView = view.findViewById(R.id.tvMyCardsListNoCardsMessage)
-        progressBar = view.findViewById(R.id.progressBar)
+        cardsProgressBar = view.findViewById(R.id.pbMyCardsListCardsSpinner)
+        jokeProgressBar = view.findViewById(R.id.pbMyCardsListJokeSpinner)
+
+        cardsProgressBar.visibility = View.VISIBLE
 
         viewModel = ViewModelProvider(
             this,
@@ -59,11 +61,8 @@ class MyCardsListFragment : Fragment() {
 
         setupRecyclerView(view, shoppingListDao, shoppingItemDao)
         observeShoppingLists()
-        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-            progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
-        }
         setupAddButton(view)
-        setJoke(jokeTextView)
+        setJoke(jokeTextView, jokeProgressBar)
 
         setFragmentResultListener("shoppingListUpdated") { _, bundle ->
             if (bundle.getBoolean("updated", false)) {
@@ -99,13 +98,17 @@ class MyCardsListFragment : Fragment() {
 
         cardsRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         cardsRecyclerView.adapter = adapter
-
     }
 
     private fun observeShoppingLists() {
         viewModel.localShoppingLists.observe(viewLifecycleOwner) { shoppingLists ->
             listUtils.toggleNoCardListsMessage(noCardsTextView, shoppingLists)
-            shoppingLists?.let { adapter.updateData(it) }
+            shoppingLists?.let {
+                adapter.updateData(it)
+                cardsRecyclerView.post {
+                    cardsProgressBar.visibility = View.GONE
+                }
+            }
         }
     }
 
@@ -115,6 +118,3 @@ class MyCardsListFragment : Fragment() {
         }
     }
 }
-
-
-

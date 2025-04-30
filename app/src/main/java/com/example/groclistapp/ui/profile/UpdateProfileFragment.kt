@@ -20,8 +20,8 @@ import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.storage.FirebaseStorage
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
-import com.bumptech.glide.Glide
 import com.example.groclistapp.R
+import com.example.groclistapp.data.image.ImageHandler
 import com.example.groclistapp.data.repository.AppDatabase
 import com.example.groclistapp.data.repository.ShoppingListRepository
 import com.example.groclistapp.viewmodel.ShoppingListViewModel
@@ -35,13 +35,14 @@ class UpdateProfileFragment : Fragment() {
     private lateinit var auth: FirebaseAuth
     private lateinit var storage: FirebaseStorage
     private lateinit var shoppingListViewModel: ShoppingListViewModel
-    private lateinit var progressBar: ProgressBar
-    private var selectedImageUri: Uri? = null
+    private lateinit var imageHandler: ImageHandler
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
 
     ): View {
+        _binding = FragmentUpdateProfileBinding.inflate(inflater, container, false)
+        binding.pbUpdateProfileSpinner.visibility = View.VISIBLE
         shoppingListViewModel = ViewModelProvider(
             this,
             ShoppingListViewModel.Factory(requireActivity().application, ShoppingListRepository(
@@ -51,22 +52,24 @@ class UpdateProfileFragment : Fragment() {
             )
         )[ShoppingListViewModel::class.java]
 
-        _binding = FragmentUpdateProfileBinding.inflate(inflater, container, false)
         viewModel = ViewModelProvider(this)[ProfileViewModel::class.java]
         auth = FirebaseAuth.getInstance()
         storage = FirebaseStorage.getInstance()
+
+        imageHandler = ImageHandler(binding.civUpdateProfileUserImage, this, binding.ibUpdateProfileUploadImageFromGallery, binding.ibUpdateProfileTakePhoto)
 
         setupListeners()
         val userId = FirebaseAuth.getInstance().currentUser?.uid
         if (userId != null) {
             viewModel.loadProfileImage(userId) { imageUrl ->
                 if (!imageUrl.isNullOrEmpty()) {
-                    Glide.with(requireContext())
-                        .load(imageUrl)
-                        .placeholder(R.drawable.user_placeholder)
-                        .into(binding.civUpdateProfileUserImage)
+                    imageHandler.loadImage(imageUrl, R.drawable.user_placeholder)
+                    binding.pbUpdateProfileSpinner.visibility = View.GONE
                 }
             }
+        } else {
+            Toast.makeText(requireContext(), "User not found", Toast.LENGTH_SHORT).show()
+            binding.pbUpdateProfileSpinner.visibility = View.GONE
         }
 
         return binding.root
@@ -90,14 +93,6 @@ class UpdateProfileFragment : Fragment() {
         binding.btnUpdateProfileLogout.setOnClickListener {
             logout()
         }
-
-        binding.ibUpdateProfileUploadImageFromGallery.setOnClickListener {
-            openGallery()
-        }
-
-        binding.ibUpdateProfileTakePhoto.setOnClickListener {
-            takePhoto()
-        }
     }
 
     private fun updateProfile() {
@@ -106,7 +101,7 @@ class UpdateProfileFragment : Fragment() {
         val newPassword = binding.tilUpdateProfilePassword.editText?.text.toString().trim()
         val confirmPassword = binding.tilUpdateProfileConfirmPassword.editText?.text.toString().trim()
 
-        if (fullName.isEmpty() && newPassword.isEmpty() && selectedImageUri == null) {
+        if (fullName.isEmpty() && newPassword.isEmpty() && imageHandler.selectedImageUri == null) {
             Toast.makeText(requireContext(), "Please enter at least one field to update", Toast.LENGTH_SHORT).show()
             return
         }
@@ -121,18 +116,18 @@ class UpdateProfileFragment : Fragment() {
                 return
             }
         }
-        binding.progressBar.visibility = View.VISIBLE
+        binding.pbUpdateProfileSpinner.visibility = View.VISIBLE
         binding.btnUpdateProfileUpdate.isEnabled = false
         binding.btnUpdateProfileUpdate.text = "Updating..."
 
         viewModel.updateProfile(
-            fullName = if (fullName.isNotEmpty()) fullName else null,
-            oldPassword = if (oldPassword.isNotEmpty()) oldPassword else null,
-            newPassword = if (newPassword.isNotEmpty()) newPassword else null,
-            imageUri = selectedImageUri
+            fullName = fullName.ifEmpty { null },
+            oldPassword = oldPassword.ifEmpty { null },
+            newPassword = newPassword.ifEmpty { null },
+            imageUri = if (imageHandler.selectedImageUri != null) imageHandler.selectedImageUri else null
         ) { success, message ->
             Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-            binding.progressBar.visibility = View.GONE
+            binding.pbUpdateProfileSpinner.visibility = View.GONE
             binding.btnUpdateProfileUpdate.isEnabled = true
             binding.btnUpdateProfileUpdate.text = "Update"
         }
@@ -140,11 +135,11 @@ class UpdateProfileFragment : Fragment() {
 
 
     private fun logout() {
-        binding.progressBar.visibility = View.VISIBLE
+        binding.pbUpdateProfileSpinner.visibility = View.VISIBLE
         viewModel.logout()
 
         viewModel.logoutStatus.observe(viewLifecycleOwner) { success ->
-            binding.progressBar.visibility = View.GONE
+            binding.pbUpdateProfileSpinner.visibility = View.GONE
             if (success) {
                 Toast.makeText(requireContext(), "Successfully logged out!", Toast.LENGTH_SHORT).show()
 
@@ -162,43 +157,9 @@ class UpdateProfileFragment : Fragment() {
         }
     }
 
-
-
-    private fun openGallery() {
-        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        startActivityForResult(intent, REQUEST_IMAGE_PICK)
-    }
-
-    private fun takePhoto() {
-        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        startActivityForResult(intent, REQUEST_IMAGE_CAPTURE)
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode == Activity.RESULT_OK) {
-            when (requestCode) {
-                REQUEST_IMAGE_PICK -> {
-                    selectedImageUri = data?.data
-                    binding.civUpdateProfileUserImage.setImageURI(selectedImageUri)
-                }
-                REQUEST_IMAGE_CAPTURE -> {
-                    val photo = data?.extras?.get("data") as? Bitmap
-                    photo?.let {
-                        binding.civUpdateProfileUserImage.setImageBitmap(it)
-                    }
-                }
-            }
-        }
-    }
-
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
 
-    companion object {
-        private const val REQUEST_IMAGE_PICK = 1001
-        private const val REQUEST_IMAGE_CAPTURE = 1002
-    }
 }

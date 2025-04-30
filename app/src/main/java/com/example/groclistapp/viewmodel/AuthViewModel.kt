@@ -28,18 +28,13 @@ class AuthViewModel : ViewModel() {
     private val _errorMessage = MutableLiveData<String>()
     val errorMessage: LiveData<String> get() = _errorMessage
 
-    private val _isLoading = MutableLiveData<Boolean>()
-    val isLoading: LiveData<Boolean> get() = _isLoading
 
     init {
         checkUserLoggedIn()
     }
 
     fun login(email: String, password: String) {
-        _isLoading.value = true
-
         repository.login(email, password) { success, user, error ->
-            _isLoading.postValue(false)
             _loginStatus.postValue(success)
 
             if (success) {
@@ -51,15 +46,12 @@ class AuthViewModel : ViewModel() {
     }
 
     fun signup(email: String, password: String, fullName: String, imageUri: Uri?) {
-        _isLoading.value = true
-
         repository.registerUser(
             fullName = fullName,
             email = email,
             password = password,
             imageUri = imageUri
         ) { success, error ->
-            _isLoading.postValue(false)
             _signupStatus.postValue(success)
             if (!success && error != null) {
                 _errorMessage.postValue(error ?: "Unknown error")
@@ -79,10 +71,5 @@ class AuthViewModel : ViewModel() {
             _currentUser.value = null
         }
     }
-
-    fun setLoading(loading: Boolean) {
-        _isLoading.value = loading
-    }
-
 }
 

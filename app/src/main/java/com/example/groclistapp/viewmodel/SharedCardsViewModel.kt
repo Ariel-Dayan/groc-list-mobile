@@ -23,8 +23,6 @@ class SharedCardsViewModel(application: Application) : AndroidViewModel(applicat
 
     val sharedLists = MediatorLiveData<List<ShoppingListSummary>>()
 
-    val isLoading = MutableLiveData<Boolean>()
-
     init {
         userId?.let { fetchSharedListIds(it) }
 
@@ -60,4 +58,10 @@ class SharedCardsViewModel(application: Application) : AndroidViewModel(applicat
             return emptyList()
         }
     }
+
+    fun addSharedListId(listId: String) {
+        val updatedListIds = (_sharedListIds.value ?: emptyList()) + listId
+        _sharedListIds.postValue(updatedListIds)
+    }
+
 }

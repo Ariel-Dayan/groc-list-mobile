@@ -54,12 +54,9 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
         passwordInput = passwordLayout.editText as TextInputEditText
 
         loginButton = view.findViewById(R.id.btnLoginEnter)
-        signupNavigationButton = view.findViewById(R.id.btnSignupNavigation)
-        progressBar = view.findViewById(R.id.progressBar)
+        signupNavigationButton = view.findViewById(R.id.btnLoginSignupNavigation)
+        progressBar = view.findViewById(R.id.pbLoginSpinner)
 
-        authViewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-            progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
-        }
 
         loginButton.setOnClickListener {
             val email = emailInput.text?.toString()?.trim()
@@ -77,7 +74,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
 
             loginButton.isEnabled = false
             loginButton.text = getString(R.string.logging_in)
-
+            progressBar.visibility = View.VISIBLE
             authViewModel.login(email, password)
         }
 
@@ -90,10 +87,12 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                         .setPopUpTo(R.id.loginFragment, true)
                         .build()
 
+                    progressBar.visibility = View.GONE
                     findNavController().navigate(R.id.myCardsListFragment, null, navOptions)
                 }
             }
             else {
+                progressBar.visibility = View.GONE
                 loginButton.isEnabled = true
                 loginButton.text = getString(R.string.login)
 

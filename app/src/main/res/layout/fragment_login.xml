@@ -62,14 +62,14 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="150dp"
         android:text="@string/login"
-        app:layout_constraintBottom_toTopOf="@+id/btnSignupNavigation"
+        app:layout_constraintBottom_toTopOf="@+id/btnLoginSignupNavigation"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tilLoginPassword" />
 
     <Button
-        android:id="@+id/btnSignupNavigation"
+        android:id="@+id/btnLoginSignupNavigation"
         style="@style/Widget.Material3.Button.TextButton.Icon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -82,7 +82,7 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <ProgressBar
-        android:id="@+id/progressBar"
+        android:id="@+id/pbLoginSpinner"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"
