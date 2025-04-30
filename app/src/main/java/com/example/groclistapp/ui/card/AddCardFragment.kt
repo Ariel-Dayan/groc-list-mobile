@@ -62,6 +62,30 @@ class AddCardFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         initViews(view)
         setupListeners()
+
+        viewModel.addListStatus.observe(viewLifecycleOwner) { isSuccess ->
+            if (isSuccess != null && isAdded) {
+                progressBar.visibility = View.GONE
+
+                if (isSuccess) {
+                    try {
+                        setFragmentResult("shoppingListUpdated", bundleOf("updated" to true))
+                        findNavController().navigateUp()
+                    } catch (e: Exception) {
+                        Log.e("AddCardFragment", "Error navigating up: ${e.message}")
+                    }
+                } else {
+                    try {
+                        Toast.makeText(requireContext(), "Failed to save shopping list", Toast.LENGTH_SHORT).show()
+                    } catch (e: Exception) {
+                        Log.e("AddCardFragment", "Error showing Toast: ${e.message}")
+                    }
+                }
+
+                viewModel.resetAddListStatus()
+            }
+        }
+
     }
 
     private fun initViews(view: View) {
@@ -236,38 +260,7 @@ class AddCardFragment : Fragment() {
                 creatorId = creatorId,
                 shareCode = shareCode
             )
-
-            Log.d("AddCardFragment", "Before adding shopping list: $newList")
-            val isSaved = viewModel.addShoppingList(newList)
-
-            if (!isSaved) {
-                Log.e("AddCardFragment", "Failed to save shopping list, listId: ${newList.id}")
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(requireContext(), "Failed to save shopping list", Toast.LENGTH_SHORT).show()
-                    progressBar.visibility = View.GONE
-                }
-                return@launch
-            }
-
-            pendingItems.forEachIndexed { index, item ->
-                item.listId = newList.id
-            }
-
-            try {
-                viewModel.addItems(pendingItems)
-                Log.d("AddCardFragment", "Items added successfully: ${pendingItems.joinToString(", ")}")
-            } catch (e: Exception) {
-                Log.e("AddCardFragment", "Error adding items: ${e.message}")
-            }
-
-            pendingItems.clear()
-
-            withContext(Dispatchers.Main) {
-                listId = newList.id
-                setFragmentResult("shoppingListUpdated", bundleOf("updated" to true))
-                progressBar.visibility = View.GONE
-                findNavController().navigateUp()
-            }
+            viewModel.addShoppingListWithItems(newList, pendingItems)
         }
     }
 }

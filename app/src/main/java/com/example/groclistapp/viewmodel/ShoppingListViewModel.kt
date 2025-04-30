@@ -23,6 +23,13 @@ class ShoppingListViewModel(
     private val _shoppingLists = MediatorLiveData<List<ShoppingListSummary>>()
     val localShoppingLists: LiveData<List<ShoppingListSummary>> get() = _shoppingLists
 
+    private val _addListStatus = MutableLiveData<Boolean?>()
+    val addListStatus: LiveData<Boolean?> get() = _addListStatus
+
+    fun resetAddListStatus() {
+        _addListStatus.value = null
+    }
+
     suspend fun addShoppingList(shoppingList: ShoppingListSummary): Boolean {
         Log.d("ShoppingListViewModel", "addShoppingList called with list: ${shoppingList.name}")
         return withContext(Dispatchers.IO) {
@@ -159,6 +166,29 @@ class ShoppingListViewModel(
 
     fun removeSharedListReference(listId: String) {
         repository.removeListIdFromSharedListArray(listId)
+    }
+
+    fun addShoppingListWithItems(
+        list: ShoppingListSummary,
+        items: List<ShoppingItem>
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val isSaved = repository.insertAndGetId(list)
+            if (!isSaved) {
+                _addListStatus.postValue(false)
+                return@launch
+            }
+
+            items.forEach { it.listId = list.id }
+
+            try {
+                repository.insertItems(items)
+                _addListStatus.postValue(true)
+            } catch (e: Exception) {
+                Log.e("ViewModel", "Error inserting items: ${e.message}")
+                _addListStatus.postValue(false)
+            }
+        }
     }
 
 
