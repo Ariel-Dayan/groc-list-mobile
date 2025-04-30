@@ -29,8 +29,6 @@ import com.example.groclistapp.viewmodel.ShoppingListViewModel
 class DisplayCardFragment : Fragment() {
     private var listId: String = "-1"
     private val itemUtils = ItemUtils.instance
-    private lateinit var shoppingListDao: ShoppingListDao
-    private lateinit var shoppingItemDao: ShoppingItemDao
     private lateinit var viewModel: ShoppingListViewModel
     private lateinit var progressBar: ProgressBar
     private lateinit var imageHandler: ImageHandler
@@ -46,10 +44,6 @@ class DisplayCardFragment : Fragment() {
             this,
             ShoppingListViewModel.Factory(
                 requireActivity().application,
-                ShoppingListRepository(
-                    AppDatabase.getDatabase(requireContext()).shoppingListDao(),
-                    AppDatabase.getDatabase(requireContext()).shoppingItemDao()
-                )
             )
         )[ShoppingListViewModel::class.java]
 
@@ -74,13 +68,12 @@ class DisplayCardFragment : Fragment() {
         progressBar = view.findViewById(R.id.pbDisplayCardSpinner)
         deleteButton = view.findViewById(R.id.btnDisplayCardRemove)
 
-        shoppingListDao = AppDatabase.getDatabase(requireContext()).shoppingListDao()
-        shoppingItemDao = AppDatabase.getDatabase(requireContext()).shoppingItemDao()
-
         if (listId == "-1") {
             Toast.makeText(requireContext(), "Invalid list ID", Toast.LENGTH_SHORT).show()
             return
         }
+
+        viewModel.loadShoppingListById(listId)
 
         chipGroup.layoutDirection = View.LAYOUT_DIRECTION_LOCALE
 
@@ -91,19 +84,21 @@ class DisplayCardFragment : Fragment() {
             null
         )
 
-        lifecycleScope.launch {
-            progressBar.visibility = View.VISIBLE
-            val list = shoppingListDao.getListById(listId)
-            val items = shoppingItemDao.getItemsForListNow(listId)
+        progressBar.visibility = View.VISIBLE
 
-            list?.let { cardList ->
-                cardTitle.text = cardList.name
-                cardDescription.text = cardList.description
-                cardList.imageUrl?.let {
-                    imageHandler.loadImage(it, R.drawable.shopping_card_placeholder)
+        viewModel.currentListSummary.observe(viewLifecycleOwner) { list ->
+            list?.let {
+                cardTitle.text = it.name
+                cardDescription.text = it.description
+                it.imageUrl?.let { imageUrl ->
+                    imageHandler.loadImage(imageUrl, R.drawable.shopping_card_placeholder)
                 }
-            }
 
+                viewModel.getItemsForList(listId)
+            }
+        }
+
+        viewModel.getItemsForList(listId).observe(viewLifecycleOwner) { items ->
             chipGroup.removeAllViews()
             for (item in items) {
                 chipGroup.addView(createChip(item.name, item.amount.toString()))
@@ -113,29 +108,14 @@ class DisplayCardFragment : Fragment() {
 
         deleteButton.setOnClickListener {
             progressBar.visibility = View.VISIBLE
-            lifecycleScope.launch {
-                shoppingItemDao.deleteItemsByListId(listId)
+            viewModel.deleteSharedListById(listId)
+        }
 
-                val list = shoppingListDao.getListById(listId)
-                if (list != null) {
-                    val shoppingList = ShoppingList(
-                        id = list.id,
-                        name = list.name,
-                        description = list.description,
-                        creatorId = list.creatorId,
-                        shareCode = list.shareCode,
-                        imageUrl = list.imageUrl
-                    )
-                    shoppingListDao.deleteShoppingList(shoppingList)
-                    viewModel.removeSharedListReference(listId)
-
-                }
-
-                requireActivity().runOnUiThread {
-                    progressBar.visibility = View.GONE
-                    Toast.makeText(requireContext(), "List deleted", Toast.LENGTH_SHORT).show()
-                    findNavController().popBackStack()
-                }
+        viewModel.deleteStatus.observe(viewLifecycleOwner) { isDeleted ->
+            if (isDeleted == true) {
+                progressBar.visibility = View.GONE
+                Toast.makeText(requireContext(), "List deleted", Toast.LENGTH_SHORT).show()
+                findNavController().popBackStack()
             }
         }
 

@@ -32,6 +32,21 @@ class ShoppingListViewModel(
     private val _deleteStatus = MutableLiveData<Boolean>()
     val deleteStatus: LiveData<Boolean> get() = _deleteStatus
 
+    fun deleteSharedListById(listId: String) {
+        viewModelScope.launch {
+            val list = repository.getShoppingListById(listId)
+
+            if (list != null) {
+                repository.deleteAllItemsForList(listId)
+                repository.delete(list)
+                removeSharedListReference(listId)
+                _deleteStatus.postValue(true)
+            } else {
+                _deleteStatus.postValue(false)
+            }
+        }
+    }
+
     fun deleteShoppingListAsync(shoppingList: ShoppingListSummary) {
         viewModelScope.launch {
             repository.delete(shoppingList)
