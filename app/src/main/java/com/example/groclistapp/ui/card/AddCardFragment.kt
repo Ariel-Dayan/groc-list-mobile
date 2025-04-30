@@ -232,7 +232,6 @@ class AddCardFragment : Fragment() {
                 name = listName,
                 description = listDescription,
                 imageUrl = imageUrlString,
-                itemsCount = 0,
                 creatorId = creatorId,
                 shareCode = shareCode
             )

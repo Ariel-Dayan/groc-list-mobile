@@ -47,7 +47,7 @@ class ShoppingListRepository(
             return false
         }
 
-        Log.d("ShoppingListRepository", "ShoppingListSummary received: id=${shoppingList.id}, name=${shoppingList.name}, itemsCount=${shoppingList.itemsCount}, creatorId=${shoppingList.creatorId}")
+        Log.d("ShoppingListRepository", "ShoppingListSummary received: id=${shoppingList.id}, name=${shoppingList.name}, creatorId=${shoppingList.creatorId}")
 
         val newList = ShoppingList(
             id = shoppingList.id,
