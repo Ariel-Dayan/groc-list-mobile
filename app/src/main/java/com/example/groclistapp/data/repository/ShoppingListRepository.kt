@@ -155,34 +155,25 @@ class ShoppingListRepository(
             }
     }
 
-    suspend fun insertItem(item: ShoppingItem) {
-        Log.d("InsertItemDebug", "insertItem called: name=${item.name}, amount=${item.amount}, listId=${item.listId}")
-
-        val itemId = shoppingItemDao.insertItem(item)
-        val itemWithId = item.copy(id = itemId.toInt())
-
-        Log.d("InsertItemDebug", "Local DB inserted item '${item.name}' with ID: ${itemWithId.id}")
-
-        val listRef = db.collection("shoppingLists").document(itemWithId.listId.toString())
-        val itemRef = listRef.collection("items").document(itemWithId.id.toString())
-
-        val newItemData = mapOf(
-            "id" to itemWithId.id,
-            "name" to itemWithId.name,
-            "amount" to itemWithId.amount,
-            "listId" to itemWithId.listId
-        )
-
+    suspend fun insertItems(items: List<ShoppingItem>) {
         try {
-            Log.d("InsertItemDebug", "Attempting to add item '${item.name}' to Firestore under listId: ${itemWithId.listId}")
-            itemRef.set(newItemData).await()
-            Log.d("InsertItemDebug", "Successfully added item '${item.name}' in Firestore at items/${itemWithId.id}")
+            shoppingItemDao.upsertItems(items)
+
+            val listRef = db.collection("shoppingLists").document(items[0].listId)
+            val itemRef = listRef.collection("items")//.document(itemWithId.id.toString())
+            
+            val batch = db.batch()
+            items.map { it ->
+                val itemDocRef = itemRef.document(it.id)
+                batch.set(itemDocRef, it)
+            }
+
+            batch.commit().await()
+            Log.d("insertItems", "Successfully added ${items.size} items to Firestore")
         } catch (e: Exception) {
-            Log.e("InsertItemDebug", "Error adding item '${item.name}' to Firestore: ${e.message}")
+            Log.e("insertItems", "Error adding items to Firestore: ${e.message}")
         }
     }
-
-
 
     suspend fun updateItem(item: ShoppingItem) {
         shoppingItemDao.updateItem(item)
@@ -293,7 +284,7 @@ class ShoppingListRepository(
             }
     }
 
-    private fun deleteItemFromFirestore(itemId: Int) {
+    private fun deleteItemFromFirestore(itemId: String) {
         db.collection("shoppingLists")
             .document(itemId.toString())
             .delete()
@@ -331,7 +322,7 @@ class ShoppingListRepository(
 
         try {
             val itemsRef = db.collection("shoppingLists")
-                .document(listId.toString())
+                .document(listId)
                 .collection("items")
 
             val snapshot = itemsRef.get().await()
@@ -475,7 +466,7 @@ class ShoppingListRepository(
                 }
 
                 CoroutineScope(Dispatchers.IO).launch {
-                    items.forEach { shoppingItemDao.insertItem(it) }
+                    shoppingItemDao.upsertItems(items)
                     onSuccess()
                 }
             }
@@ -516,8 +507,8 @@ class ShoppingListRepository(
                 val items = itemsSnapshot.toObjects(ShoppingItem::class.java)
                 items.forEach { item ->
                     item.listId = list.id
-                    shoppingItemDao.insertItem(item)
                 }
+                shoppingItemDao.upsertItems(items)
             }
 
             Log.d("Sync", "User data successfully loaded from Firebase")
@@ -555,8 +546,7 @@ class ShoppingListRepository(
                     val itemsSnapshot = doc.reference.collection("items").get().await()
                     val items = itemsSnapshot.toObjects(ShoppingItem::class.java)
                     items.forEach { it.listId = list.id }
-                    items.forEach { shoppingItemDao.insertItem(it) }
-
+                    shoppingItemDao.upsertItems(items)
                     Log.d("SharedSync", "Inserted shared list ${list.id} with ${items.size} items")
                 }
             }

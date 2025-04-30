@@ -111,11 +111,24 @@ class UpdateProfileFragment : Fragment() {
                 Toast.makeText(requireContext(), "Enter your current password to change password", Toast.LENGTH_SHORT).show()
                 return
             }
+
             if (newPassword != confirmPassword) {
                 Toast.makeText(requireContext(), "Passwords do not match", Toast.LENGTH_SHORT).show()
                 return
             }
+
+            if (newPassword.length < 6) {
+                Toast.makeText(requireContext(), "Password must be at least 6 characters long", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            if (oldPassword == newPassword) {
+                Toast.makeText(requireContext(), "New password must be different from the old password", Toast.LENGTH_SHORT).show()
+                return
+            }
         }
+
+
         binding.pbUpdateProfileSpinner.visibility = View.VISIBLE
         binding.btnUpdateProfileUpdate.isEnabled = false
         binding.btnUpdateProfileUpdate.text = "Updating..."

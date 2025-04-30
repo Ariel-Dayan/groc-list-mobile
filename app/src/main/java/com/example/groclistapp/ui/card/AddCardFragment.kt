@@ -116,7 +116,7 @@ class AddCardFragment : Fragment() {
         Log.d("AddCardFragment", "Adding new pending item: name=$name, amount=$amount")
         val chip = createChip(name, amountStr)
         chipGroup.addView(chip)
-        pendingItems.add(ShoppingItem(name = name, amount = amount ?: 0, listId = "-1"))
+        pendingItems.add(ShoppingItem(id = UUID.randomUUID().toString(), name = name, amount = amount ?: 0, listId = "-1"))
 
         tilItemName.editText?.text?.clear()
         tilItemAmount.editText?.text?.clear()
@@ -251,13 +251,15 @@ class AddCardFragment : Fragment() {
 
             pendingItems.forEachIndexed { index, item ->
                 item.listId = newList.id
-                try {
-                    viewModel.addItemSuspend(item)
-                    Log.d("AddCardFragment", "Added item [$index]: ${item.name}")
-                } catch (e: Exception) {
-                    Log.e("AddCardFragment", "Error adding item [$index]: ${e.message}")
-                }
             }
+
+            try {
+                viewModel.addItems(pendingItems)
+                Log.d("AddCardFragment", "Items added successfully: ${pendingItems.joinToString(", ")}")
+            } catch (e: Exception) {
+                Log.e("AddCardFragment", "Error adding items: ${e.message}")
+            }
+
             pendingItems.clear()
 
             withContext(Dispatchers.Main) {

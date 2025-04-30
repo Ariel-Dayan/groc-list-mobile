@@ -84,28 +84,31 @@ class UpdateCardFragment : Fragment() {
                 tilTitle.editText?.setText(it.name)
                 tilDescription.editText?.setText(it.description)
                 if (!it.imageUrl.isNullOrEmpty()) {
-                    imageHandler.loadImage(it.imageUrl, R.drawable.shopping_card_placeholder)
+                    imageHandler.loadImage(it.imageUrl, R.drawable.shopping_card_default)
                 }
             }
 
-            isLoadBasicInfo = true
-            if (isLoadItems) {
+            if (isLoadItems && !isLoadBasicInfo) {
                 progressBar.visibility = View.GONE
             }
+            isLoadBasicInfo = true
         }
 
         chipGroup = view.findViewById(R.id.cgUpdateCardItemsContainer)
         chipGroup.layoutDirection = View.LAYOUT_DIRECTION_LOCALE
         viewModel.getItemsForList(listId).observe(viewLifecycleOwner) { items ->
-            items.forEach { item ->
-                val chip = createChip(item.name, item.amount.toString(), chipGroup, listId)
-                chipGroup.addView(chip)
+            if (items.isNotEmpty()) {
+                chipGroup.removeAllViews()
+                items.forEach { item ->
+                    val chip = createChip(item.name, item.amount.toString(), chipGroup, listId)
+                    chipGroup.addView(chip)
+                }
             }
 
-            isLoadItems = true
-            if (isLoadBasicInfo) {
+            if (isLoadBasicInfo && !isLoadItems) {
                 progressBar.visibility = View.GONE
             }
+            isLoadItems = true
         }
 
         val etName = tilName.editText
@@ -247,9 +250,7 @@ class UpdateCardFragment : Fragment() {
             listId
         )
 
-        for (item in newItems) {
-            viewModel.addItemSuspend(item)
-        }
+        viewModel.addItems(newItems)
 
         viewModel.updateShoppingList(updatedList)
         progressBar.visibility = View.GONE

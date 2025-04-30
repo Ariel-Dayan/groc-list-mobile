@@ -61,9 +61,8 @@
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/tilSharedCardsListSharedCode" />
 
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvSharedCardsList"
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/srlSharedCardsListSwipeRefresh"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
@@ -71,7 +70,13 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tilSharedCardsListSharedCode" />
+        app:layout_constraintTop_toBottomOf="@+id/tilSharedCardsListSharedCode" >
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvSharedCardsList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <TextView
         android:id="@+id/tvSharedCardsListNoCardsMessage"

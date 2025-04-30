@@ -18,6 +18,7 @@ import com.example.groclistapp.data.network.jokes.JokesClient.setJoke
 import com.example.groclistapp.data.repository.AppDatabase
 import com.example.groclistapp.viewmodel.SharedCardsViewModel
 import androidx.navigation.fragment.findNavController
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.groclistapp.data.repository.ShoppingListRepository
 import com.example.groclistapp.utils.ListUtils
 import com.example.groclistapp.utils.MessageUtils
@@ -33,6 +34,7 @@ class SharedCardsListFragment : Fragment() {
     private val messageUtils = MessageUtils.instance
     private lateinit var cardsProgressBar: ProgressBar
     private lateinit var jokeProgressBar: ProgressBar
+    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -49,6 +51,7 @@ class SharedCardsListFragment : Fragment() {
         jokeTextView = view.findViewById(R.id.tvSharedCardsListJoke)
         cardsProgressBar = view.findViewById(R.id.pbSharedCardsListCardsSpinner)
         jokeProgressBar = view.findViewById(R.id.pbSharedCardsListJokeSpinner)
+        swipeRefreshLayout = view.findViewById(R.id.srlSharedCardsListSwipeRefresh)
 
         cardsProgressBar.visibility = View.VISIBLE
 
@@ -89,6 +92,22 @@ class SharedCardsListFragment : Fragment() {
             setHasFixedSize(true)
             adapter = this@SharedCardsListFragment.adapter
         }
+
+        swipeRefreshLayout.setOnRefreshListener {
+            listUtils.refreshData(
+                cardsRecyclerView,
+                { shoppingLists -> adapter?.updateData(shoppingLists) },
+                viewModel.sharedLists.value,
+                swipeRefreshLayout
+            )
+        }
+
+        listUtils.refreshData(
+            cardsRecyclerView,
+            { shoppingLists -> adapter?.updateData(shoppingLists) },
+            viewModel.sharedLists.value,
+            swipeRefreshLayout
+        )
 
         viewModel.sharedLists.observe(viewLifecycleOwner) { list ->
             listUtils.toggleNoCardListsMessage(noCardsMessageTextView, list)
