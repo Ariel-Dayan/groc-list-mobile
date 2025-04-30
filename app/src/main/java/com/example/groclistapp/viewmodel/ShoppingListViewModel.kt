@@ -26,6 +26,26 @@ class ShoppingListViewModel(
     private val _addListStatus = MutableLiveData<Boolean?>()
     val addListStatus: LiveData<Boolean?> get() = _addListStatus
 
+    private val _currentListSummary = MutableLiveData<ShoppingListSummary?>()
+    val currentListSummary: LiveData<ShoppingListSummary?> get() = _currentListSummary
+
+    private val _deleteStatus = MutableLiveData<Boolean>()
+    val deleteStatus: LiveData<Boolean> get() = _deleteStatus
+
+    fun deleteShoppingListAsync(shoppingList: ShoppingListSummary) {
+        viewModelScope.launch {
+            repository.delete(shoppingList)
+            _deleteStatus.postValue(true)
+        }
+    }
+
+    fun loadShoppingListById(listId: String) {
+        viewModelScope.launch {
+            _currentListSummary.value = repository.getShoppingListById(listId)
+        }
+    }
+
+
     fun resetAddListStatus() {
         _addListStatus.value = null
     }
@@ -191,11 +211,38 @@ class ShoppingListViewModel(
         }
     }
 
+    fun updateListWithItems(
+        listId: String,
+        updatedList: ShoppingListSummary,
+        items: List<ShoppingItem>,
+        onComplete: () -> Unit
+    ) {
+        viewModelScope.launch {
+            deleteAllItemsForListNow(listId)
+            addItems(items)
+            updateShoppingList(updatedList)
+            onComplete()
+        }
+    }
+
 
     class Factory(
         private val application: Application,
         private val repository: ShoppingListRepository
     ) : ViewModelProvider.Factory {
+
+        constructor(application: Application) : this(
+            application,
+            com.example.groclistapp.data.repository.ShoppingListRepository(
+                com.example.groclistapp.data.repository.AppDatabase
+                    .getDatabase(application.applicationContext)
+                    .shoppingListDao(),
+                com.example.groclistapp.data.repository.AppDatabase
+                    .getDatabase(application.applicationContext)
+                    .shoppingItemDao()
+            )
+        )
+
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(ShoppingListViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")

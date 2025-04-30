@@ -51,15 +51,14 @@ class UpdateCardFragment : Fragment() {
         var isLoadItems = false
         var isLoadBasicInfo = false
 
+        viewModel = ViewModelProvider(
+            this,
+            ShoppingListViewModel.Factory(requireActivity().application)
+        )[ShoppingListViewModel::class.java]
+
         val listId = arguments?.getString("listId") ?: return
+        viewModel.loadShoppingListById(listId)
 
-        val repository = ShoppingListRepository(
-            AppDatabase.getDatabase(requireContext()).shoppingListDao(),
-            AppDatabase.getDatabase(requireContext()).shoppingItemDao()
-        )
-
-        val factory = ShoppingListViewModel.Factory(requireActivity().application, repository)
-        viewModel = ViewModelProvider(this, factory).get(ShoppingListViewModel::class.java)
 
         val tilTitle = view.findViewById<TextInputLayout>(R.id.tilUpdateCardTitle)
         val tilDescription = view.findViewById<TextInputLayout>(R.id.tilUpdateCardDescription)
@@ -78,9 +77,9 @@ class UpdateCardFragment : Fragment() {
 
         progressBar.visibility = View.VISIBLE
 
-        lifecycleScope.launch {
-            currentListSummary = viewModel.getShoppingListById(listId)
-            currentListSummary?.let {
+        viewModel.currentListSummary.observe(viewLifecycleOwner) { list ->
+            list?.let {
+                currentListSummary = it
                 tilTitle.editText?.setText(it.name)
                 tilDescription.editText?.setText(it.description)
                 if (!it.imageUrl.isNullOrEmpty()) {
@@ -93,6 +92,7 @@ class UpdateCardFragment : Fragment() {
             }
             isLoadBasicInfo = true
         }
+
 
         chipGroup = view.findViewById(R.id.cgUpdateCardItemsContainer)
         chipGroup.layoutDirection = View.LAYOUT_DIRECTION_LOCALE
@@ -178,40 +178,53 @@ class UpdateCardFragment : Fragment() {
                     creatorId = oldList.creatorId
                 )
                 Log.d("UpdateFragment", "Before image upload, updatedList.imageUrl: ${updatedList.imageUrl}")
-                lifecycleScope.launch {
-                    if (selectedImageUri != null) {
-                        viewModel.uploadImageAndUpdateList(selectedImageUri, updatedList) { newUpdatedList ->
-                            lifecycleScope.launch {
-                                updateItemsAndFinish(listId, newUpdatedList)
-                            }
-                        }
+                val newItems = itemUtils.extractItemsFromChips(chipGroup, listId)
+                progressBar.visibility = View.VISIBLE
 
-                    } else {
-                        updateItemsAndFinish(listId, updatedList)
+                if (selectedImageUri != null) {
+                    viewModel.uploadImageAndUpdateList(selectedImageUri, updatedList) { newUpdatedList ->
+                        viewModel.updateListWithItems(listId, newUpdatedList, newItems) {
+                            progressBar.visibility = View.GONE
+                            Toast.makeText(requireContext(), "List updated successfully", Toast.LENGTH_SHORT).show()
+                            findNavController().navigateUp()
+                        }
+                    }
+                } else {
+                    viewModel.updateListWithItems(listId, updatedList, newItems) {
+                        progressBar.visibility = View.GONE
+                        Toast.makeText(requireContext(), "List updated successfully", Toast.LENGTH_SHORT).show()
+                        findNavController().navigateUp()
                     }
                 }
+
             } ?: run {
                 Log.e("UpdateTest", "currentListSummary היה null")
             }
         }
 
     val btnDelete = view.findViewById<Button>(R.id.btnUpdateCardDelete)
-    btnDelete.setOnClickListener {
-        currentListSummary?.let { list ->
-            AlertDialog.Builder(requireContext())
-                .setTitle("Delete List")
-                .setMessage("Are you sure you want to delete this list?")
-                .setPositiveButton("Yes") { _, _ ->
-                    progressBar.visibility = View.VISIBLE
-                    viewModel.deleteShoppingList(list)
-                    progressBar.visibility = View.GONE
-                    Toast.makeText(requireContext(), "List deleted successfully", Toast.LENGTH_SHORT).show()
-                    findNavController().navigateUp()
-                }
-                .setNegativeButton("Cancel", null)
-                .show()
+        btnDelete.setOnClickListener {
+            currentListSummary?.let { list ->
+                AlertDialog.Builder(requireContext())
+                    .setTitle("Delete List")
+                    .setMessage("Are you sure you want to delete this list?")
+                    .setPositiveButton("Yes") { _, _ ->
+                        viewModel.deleteShoppingListAsync(list)
+                        progressBar.visibility = View.VISIBLE
+                    }
+                    .setNegativeButton("Cancel", null)
+                    .show()
+            }
         }
-    }
+
+        viewModel.deleteStatus.observe(viewLifecycleOwner) { isDeleted ->
+            if (isDeleted == true) {
+                progressBar.visibility = View.GONE
+                Toast.makeText(requireContext(), "List deleted successfully", Toast.LENGTH_SHORT).show()
+                findNavController().navigateUp()
+            }
+        }
+
 
 }
 
@@ -241,23 +254,4 @@ class UpdateCardFragment : Fragment() {
 
         return chip
     }
-
-    private suspend fun updateItemsAndFinish(listId: String, updatedList: ShoppingListSummary) {
-        viewModel.deleteAllItemsForListNow(listId)
-
-        val newItems = itemUtils.extractItemsFromChips(
-            chipGroup,
-            listId
-        )
-
-        viewModel.addItems(newItems)
-
-        viewModel.updateShoppingList(updatedList)
-        progressBar.visibility = View.GONE
-        Toast.makeText(requireContext(), "List updated successfully", Toast.LENGTH_SHORT).show()
-        findNavController().navigateUp()
-    }
-
-
-
 }
