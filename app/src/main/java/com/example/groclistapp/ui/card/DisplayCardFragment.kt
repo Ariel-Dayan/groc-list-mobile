@@ -10,18 +10,11 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import com.example.groclistapp.R
-import com.example.groclistapp.data.model.ShoppingList
-import com.example.groclistapp.data.repository.AppDatabase
-import com.example.groclistapp.data.repository.ShoppingItemDao
-import com.example.groclistapp.data.repository.ShoppingListDao
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
-import kotlinx.coroutines.launch
 import androidx.navigation.fragment.findNavController
 import com.example.groclistapp.data.image.ImageHandler
-import com.example.groclistapp.data.repository.ShoppingListRepository
 import com.example.groclistapp.utils.ItemUtils
 import com.example.groclistapp.viewmodel.ShoppingListViewModel
 

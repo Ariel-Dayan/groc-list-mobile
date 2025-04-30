@@ -258,17 +258,6 @@ class ShoppingListRepository(
     }
 
 
-    private fun saveItemToFirestore(item: ShoppingItem) {
-        val listRef = db.collection("shoppingLists").document(item.listId.toString())
-
-        listRef.update("items", FieldValue.arrayUnion(mapOf("name" to item.name, "amount" to item.amount)))
-            .addOnSuccessListener {
-                Log.d("Firestore", " פריט נוסף בהצלחה לרשימה `items` בפיירבייס")
-            }
-            .addOnFailureListener { e ->
-                Log.e("Firestore", " שגיאה בהוספת הפריט: ${e.message}")
-            }
-    }
 
     private fun updateItemInFirestore(item: ShoppingItem) {
         db.collection("shoppingLists")
@@ -293,26 +282,6 @@ class ShoppingListRepository(
             }
             .addOnFailureListener {
                 Log.e("Firestore", " שגיאה במחיקת הפריט: ${it.message}")
-            }
-    }
-
-    fun addItemToFirestore(item: ShoppingItem) {
-        val itemMap = hashMapOf(
-            "name" to item.name,
-            "amount" to item.amount
-        )
-
-        val itemRef = db.collection("shoppingLists")
-            .document(item.listId.toString())
-            .collection("items")
-            .document(item.id.toString())
-
-        itemRef.set(itemMap)
-            .addOnSuccessListener {
-                Log.d("Firestore", " פריט נשמר כתת-collection עם ID: ${item.id}")
-            }
-            .addOnFailureListener { e ->
-                Log.e("Firestore", " שגיאה בהוספת פריט ל־items: ${e.message}")
             }
     }
 

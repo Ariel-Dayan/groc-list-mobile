@@ -14,20 +14,16 @@ import android.widget.Toast
 import com.example.groclistapp.data.image.ImageHandler
 import androidx.appcompat.app.AlertDialog
 import com.example.groclistapp.R
-import com.example.groclistapp.data.repository.AppDatabase
-import com.example.groclistapp.data.repository.ShoppingListRepository
 import com.example.groclistapp.viewmodel.ShoppingListViewModel
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import com.google.android.material.textfield.TextInputLayout
 import androidx.navigation.fragment.findNavController
 import com.example.groclistapp.data.model.ShoppingListSummary
 import com.example.groclistapp.utils.DialogUtils
 import com.example.groclistapp.utils.InputUtils
 import com.example.groclistapp.utils.ItemUtils
-import kotlinx.coroutines.launch
 
 class UpdateCardFragment : Fragment() {
     private lateinit var viewModel: ShoppingListViewModel

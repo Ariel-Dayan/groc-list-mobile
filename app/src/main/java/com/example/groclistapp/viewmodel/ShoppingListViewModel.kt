@@ -7,12 +7,10 @@ import androidx.lifecycle.*
 import com.example.groclistapp.data.model.ShoppingListSummary
 import com.example.groclistapp.data.model.ShoppingItem
 import com.example.groclistapp.data.repository.ShoppingListRepository
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.delay
 
 
 class ShoppingListViewModel(
@@ -65,16 +63,7 @@ class ShoppingListViewModel(
         _addListStatus.value = null
     }
 
-    suspend fun addShoppingList(shoppingList: ShoppingListSummary): Boolean {
-        Log.d("ShoppingListViewModel", "addShoppingList called with list: ${shoppingList.name}")
-        return withContext(Dispatchers.IO) {
-            val isSaved = repository.insertAndGetId(shoppingList)
-            Log.d("ShoppingListViewModel", "addShoppingList isSaved: $isSaved")
-            isSaved
-        }
-    }
-
-    suspend fun addItems(items: List<ShoppingItem>) {
+     suspend fun addItems(items: List<ShoppingItem>) {
         withContext(Dispatchers.IO) {
             try {
                 repository.insertItems(items)
@@ -93,36 +82,8 @@ class ShoppingListViewModel(
         }
     }
 
-    fun deleteShoppingList(shoppingList: ShoppingListSummary) {
-        viewModelScope.launch {
-            repository.delete(shoppingList)
-        }
-    }
-
-    suspend fun getShoppingListById(listId: String): ShoppingListSummary? {
-        return repository.getShoppingListById(listId)
-    }
-
     fun getItemsForList(listId: String): LiveData<List<ShoppingItem>> {
         return repository.getItemsForList(listId)
-    }
-
-    fun updateItem(item: ShoppingItem) {
-        viewModelScope.launch {
-            repository.updateItem(item)
-        }
-    }
-
-    fun deleteItem(item: ShoppingItem) {
-        viewModelScope.launch {
-            repository.deleteItem(item)
-        }
-    }
-
-    fun deleteAllItemsForList(listId: String) {
-        viewModelScope.launch {
-            repository.deleteAllItemsForList(listId)
-        }
     }
 
     init {

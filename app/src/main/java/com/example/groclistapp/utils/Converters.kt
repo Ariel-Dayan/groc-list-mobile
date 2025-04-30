@@ -20,7 +20,6 @@ class Converters {
         return gson.fromJson(value, listType)
     }
 
-    // ממיר רשימה של ShoppingItem למחרוזת JSON ולהפך
     @TypeConverter
     fun fromShoppingItemList(items: List<ShoppingItem>?): String {
         return gson.toJson(items ?: emptyList<ShoppingItem>())

@@ -1,22 +1,16 @@
 package com.example.groclistapp.ui.profile
 
-import android.app.Activity
-import android.content.Intent
-import android.graphics.Bitmap
-import android.net.Uri
+
 import android.os.Bundle
-import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.groclistapp.databinding.FragmentUpdateProfileBinding
 import com.example.groclistapp.viewmodel.ProfileViewModel
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.storage.FirebaseStorage
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
