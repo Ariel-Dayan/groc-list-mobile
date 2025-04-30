@@ -94,10 +94,20 @@ class SharedCardsListFragment : Fragment() {
         }
 
         swipeRefreshLayout.setOnRefreshListener {
-            refreshData()
+            listUtils.refreshData(
+                cardsRecyclerView,
+                { shoppingLists -> adapter?.updateData(shoppingLists) },
+                viewModel.sharedLists.value,
+                swipeRefreshLayout
+            )
         }
 
-        refreshData()
+        listUtils.refreshData(
+            cardsRecyclerView,
+            { shoppingLists -> adapter?.updateData(shoppingLists) },
+            viewModel.sharedLists.value,
+            swipeRefreshLayout
+        )
 
         viewModel.sharedLists.observe(viewLifecycleOwner) { list ->
             listUtils.toggleNoCardListsMessage(noCardsMessageTextView, list)
@@ -140,19 +150,6 @@ class SharedCardsListFragment : Fragment() {
             } else {
                 android.widget.Toast.makeText(requireContext(), "Please enter a valid share code", android.widget.Toast.LENGTH_SHORT).show()
             }
-        }
-    }
-
-    private fun refreshData() {
-        val newData = viewModel.sharedLists.value
-
-        if (newData != null) {
-            adapter?.updateData(newData)
-            cardsRecyclerView?.post {
-                swipeRefreshLayout.isRefreshing = false
-            }
-        } else {
-            swipeRefreshLayout.isRefreshing = false
         }
     }
 }

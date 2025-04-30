@@ -75,11 +75,20 @@ class MyCardsListFragment : Fragment() {
         }
 
         swipeRefreshLayout.setOnRefreshListener {
-            refreshData()
+            listUtils.refreshData(
+                cardsRecyclerView,
+                { shoppingLists -> adapter.updateData(shoppingLists) },
+                viewModel.localShoppingLists.value,
+                swipeRefreshLayout
+            )
         }
 
-        refreshData()
-
+        listUtils.refreshData(
+            cardsRecyclerView,
+            { shoppingLists -> adapter.updateData(shoppingLists) },
+            viewModel.localShoppingLists.value,
+            swipeRefreshLayout
+        )
         return view
     }
 
@@ -126,21 +135,5 @@ class MyCardsListFragment : Fragment() {
         view.findViewById<View>(R.id.btnMyCardsListAddCard).setOnClickListener {
             findNavController().navigate(R.id.action_myCardsListFragment_to_addCardFragment)
         }
-    }
-
-    private fun refreshData() {
-        val newData = viewModel.localShoppingLists.value
-
-        if (newData != null) {
-            adapter.updateData(newData)
-
-            cardsRecyclerView.post {
-                swipeRefreshLayout.isRefreshing = false
-            }
-        } else {
-            swipeRefreshLayout.isRefreshing = false
-        }
-
-        swipeRefreshLayout.isRefreshing = false
     }
 }
