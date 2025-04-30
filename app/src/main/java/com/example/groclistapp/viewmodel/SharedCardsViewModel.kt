@@ -9,6 +9,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.groclistapp.data.model.ShoppingListSummary
 import com.example.groclistapp.data.repository.AppDatabase
+import com.example.groclistapp.data.repository.ShoppingListRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
@@ -20,8 +21,11 @@ class SharedCardsViewModel(application: Application) : AndroidViewModel(applicat
     private val userId = FirebaseAuth.getInstance().currentUser?.uid
 
     private val _sharedListIds = MutableLiveData<List<String>>()
-
     val sharedLists = MediatorLiveData<List<ShoppingListSummary>>()
+
+    private val _addSharedListStatus = MutableLiveData<Result<com.example.groclistapp.data.model.ShoppingList>>()
+    val addSharedListStatus: LiveData<Result<com.example.groclistapp.data.model.ShoppingList>> get() = _addSharedListStatus
+
 
     init {
         userId?.let { fetchSharedListIds(it) }
@@ -63,5 +67,22 @@ class SharedCardsViewModel(application: Application) : AndroidViewModel(applicat
         val updatedListIds = (_sharedListIds.value ?: emptyList()) + listId
         _sharedListIds.postValue(updatedListIds)
     }
+
+    fun addSharedListByCode(
+        shareCode: String,
+        repository: ShoppingListRepository
+    ) {
+        repository.addSharedListByCode(
+            shareCode = shareCode,
+            onSuccess = { list ->
+                _addSharedListStatus.postValue(Result.success(list))
+                addSharedListId(list.id)
+            },
+            onFailure = { e ->
+                _addSharedListStatus.postValue(Result.failure(e))
+            }
+        )
+    }
+
 
 }

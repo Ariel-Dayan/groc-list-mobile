@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.groclistapp.R
@@ -97,6 +98,19 @@ class SharedCardsListFragment : Fragment() {
             }
         }
 
+        viewModel.addSharedListStatus.observe(viewLifecycleOwner) { result ->
+            result
+                .onSuccess { list ->
+                    Toast.makeText(requireContext(), "Shared list loaded: ${list.name}", Toast.LENGTH_SHORT).show()
+                }
+                .onFailure { e ->
+                    Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                    Log.e("SharedCardsListFragment", "Error adding shared list", e)
+                }
+
+            cardsProgressBar.visibility = View.GONE
+        }
+
         addButton.setOnClickListener {
             val shareCode = shareCodeInput?.text?.toString()?.trim()
 
@@ -106,27 +120,9 @@ class SharedCardsListFragment : Fragment() {
                     shoppingItemDao
                 )
                 cardsProgressBar.visibility = View.VISIBLE
-                repository.addSharedListByCode(
-                    shareCode = shareCode,
-                    onSuccess = { list ->
-                        requireActivity().runOnUiThread {
-                            android.widget.Toast.makeText(
-                                requireContext(),
-                                "Shared list loaded: ${list.name}",
-                                android.widget.Toast.LENGTH_SHORT
-                            ).show()
-                            viewModel.addSharedListId(list.id)
-                            cardsProgressBar.visibility = View.GONE
-                        }
-                    },
-                    onFailure = { e ->
-                        requireActivity().runOnUiThread {
-                            cardsProgressBar.visibility = View.GONE
-                            android.widget.Toast.makeText(requireContext(), "Error: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
-                            Log.d("SharedCardsListFragment", "Error adding shared list: ${e.message}")
-                        }
-                    }
-                )
+                viewModel.addSharedListByCode(shareCode, repository)
+                cardsProgressBar.visibility = View.VISIBLE
+
             } else {
                 android.widget.Toast.makeText(requireContext(), "Please enter a valid share code", android.widget.Toast.LENGTH_SHORT).show()
             }
