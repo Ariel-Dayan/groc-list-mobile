@@ -15,7 +15,7 @@ class CardViewHolder(itemView: View, private val listener: OnItemClickListener?)
     : RecyclerView.ViewHolder(itemView) {
     private val titleTextView: TextView = itemView.findViewById(R.id.tvCardsListRowTitle)
     private val descriptionTextView: TextView = itemView.findViewById(R.id.tvCardsListRowDescription)
-    val creatorTextView: TextView = itemView.findViewById(R.id.tvCardsListRowCreatedByHint)
+    val creatorTextView: TextView = itemView.findViewById(R.id.tvCardsListRowCreatedByName)
     private val shareCodeTextView: TextView = itemView.findViewById(R.id.tvCardsListRowSharedCodeValue)
     private val ivTop: ImageView = itemView.findViewById(R.id.ivCardsListRowTop)
     private val shareCodeIcon: ImageView = itemView.findViewById(R.id.ivShareIcon)
@@ -29,6 +29,10 @@ class CardViewHolder(itemView: View, private val listener: OnItemClickListener?)
 
         shareCodeTextView.text = shoppingList.shareCode.ifEmpty {
             "No share code"
+        }
+
+        creatorTextView.text = shoppingList.creatorName?.ifEmpty {
+            "Unknown"
         }
 
         itemView.setOnClickListener {
