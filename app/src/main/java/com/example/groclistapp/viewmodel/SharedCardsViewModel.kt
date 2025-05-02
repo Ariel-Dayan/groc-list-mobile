@@ -35,7 +35,24 @@ class SharedCardsViewModel(application: Application) : AndroidViewModel(applicat
         sharedLists.addSource(_sharedListIds) { ids ->
             val filteredLists = shoppingListDao.getAllShoppingListsFiltered(ids ?: emptyList())
             sharedLists.addSource(filteredLists) { lists ->
-                sharedLists.value = lists
+                viewModelScope.launch {
+                    repository.getCreatorNames(lists.map { it.creatorId }) { creatorNames ->
+                        val updatedLists = lists.map { list ->
+                            ShoppingListSummary(
+                                id = list.id,
+                                name = list.name,
+                                creatorId = list.creatorId,
+                                creatorName = creatorNames[list.creatorId] ?: "Unknown",
+                                shareCode = list.shareCode,
+                                description = list.description,
+                                imageUrl = list.imageUrl,
+                            )
+                        }
+
+                        sharedLists.postValue(updatedLists)
+                    }
+                }
+//                sharedLists.value = lists
             }
         }
     }

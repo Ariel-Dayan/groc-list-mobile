@@ -19,7 +19,6 @@ import com.example.groclistapp.viewmodel.SharedCardsViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.example.groclistapp.data.model.ShoppingListSummary
 import com.example.groclistapp.data.repository.ShoppingItemDao
 import com.example.groclistapp.data.repository.ShoppingListDao
 import com.example.groclistapp.data.repository.ShoppingListRepository
@@ -83,8 +82,6 @@ class SharedCardsListFragment : Fragment() {
 
         adapter = CardsRecyclerAdapter(
             mutableListOf(),
-            shoppingListDao,
-            shoppingItemDao,
             object : OnItemClickListener {
                 override fun onItemClick(listId: String) {
                     val bundle = Bundle().apply {
@@ -117,11 +114,7 @@ class SharedCardsListFragment : Fragment() {
             )
         }
 
-        listUtils.refreshData(
-            cardsRecyclerView,
-            { fetchSharedListsFromFirebase() },
-            swipeRefreshLayout
-        )
+        fetchSharedListsFromFirebase()
 
         viewModel.sharedLists.observe(viewLifecycleOwner) { list ->
             listUtils.toggleNoCardListsMessage(noCardsMessageTextView, list)

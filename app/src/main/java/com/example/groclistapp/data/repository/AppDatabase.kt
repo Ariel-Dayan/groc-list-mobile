@@ -2,16 +2,13 @@ package com.example.groclistapp.data.repository
 
 import android.content.Context
 import androidx.room.*
-import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.groclistapp.data.model.ShoppingList
 import com.example.groclistapp.data.model.ShoppingItem
-import com.example.groclistapp.data.model.ShoppingListSummary
 
 @Database(
     entities = [ShoppingList::class, ShoppingItem::class],
-    views = [ShoppingListSummary::class],
-    version = 1,
+    views = [],
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

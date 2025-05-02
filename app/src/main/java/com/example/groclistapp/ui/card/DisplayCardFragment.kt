@@ -1,6 +1,7 @@
 package com.example.groclistapp.ui.card
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -21,6 +22,7 @@ import com.google.android.material.chip.ChipGroup
 import kotlinx.coroutines.launch
 import androidx.navigation.fragment.findNavController
 import com.example.groclistapp.data.image.ImageHandler
+import com.example.groclistapp.data.model.ShoppingListWithItems
 import com.example.groclistapp.data.repository.ShoppingListRepository
 import com.example.groclistapp.utils.ItemUtils
 import com.example.groclistapp.viewmodel.ShoppingListViewModel
@@ -38,7 +40,8 @@ class DisplayCardFragment : Fragment() {
     private lateinit var cardTitle: TextView
     private lateinit var cardDescription: TextView
     private lateinit var imageView: ImageView
-    private lateinit var deleteButton: View
+    private lateinit var removeButton: View
+    private var listWithItems: ShoppingListWithItems? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -72,7 +75,7 @@ class DisplayCardFragment : Fragment() {
         cardDescription = view.findViewById(R.id.tvDisplayCardDescription)
         imageView = view.findViewById(R.id.ivDisplayCardTop)
         progressBar = view.findViewById(R.id.pbDisplayCardSpinner)
-        deleteButton = view.findViewById(R.id.btnDisplayCardRemove)
+        removeButton = view.findViewById(R.id.btnDisplayCardRemove)
 
         shoppingListDao = AppDatabase.getDatabase(requireContext()).shoppingListDao()
         shoppingItemDao = AppDatabase.getDatabase(requireContext()).shoppingItemDao()
@@ -93,30 +96,28 @@ class DisplayCardFragment : Fragment() {
 
         lifecycleScope.launch {
             progressBar.visibility = View.VISIBLE
-            val list = shoppingListDao.getListById(listId)
-            val items = shoppingItemDao.getItemsForListNow(listId)
+            listWithItems = shoppingListDao.getListById(listId)
 
-            list?.let { cardList ->
-                cardTitle.text = cardList.name
-                cardDescription.text = cardList.description
-                cardList.imageUrl?.let {
+            listWithItems?.let { cardList ->
+                cardTitle.text = cardList.shoppingList.name
+                cardDescription.text = cardList.shoppingList.description
+                cardList.shoppingList.imageUrl?.let {
                     imageHandler.loadImage(it, R.drawable.shopping_card_placeholder)
                 }
-            }
 
-            chipGroup.removeAllViews()
-            for (item in items) {
-                chipGroup.addView(createChip(item.name, item.amount.toString()))
+                chipGroup.removeAllViews()
+
+                for (item in cardList.items) {
+                    chipGroup.addView(createChip(item.name, item.amount.toString()))
+                }
+                progressBar.visibility = View.GONE
             }
-            progressBar.visibility = View.GONE
         }
 
-        deleteButton.setOnClickListener {
-            progressBar.visibility = View.VISIBLE
+        removeButton.setOnClickListener {
             lifecycleScope.launch {
-                shoppingItemDao.deleteItemsByListId(listId)
+                val list = listWithItems?.shoppingList
 
-                val list = shoppingListDao.getListById(listId)
                 if (list != null) {
                     val shoppingList = ShoppingList(
                         id = list.id,
@@ -126,15 +127,25 @@ class DisplayCardFragment : Fragment() {
                         shareCode = list.shareCode,
                         imageUrl = list.imageUrl
                     )
+                    shoppingItemDao.deleteItemsByListId(listId)
                     shoppingListDao.deleteShoppingList(shoppingList)
-                    viewModel.removeSharedListReference(listId)
 
-                }
+                    progressBar.visibility = View.VISIBLE
+                    viewModel.removeSharedListReference(listId,
+                        onSuccess = {
+                            Log.d("DisplayCardFragment", "List removed successfully")
+                            progressBar.visibility = View.GONE
+                            Toast.makeText(requireContext(), "List removed", Toast.LENGTH_SHORT).show()
+                            findNavController().popBackStack()
+                        },
+                        onFailure = { e ->
+                            Log.e("DisplayCardFragment", "Error removing list: ${e.message}")
+                            progressBar.visibility = View.GONE
 
-                requireActivity().runOnUiThread {
-                    progressBar.visibility = View.GONE
-                    Toast.makeText(requireContext(), "List deleted", Toast.LENGTH_SHORT).show()
-                    findNavController().popBackStack()
+                        }
+                    )
+                } else {
+                    Log.w("DisplayCardFragment", "List with ID $listId not found")
                 }
             }
         }

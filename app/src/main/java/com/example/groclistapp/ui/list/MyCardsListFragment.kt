@@ -64,7 +64,7 @@ class MyCardsListFragment : Fragment() {
             ShoppingListViewModel.Factory(requireActivity().application, repository)
         )[ShoppingListViewModel::class.java]
 
-        setupRecyclerView(view, shoppingListDao, shoppingItemDao)
+        setupRecyclerView(view)
         observeShoppingLists()
         setupAddButton(view)
         setJoke(jokeTextView, jokeProgressBar)
@@ -98,12 +98,10 @@ class MyCardsListFragment : Fragment() {
         fetchUserListsFromFirebase()
     }
 
-    private fun setupRecyclerView(view: View, shoppingListDao: ShoppingListDao, shoppingItemDao: ShoppingItemDao) {
+    private fun setupRecyclerView(view: View) {
         cardsRecyclerView = view.findViewById(R.id.rvMyCardsList)
         adapter = CardsRecyclerAdapter(
             mutableListOf(),
-            shoppingListDao,
-            shoppingItemDao,
             object : OnItemClickListener {
                 override fun onItemClick(listId: String) {
                     val bundle = Bundle().apply { putString("listId", listId) }

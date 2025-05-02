@@ -25,10 +25,4 @@ interface ShoppingItemDao {
 
     @Query("DELETE FROM shopping_items WHERE listId = :listId")
     suspend fun deleteItemsByListId(listId: String)
-
-    @Query("SELECT * FROM shopping_items WHERE listId = :listId ORDER BY name ASC")
-    fun getItemsForList(listId: String): LiveData<List<ShoppingItem>>
-
-    @Query("SELECT * FROM shopping_items WHERE listId = :listId ORDER BY name ASC")
-    suspend fun getItemsForListNow(listId: String): List<ShoppingItem>
 }

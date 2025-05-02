@@ -2,9 +2,8 @@ package com.example.groclistapp.data.repository
 
 import androidx.room.*
 import com.example.groclistapp.data.model.ShoppingList
-import com.example.groclistapp.data.model.ShoppingItem
-import com.example.groclistapp.data.model.ShoppingListSummary
 import androidx.lifecycle.LiveData
+import com.example.groclistapp.data.model.ShoppingListWithItems
 
 @Dao
 interface ShoppingListDao {
@@ -25,38 +24,24 @@ interface ShoppingListDao {
            shopping_lists.creatorId, shopping_lists.shareCode, shopping_lists.imageUrl
     FROM shopping_lists WHERE creatorId = :userId ORDER BY name ASC
     """)
-    fun getAllShoppingLists(userId: String?): LiveData<List<ShoppingListSummary>>
+    fun getAllShoppingLists(userId: String?): LiveData<List<ShoppingList>>
 
+    @Transaction
     @Query("""
     SELECT shopping_lists.id, shopping_lists.name, shopping_lists.description, 
            shopping_lists.creatorId, shopping_lists.shareCode, shopping_lists.imageUrl
     FROM shopping_lists WHERE shopping_lists.id = :listId LIMIT 1
 """)
-    suspend fun getListById(listId: String): ShoppingListSummary?
+    suspend fun getListById(listId: String): ShoppingListWithItems?
 
-
-    @Query("""
-    SELECT shopping_lists.id, shopping_lists.name, shopping_lists.description, 
-           shopping_lists.creatorId, shopping_lists.shareCode, shopping_lists.imageUrl
-    FROM shopping_lists ORDER BY name ASC
-""")
-    suspend fun getAllShoppingListsNow(): List<ShoppingListSummary>
-
-    @Query("""
-    SELECT shopping_lists.id, shopping_lists.name, shopping_lists.description, 
-           shopping_lists.creatorId, shopping_lists.shareCode, shopping_lists.imageUrl
-    FROM shopping_lists WHERE shopping_lists.shareCode = :shareCode LIMIT 1
-""")
-    suspend fun getListByShareCode(shareCode: String): ShoppingListSummary?
-
+    @Transaction
     @Query("""
     SELECT sl.id, sl.name, sl.description, sl.creatorId, sl.shareCode, sl.imageUrl
     FROM shopping_lists sl
     WHERE sl.id IN (:ids)
     ORDER BY name ASC
 """)
-    fun getAllShoppingListsFiltered(ids: List<String>): LiveData<List<ShoppingListSummary>>
-
+    fun getAllShoppingListsFiltered(ids: List<String>): LiveData<List<ShoppingList>>
 }
 
 
