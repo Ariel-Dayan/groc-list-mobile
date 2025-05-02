@@ -24,7 +24,9 @@ import com.example.groclistapp.data.network.jokes.JokesClient.setJoke
 import com.example.groclistapp.utils.ListUtils
 import com.example.groclistapp.utils.MessageUtils
 import android.widget.ProgressBar
+import androidx.lifecycle.viewModelScope
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import kotlinx.coroutines.launch
 
 class MyCardsListFragment : Fragment() {
     private lateinit var cardsRecyclerView: RecyclerView
@@ -62,7 +64,7 @@ class MyCardsListFragment : Fragment() {
             ShoppingListViewModel.Factory(requireActivity().application, repository)
         )[ShoppingListViewModel::class.java]
 
-        setupRecyclerView(view, shoppingListDao, shoppingItemDao)
+        setupRecyclerView(view)
         observeShoppingLists()
         setupAddButton(view)
         setJoke(jokeTextView, jokeProgressBar)
@@ -77,32 +79,29 @@ class MyCardsListFragment : Fragment() {
         swipeRefreshLayout.setOnRefreshListener {
             listUtils.refreshData(
                 cardsRecyclerView,
-                { shoppingLists -> adapter.updateData(shoppingLists) },
-                viewModel.localShoppingLists.value,
+                { fetchUserListsFromFirebase() },
                 swipeRefreshLayout
             )
         }
 
         listUtils.refreshData(
             cardsRecyclerView,
-            { shoppingLists -> adapter.updateData(shoppingLists) },
-            viewModel.localShoppingLists.value,
+            { fetchUserListsFromFirebase() },
             swipeRefreshLayout
         )
+
         return view
     }
 
     override fun onResume() {
         super.onResume()
-        viewModel.loadShoppingLists()
+        fetchUserListsFromFirebase()
     }
 
-    private fun setupRecyclerView(view: View, shoppingListDao: ShoppingListDao, shoppingItemDao: ShoppingItemDao) {
+    private fun setupRecyclerView(view: View) {
         cardsRecyclerView = view.findViewById(R.id.rvMyCardsList)
         adapter = CardsRecyclerAdapter(
             mutableListOf(),
-            shoppingListDao,
-            shoppingItemDao,
             object : OnItemClickListener {
                 override fun onItemClick(listId: String) {
                     val bundle = Bundle().apply { putString("listId", listId) }
@@ -134,6 +133,16 @@ class MyCardsListFragment : Fragment() {
     private fun setupAddButton(view: View) {
         view.findViewById<View>(R.id.btnMyCardsListAddCard).setOnClickListener {
             findNavController().navigate(R.id.action_myCardsListFragment_to_addCardFragment)
+        }
+    }
+
+    private fun fetchUserListsFromFirebase() {
+        viewModel.viewModelScope.launch {
+            try {
+                viewModel.syncUserDataFromFirebase()
+            } catch (e: Exception) {
+                Log.e("MyCardsListFragment", "Error syncing user lists: ${e.message}")
+            }
         }
     }
 }

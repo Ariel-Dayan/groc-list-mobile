@@ -18,7 +18,7 @@ import androidx.navigation.fragment.findNavController
 import com.example.groclistapp.R
 import com.example.groclistapp.data.image.ImageHandler
 import com.example.groclistapp.data.model.ShoppingItem
-import com.example.groclistapp.data.model.ShoppingListSummary
+import com.example.groclistapp.data.model.ShoppingList
 import com.example.groclistapp.data.repository.AppDatabase
 import com.example.groclistapp.data.repository.ShoppingListRepository
 import com.example.groclistapp.utils.DialogUtils
@@ -243,12 +243,11 @@ class AddCardFragment : Fragment() {
         shareCode: String
     ) {
         lifecycleScope.launch(Dispatchers.IO) {
-            val newList = ShoppingListSummary(
+            val newList = ShoppingList(
                 id = UUID.randomUUID().toString(),
                 name = listName,
                 description = listDescription,
                 imageUrl = imageUrlString,
-                itemsCount = 0,
                 creatorId = creatorId,
                 shareCode = shareCode
             )

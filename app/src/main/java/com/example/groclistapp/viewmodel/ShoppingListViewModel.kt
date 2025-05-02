@@ -6,6 +6,8 @@ import android.util.Log
 import androidx.lifecycle.*
 import com.example.groclistapp.data.model.ShoppingListSummary
 import com.example.groclistapp.data.model.ShoppingItem
+import com.example.groclistapp.data.model.ShoppingList
+import com.example.groclistapp.data.model.ShoppingListWithItems
 import com.example.groclistapp.data.repository.ShoppingListRepository
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.Dispatchers
@@ -24,8 +26,8 @@ class ShoppingListViewModel(
     private val _addListStatus = MutableLiveData<Boolean?>()
     val addListStatus: LiveData<Boolean?> get() = _addListStatus
 
-    private val _currentListSummary = MutableLiveData<ShoppingListSummary?>()
-    val currentListSummary: LiveData<ShoppingListSummary?> get() = _currentListSummary
+    private val _currentList = MutableLiveData<ShoppingListWithItems?>()
+    val currentList: LiveData<ShoppingListWithItems?> get() = _currentList
 
     private val _deleteStatus = MutableLiveData<Boolean>()
     val deleteStatus: LiveData<Boolean> get() = _deleteStatus
@@ -36,25 +38,24 @@ class ShoppingListViewModel(
 
             if (list != null) {
                 repository.deleteAllItemsForList(listId)
-                repository.delete(list)
-                removeSharedListReference(listId)
-                _deleteStatus.postValue(true)
+                repository.delete(list.shoppingList)
+                removeSharedListReference(listId,
+                    onSuccess = {
+                        _deleteStatus.postValue(true)
+                    },
+                    onFailure = { exception ->
+                        _deleteStatus.postValue(false)
+                    }
+                )
             } else {
                 _deleteStatus.postValue(false)
             }
         }
     }
 
-    fun deleteShoppingListAsync(shoppingList: ShoppingListSummary) {
-        viewModelScope.launch {
-            repository.delete(shoppingList)
-            _deleteStatus.postValue(true)
-        }
-    }
-
     fun loadShoppingListById(listId: String) {
         viewModelScope.launch {
-            _currentListSummary.value = repository.getShoppingListById(listId)
+            _currentList.value = repository.getShoppingListById(listId)
         }
     }
 
@@ -75,35 +76,55 @@ class ShoppingListViewModel(
     }
 
 
-    fun updateShoppingList(shoppingList: ShoppingListSummary) {
+    fun updateShoppingList(shoppingList: ShoppingList) {
         viewModelScope.launch {
             repository.update(shoppingList)
         }
     }
 
-    fun getItemsForList(listId: String): LiveData<List<ShoppingItem>> {
-        return repository.getItemsForList(listId)
+//    fun getItemsForList(listId: String): LiveData<List<ShoppingItem>> {
+//        return repository.getItemsForList(listId)
+//    }
+    
+    fun deleteShoppingList(shoppingList: ShoppingList) {
+        viewModelScope.launch {
+            repository.delete(shoppingList)
+            _deleteStatus.postValue(true)
+        }
     }
+
+    suspend fun getShoppingListById(listId: String): ShoppingListWithItems? {
+        return repository.getShoppingListById(listId)
+    }
+
 
     init {
         _shoppingLists.addSource(repository.allShoppingLists) { lists ->
             lists?.let {
-                val updatedLists = lists.map { list ->
-                    ShoppingListSummary(
-                        id = list.id,
-                        name = list.name,
-                        description = list.description ?: "",
-                        imageUrl = list.imageUrl,
-                        itemsCount = list.itemsCount,
-                        creatorId = list.creatorId,
-                        shareCode = list.shareCode
-                    )
-                }
-                _shoppingLists.postValue(updatedLists)
+                postFullShoppingLists(lists)
             }
         }
     }
 
+    private fun postFullShoppingLists(lists: List<ShoppingList>) {
+        viewModelScope.launch {
+            repository.getCreatorNames(lists.map { it.creatorId }) { creatorNames ->
+                val updatedLists = lists.map { list ->
+                    ShoppingListSummary(
+                        id = list.id,
+                        name = list.name,
+                        creatorId = list.creatorId,
+                        shareCode = list.shareCode,
+                        description = list.description,
+                        imageUrl = list.imageUrl,
+                        creatorName = creatorNames[list.creatorId] ?: "Unknown"
+                    )
+                }
+
+                _shoppingLists.postValue(updatedLists)
+            }
+        }
+    }
 
     fun loadShoppingLists() {
         viewModelScope.launch {
@@ -112,12 +133,12 @@ class ShoppingListViewModel(
                 Log.d("ShoppingListViewModel", "No lists found in local database")
             } else {
                 Log.d("ShoppingListViewModel", "Found ${lists.size} lists in local database.")
-                _shoppingLists.postValue(lists ?: emptyList())
+                postFullShoppingLists(lists)
             }
         }
     }
 
-    fun uploadImageAndUpdateList(imageUri: Uri, list: ShoppingListSummary, onComplete: (ShoppingListSummary) -> Unit) {
+    fun uploadImageAndUpdateList(imageUri: Uri, list: ShoppingList, onComplete: (ShoppingList) -> Unit) {
         val storageRef = FirebaseStorage.getInstance().reference
         val fileName = "shopping_list_images/${System.currentTimeMillis()}.jpg"
         val imageRef = storageRef.child(fileName)
@@ -149,16 +170,12 @@ class ShoppingListViewModel(
         repository.loadAllUserDataFromFirebase()
     }
 
-    suspend fun syncSharedListsFromFirebase() {
-        repository.loadAllSharedListsFromFirebase()
-    }
-
-    fun removeSharedListReference(listId: String) {
-        repository.removeListIdFromSharedListArray(listId)
+    fun removeSharedListReference(listId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+        repository.removeListIdFromSharedListArray(listId, onSuccess, onFailure)
     }
 
     fun addShoppingListWithItems(
-        list: ShoppingListSummary,
+        list: ShoppingList,
         items: List<ShoppingItem>
     ) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -182,7 +199,7 @@ class ShoppingListViewModel(
 
     fun updateListWithItems(
         listId: String,
-        updatedList: ShoppingListSummary,
+        updatedList: ShoppingList,
         items: List<ShoppingItem>,
         onComplete: () -> Unit
     ) {

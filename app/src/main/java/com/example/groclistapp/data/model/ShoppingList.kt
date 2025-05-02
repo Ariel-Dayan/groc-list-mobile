@@ -14,13 +14,12 @@ data class ShoppingList(
     var id: String = UUID.randomUUID().toString(),
     var name: String = "",
     var description: String = "",
-    var items: List<ShoppingItem> = emptyList(),
     val imageUrl: String? = null,
     var creatorId: String = "",
     var shareCode: String = ""
 ) {
     @Ignore
-    constructor() : this(UUID.randomUUID().toString(), "","", emptyList(), null, "", "")
+    constructor() : this(UUID.randomUUID().toString(), "","", null, "", "")
 }
 
 

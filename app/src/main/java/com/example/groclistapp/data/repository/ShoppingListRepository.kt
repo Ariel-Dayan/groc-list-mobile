@@ -4,7 +4,7 @@ import androidx.lifecycle.LiveData
 import android.util.Log
 import com.example.groclistapp.data.model.ShoppingList
 import com.example.groclistapp.data.model.ShoppingItem
-import com.example.groclistapp.data.model.ShoppingListSummary
+import com.example.groclistapp.data.model.ShoppingListWithItems
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
@@ -25,7 +25,7 @@ class ShoppingListRepository(
 ) {
     private val db = FirebaseFirestore.getInstance()
 
-    val allShoppingLists: LiveData<List<ShoppingListSummary>> =
+    val allShoppingLists: LiveData<List<ShoppingList>> =
         shoppingListDao.getAllShoppingLists(FirebaseAuth.getInstance().uid)
 
 
@@ -36,7 +36,7 @@ class ShoppingListRepository(
         return combined.toString(36).uppercase()
     }
 
-    suspend fun insertAndGetId(shoppingList: ShoppingListSummary): Boolean {
+    suspend fun insertAndGetId(shoppingList: ShoppingList): Boolean {
         val user = FirebaseAuth.getInstance().currentUser
 
         if (user == null) {
@@ -48,7 +48,6 @@ class ShoppingListRepository(
             id = shoppingList.id,
             name = shoppingList.name,
             description = shoppingList.description,
-            items = emptyList(),
             imageUrl = shoppingList.imageUrl,
             creatorId = user.uid,
             shareCode = generateShareCode()
@@ -67,7 +66,7 @@ class ShoppingListRepository(
         }
     }
 
-    suspend fun update(shoppingList: ShoppingListSummary) {
+    suspend fun update(shoppingList: ShoppingList) {
         shoppingListDao.updateShoppingList(
             ShoppingList(
                 id = shoppingList.id,
@@ -82,14 +81,14 @@ class ShoppingListRepository(
     }
 
 
-    suspend fun delete(shoppingList: ShoppingListSummary) {
+    suspend fun delete(shoppingList: ShoppingList) {
         shoppingListDao.deleteShoppingList(
             ShoppingList(id = shoppingList.id, name = shoppingList.name)
         )
         deleteShoppingListFromFirestore(shoppingList.id)
     }
 
-    suspend fun getShoppingListById(listId: String): ShoppingListSummary? {
+    suspend fun getShoppingListById(listId: String): ShoppingListWithItems? {
         val localList = shoppingListDao.getListById(listId)
         if (localList != null) return localList
 
@@ -102,9 +101,17 @@ class ShoppingListRepository(
             if (documentSnapshot.exists()) {
                 val firebaseList = documentSnapshot.toObject(ShoppingList::class.java)
                 if (firebaseList != null) {
+                    val itemsSnapshot = db.collection("shoppingLists")
+                        .document(listId)
+                        .collection("items")
+                        .get()
+                        .await()
 
-                    shoppingListDao.insertShoppingList(firebaseList)
-                    shoppingListDao.getListById(listId)
+                    val items = itemsSnapshot.toObjects(ShoppingItem::class.java)
+                    ShoppingListWithItems(
+                        items = items,
+                        shoppingList = firebaseList
+                    )
                 } else null
             } else null
         } catch (e: Exception) {
@@ -112,31 +119,53 @@ class ShoppingListRepository(
             null
         }
     }
+    
+//    fun getItemsForList(listId: String): LiveData<List<ShoppingItem>> {
+//        return shoppingItemDao.getItemsForList(listId)
+//    }
 
+    fun getCreatorNames(
+        creatorIds: List<String>,
+        callback: (Map<String, String>) -> Unit
+    ) {
+        val uniqueIds = creatorIds.filter { it.isNotBlank() }.distinct()
 
-    fun getItemsForList(listId: String): LiveData<List<ShoppingItem>> {
-        return shoppingItemDao.getItemsForList(listId)
-    }
-
-    fun getCreatorName(creatorId: String, callback: (String) -> Unit) {
-        if (creatorId.isBlank()) {
-            callback("Unknown")
+        if (uniqueIds.isEmpty()) {
+            callback(emptyMap())
             return
         }
 
-        val userRef = db.collection("users").document(creatorId)
-        userRef.get()
-            .addOnSuccessListener { document ->
-                if (document.exists()) {
-                    val name = document.getString("fullName") ?: "Unknown"
-                    callback(name)
-                } else {
-                    callback("Unknown")
+        val batches = uniqueIds.chunked(10)
+        val resultMap = mutableMapOf<String, String>()
+        var completedBatches = 0
+
+        for (batch in batches) {
+            db.collection("users")
+                .whereIn(FieldPath.documentId(), batch)
+                .get()
+                .addOnSuccessListener { snapshot ->
+                    for (doc in snapshot.documents) {
+                        val id = doc.id
+                        val name = doc.getString("fullName") ?: "Unknown"
+                        resultMap[id] = name
+                    }
+
+                    completedBatches++
+                    if (completedBatches == batches.size) {
+                        callback(resultMap)
+                    }
                 }
-            }
-            .addOnFailureListener {
-                callback("Unknown")
-            }
+                .addOnFailureListener {
+                    for (id in batch) {
+                        resultMap[id] = "Unknown"
+                    }
+                    completedBatches++
+
+                    if (completedBatches == batches.size) {
+                        callback(resultMap)
+                    }
+                }
+        }
     }
 
     suspend fun insertItems(items: List<ShoppingItem>) {
@@ -158,7 +187,7 @@ class ShoppingListRepository(
         }
     }
 
-    fun updateShoppingListInFirestore(shoppingList: ShoppingListSummary) {
+    fun updateShoppingListInFirestore(shoppingList: ShoppingList) {
         val data = mapOf(
             "name" to shoppingList.name,
             "description" to shoppingList.description,
@@ -451,13 +480,16 @@ class ShoppingListRepository(
         }
     }
 
-    fun removeListIdFromSharedListArray(listId: String) {
+    fun removeListIdFromSharedListArray(listId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
         val user = FirebaseAuth.getInstance().currentUser ?: return
         val userDoc = db.collection("users").document(user.uid)
 
         userDoc.update("sharedListIds", FieldValue.arrayRemove(listId))
+            .addOnSuccessListener {
+                onSuccess()
+            }
             .addOnFailureListener { e ->
-                Log.e("SharedList", "Failed to remove listId from sharedListIds: ${e.message}")
+                onFailure(e)
             }
     }
 }

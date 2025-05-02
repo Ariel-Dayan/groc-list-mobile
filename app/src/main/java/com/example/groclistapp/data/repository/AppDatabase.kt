@@ -4,12 +4,11 @@ import android.content.Context
 import androidx.room.*
 import com.example.groclistapp.data.model.ShoppingList
 import com.example.groclistapp.data.model.ShoppingItem
-import com.example.groclistapp.data.model.ShoppingListSummary
 
 @Database(
     entities = [ShoppingList::class, ShoppingItem::class],
-    views = [ShoppingListSummary::class],
-    version = 2,
+    views = [],
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

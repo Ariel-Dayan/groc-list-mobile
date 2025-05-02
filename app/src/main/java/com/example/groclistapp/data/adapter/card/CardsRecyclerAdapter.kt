@@ -5,14 +5,9 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.groclistapp.R
 import com.example.groclistapp.data.model.ShoppingListSummary
-import com.example.groclistapp.data.repository.ShoppingItemDao
-import com.example.groclistapp.data.repository.ShoppingListDao
-import com.example.groclistapp.data.repository.ShoppingListRepository
 
 class CardsRecyclerAdapter(
     private var shoppingLists: MutableList<ShoppingListSummary>,
-    private val shoppingListDao: ShoppingListDao,
-    private val shoppingItemDao: ShoppingItemDao,
     var listener: OnItemClickListener
 ) : RecyclerView.Adapter<CardViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CardViewHolder {
@@ -23,12 +18,6 @@ class CardsRecyclerAdapter(
 
     override fun onBindViewHolder(holder: CardViewHolder, position: Int) {
         val shoppingList = shoppingLists[position]
-
-        val repository = ShoppingListRepository(shoppingListDao, shoppingItemDao)
-
-        repository.getCreatorName(shoppingList.creatorId) { creatorName ->
-            holder.creatorTextView.text = "Created by: $creatorName"
-        }
 
         holder.bind(shoppingList)
     }

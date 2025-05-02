@@ -20,7 +20,7 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.launch
 import android.widget.ProgressBar
-
+import com.example.groclistapp.viewmodel.SharedCardsViewModel
 
 class LoginFragment : Fragment(R.layout.fragment_login) {
 
@@ -31,10 +31,11 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
     private lateinit var loginButton: MaterialButton
     private lateinit var signupNavigationButton: MaterialButton
     private lateinit var progressBar: ProgressBar
+    private lateinit var sharedCardsViewModel: SharedCardsViewModel
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        sharedCardsViewModel = ViewModelProvider(this)[SharedCardsViewModel::class.java]
         shoppingListViewModel = ViewModelProvider(
             this,
             ShoppingListViewModel.Factory(
@@ -82,7 +83,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
             if (isSuccess) {
                 lifecycleScope.launch {
                     shoppingListViewModel.syncUserDataFromFirebase()
-                    shoppingListViewModel.syncSharedListsFromFirebase()
+                    sharedCardsViewModel.syncSharedListsFromFirebase()
                     val navOptions = NavOptions.Builder()
                         .setPopUpTo(R.id.loginFragment, true)
                         .build()

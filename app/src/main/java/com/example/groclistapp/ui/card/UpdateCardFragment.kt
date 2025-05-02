@@ -18,16 +18,19 @@ import com.example.groclistapp.viewmodel.ShoppingListViewModel
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.textfield.TextInputLayout
 import androidx.navigation.fragment.findNavController
-import com.example.groclistapp.data.model.ShoppingListSummary
+import com.example.groclistapp.data.model.ShoppingList
+import com.example.groclistapp.data.model.ShoppingListWithItems
 import com.example.groclistapp.utils.DialogUtils
 import com.example.groclistapp.utils.InputUtils
 import com.example.groclistapp.utils.ItemUtils
+import kotlinx.coroutines.launch
 
 class UpdateCardFragment : Fragment() {
     private lateinit var viewModel: ShoppingListViewModel
-    private var currentListSummary: ShoppingListSummary? = null
+    private var currentList: ShoppingListWithItems? = null
     private lateinit var imageHandler: ImageHandler
     private lateinit var chipGroup: ChipGroup
     private lateinit var progressBar: ProgressBar
@@ -44,8 +47,6 @@ class UpdateCardFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        var isLoadItems = false
-        var isLoadBasicInfo = false
 
         viewModel = ViewModelProvider(
             this,
@@ -73,9 +74,9 @@ class UpdateCardFragment : Fragment() {
 
         progressBar.visibility = View.VISIBLE
 
-        viewModel.currentListSummary.observe(viewLifecycleOwner) { list ->
-            list?.let {
-                currentListSummary = it
+        viewModel.currentList.observe(viewLifecycleOwner) { list ->
+            list?.shoppingList?.let {
+//                currentList = it
                 tilTitle.editText?.setText(it.name)
                 tilDescription.editText?.setText(it.description)
                 if (!it.imageUrl.isNullOrEmpty()) {
@@ -83,28 +84,31 @@ class UpdateCardFragment : Fragment() {
                 }
             }
 
-            if (isLoadItems && !isLoadBasicInfo) {
-                progressBar.visibility = View.GONE
-            }
-            isLoadBasicInfo = true
+            progressBar.visibility = View.GONE
         }
 
 
         chipGroup = view.findViewById(R.id.cgUpdateCardItemsContainer)
         chipGroup.layoutDirection = View.LAYOUT_DIRECTION_LOCALE
-        viewModel.getItemsForList(listId).observe(viewLifecycleOwner) { items ->
-            if (items.isNotEmpty()) {
-                chipGroup.removeAllViews()
-                items.forEach { item ->
-                    val chip = createChip(item.name, item.amount.toString(), chipGroup, listId)
-                    chipGroup.addView(chip)
-                }
-            }
 
-            if (isLoadBasicInfo && !isLoadItems) {
+        lifecycleScope.launch {
+            currentList = viewModel.getShoppingListById(listId)
+            currentList?.let {
+                tilTitle.editText?.setText(it.shoppingList.name)
+                tilDescription.editText?.setText(it.shoppingList.description)
+                if (!it.shoppingList.imageUrl.isNullOrEmpty()) {
+                    imageHandler.loadImage(it.shoppingList.imageUrl, R.drawable.shopping_card_default)
+                }
+                if (it.items.isNotEmpty()) {
+                    chipGroup.removeAllViews()
+                    it.items.forEach { item ->
+                        val chip = createChip(item.name, item.amount.toString(), chipGroup, listId)
+                        chipGroup.addView(chip)
+                    }
+                }
+
                 progressBar.visibility = View.GONE
             }
-            isLoadItems = true
         }
 
         val etName = tilName.editText
@@ -161,7 +165,7 @@ class UpdateCardFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            currentListSummary?.let { oldList ->
+            currentList?.shoppingList?.let { oldList ->
                 progressBar.visibility = View.VISIBLE
 
                 val selectedImageUri = imageHandler.selectedImageUri
@@ -192,18 +196,18 @@ class UpdateCardFragment : Fragment() {
                 }
 
             } ?: run {
-                Log.e("UpdateTest", "currentListSummary היה null")
+                Log.e("UpdateTest", "currentList היה null")
             }
         }
 
     val btnDelete = view.findViewById<Button>(R.id.btnUpdateCardDelete)
         btnDelete.setOnClickListener {
-            currentListSummary?.let { list ->
+            currentList?.let { list ->
                 AlertDialog.Builder(requireContext())
                     .setTitle("Delete List")
                     .setMessage("Are you sure you want to delete this list?")
                     .setPositiveButton("Yes") { _, _ ->
-                        viewModel.deleteShoppingListAsync(list)
+                        viewModel.deleteShoppingList(list.shoppingList)
                         progressBar.visibility = View.VISIBLE
                     }
                     .setNegativeButton("Cancel", null)

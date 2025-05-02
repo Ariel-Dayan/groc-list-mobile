@@ -16,8 +16,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 class SharedCardsViewModel(application: Application) : AndroidViewModel(application) {
-
     private val shoppingListDao = AppDatabase.getDatabase(application).shoppingListDao()
+    private val shoppingItemDao = AppDatabase.getDatabase(application).shoppingItemDao()
+    private val repository = ShoppingListRepository(
+        shoppingListDao,
+        shoppingItemDao
+    )
+
     private val userId = FirebaseAuth.getInstance().currentUser?.uid
 
     private val _sharedListIds = MutableLiveData<List<String>>()
@@ -26,14 +31,29 @@ class SharedCardsViewModel(application: Application) : AndroidViewModel(applicat
     private val _addSharedListStatus = MutableLiveData<Result<com.example.groclistapp.data.model.ShoppingList>>()
     val addSharedListStatus: LiveData<Result<com.example.groclistapp.data.model.ShoppingList>> get() = _addSharedListStatus
 
-
     init {
         userId?.let { fetchSharedListIds(it) }
 
         sharedLists.addSource(_sharedListIds) { ids ->
             val filteredLists = shoppingListDao.getAllShoppingListsFiltered(ids ?: emptyList())
             sharedLists.addSource(filteredLists) { lists ->
-                sharedLists.value = lists
+                viewModelScope.launch {
+                    repository.getCreatorNames(lists.map { it.creatorId }) { creatorNames ->
+                        val updatedLists = lists.map { list ->
+                            ShoppingListSummary(
+                                id = list.id,
+                                name = list.name,
+                                creatorId = list.creatorId,
+                                creatorName = creatorNames[list.creatorId] ?: "Unknown",
+                                shareCode = list.shareCode,
+                                description = list.description,
+                                imageUrl = list.imageUrl,
+                            )
+                        }
+
+                        sharedLists.postValue(updatedLists)
+                    }
+                }
             }
         }
     }
@@ -82,5 +102,9 @@ class SharedCardsViewModel(application: Application) : AndroidViewModel(applicat
                 _addSharedListStatus.postValue(Result.failure(e))
             }
         )
+    }
+
+    suspend fun syncSharedListsFromFirebase() {
+        repository.loadAllSharedListsFromFirebase()
     }
 }
