@@ -128,14 +128,14 @@ class SharedCardsListFragment : Fragment() {
         viewModel.addSharedListStatus.observe(viewLifecycleOwner) { result ->
             result
                 .onSuccess { list ->
+                    cardsProgressBar.visibility = View.GONE
                     Toast.makeText(requireContext(), "Shared list loaded: ${list.name}", Toast.LENGTH_SHORT).show()
                 }
                 .onFailure { e ->
+                    cardsProgressBar.visibility = View.GONE
                     Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_LONG).show()
                     Log.e("SharedCardsListFragment", "Error adding shared list", e)
                 }
-
-            cardsProgressBar.visibility = View.GONE
         }
 
         addButton.setOnClickListener {
@@ -144,10 +144,8 @@ class SharedCardsListFragment : Fragment() {
             if (!shareCode.isNullOrEmpty()) {
                 cardsProgressBar.visibility = View.VISIBLE
                 viewModel.addSharedListByCode(shareCode, repository)
-                cardsProgressBar.visibility = View.VISIBLE
-
             } else {
-                android.widget.Toast.makeText(requireContext(), "Please enter a valid share code", android.widget.Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Please enter a valid share code", android.widget.Toast.LENGTH_SHORT).show()
             }
         }
     }
