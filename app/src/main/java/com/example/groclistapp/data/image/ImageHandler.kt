@@ -61,7 +61,6 @@ class ImageHandler(
     }
 
     fun loadImage(url: String, fallback: Int) {
-        Log.d("ImageHandler", "Loading image URL: $url")
         Glide.with(imageView.context)
             .load(url)
             .placeholder(fallback)

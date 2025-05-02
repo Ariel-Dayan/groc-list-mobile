@@ -31,12 +31,10 @@ class CardViewHolder(itemView: View, private val listener: OnItemClickListener?)
         }
 
         itemView.setOnClickListener {
-            Log.d("CardViewHolder", "Item clicked: ${shoppingList.id}")
             listener?.onItemClick(shoppingList.id)
         }
 
         shareCodeIcon.setOnClickListener {
-            Log.d("CardViewHolder", "Share icon clicked for list: ${shoppingList.id}")
             listener?.onShareCodeClick(shoppingList.shareCode, itemView)
         }
 

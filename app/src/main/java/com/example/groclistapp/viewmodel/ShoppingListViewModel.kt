@@ -67,7 +67,6 @@ class ShoppingListViewModel(
         withContext(Dispatchers.IO) {
             try {
                 repository.insertItems(items)
-                Log.d("ShoppingListViewModel", "addItems: ${items.size} items added successfully")
             } catch (e: Exception) {
                 Log.e("ShoppingListViewModel", "addItems: Error adding items: ${e.message}")
                 throw e
@@ -101,7 +100,6 @@ class ShoppingListViewModel(
                     )
                 }
                 _shoppingLists.postValue(updatedLists)
-                Log.d("ShoppingListViewModel", " רשימות נטענו עם תיאורים: ${updatedLists.map { it.description }}")
             }
         }
     }
@@ -133,17 +131,12 @@ class ShoppingListViewModel(
                 imageRef.downloadUrl
             }
             .addOnSuccessListener { uri ->
-                Log.d("Upload", "Received new image URL: ${uri.toString()}")
-
                 val updatedList = list.copy(imageUrl = uri.toString())
-                Log.d("Upload", "Updated list object: $updatedList")
-
                 updateShoppingList(updatedList)
-
                 onComplete(updatedList)
             }
             .addOnFailureListener {
-                Log.e("Upload", " שגיאה בהעלאת תמונה: ${it.message}")
+                Log.e("Upload", "Error uploading image: ${it.message}")
             }
     }
 

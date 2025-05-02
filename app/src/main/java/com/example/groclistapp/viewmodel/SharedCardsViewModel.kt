@@ -83,6 +83,4 @@ class SharedCardsViewModel(application: Application) : AndroidViewModel(applicat
             }
         )
     }
-
-
 }

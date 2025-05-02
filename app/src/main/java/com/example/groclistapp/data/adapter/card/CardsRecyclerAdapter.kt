@@ -1,6 +1,5 @@
 package com.example.groclistapp.data.adapter.card
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -26,7 +25,6 @@ class CardsRecyclerAdapter(
         val shoppingList = shoppingLists[position]
 
         val repository = ShoppingListRepository(shoppingListDao, shoppingItemDao)
-        Log.d("AdapterDebug", "Binding list: ${shoppingList.name}, creatorId=${shoppingList.creatorId}")
 
         repository.getCreatorName(shoppingList.creatorId) { creatorName ->
             holder.creatorTextView.text = "Created by: $creatorName"

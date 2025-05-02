@@ -119,7 +119,6 @@ class UpdateCardFragment : Fragment() {
 
             if (nameError != null) {
                 Toast.makeText(requireContext(), "Invalid item name: $nameError", Toast.LENGTH_SHORT).show()
-                Log.d("UpdateCardFragment", "Invalid item input: name='$name', nameError='$nameError'")
                 return@setOnClickListener
             }
 
@@ -127,7 +126,6 @@ class UpdateCardFragment : Fragment() {
 
             if (amountError != null) {
                 Toast.makeText(requireContext(), "Invalid item amount: $amountError", Toast.LENGTH_SHORT).show()
-                Log.d("UpdateCardFragment", "Invalid item input: name='$amount', amountError='$amountError'")
                 return@setOnClickListener
             }
 
@@ -173,7 +171,7 @@ class UpdateCardFragment : Fragment() {
                     description = updatedDescription?: "",
                     creatorId = oldList.creatorId
                 )
-                Log.d("UpdateFragment", "Before image upload, updatedList.imageUrl: ${updatedList.imageUrl}")
+
                 val newItems = itemUtils.extractItemsFromChips(chipGroup, listId)
                 progressBar.visibility = View.VISIBLE
 

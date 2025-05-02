@@ -125,18 +125,15 @@ class AddCardFragment : Fragment() {
 
         itemUtils.validateName(name, pendingItems.map { it.name })?.let {
             Toast.makeText(requireContext(), "Invalid item name: $it", Toast.LENGTH_SHORT).show()
-            Log.d("AddCardFragment", "Invalid item input: name='$name', error='$it'")
             return
         }
 
         val (amount, amountError) = itemUtils.validateAmount(amountStr)
         amountError?.let {
             Toast.makeText(requireContext(), "Invalid item amount: $it", Toast.LENGTH_SHORT).show()
-            Log.d("AddCardFragment", "Invalid item input: amount='$amountStr', error='$it'")
             return
         }
 
-        Log.d("AddCardFragment", "Adding new pending item: name=$name, amount=$amount")
         val chip = createChip(name, amountStr)
         chipGroup.addView(chip)
         pendingItems.add(ShoppingItem(id = UUID.randomUUID().toString(), name = name, amount = amount ?: 0, listId = "-1"))
@@ -167,7 +164,6 @@ class AddCardFragment : Fragment() {
         val shareCode = repository.generateShareCode()
 
         val uri = imageHandler.selectedImageUri ?: imageHandler.getBitmapPhoto()?.let { saveBitmapToFile(it) }
-        Log.d("AddCardFragment", "Final image URI to upload: $uri")
 
         if (uri != null) {
             uploadImageToFirebaseStorage(
@@ -213,12 +209,10 @@ class AddCardFragment : Fragment() {
         val storageRef = FirebaseStorage.getInstance().reference
         val imageRef = storageRef.child("shopping_list_images/${System.currentTimeMillis()}.jpg")
 
-        Log.d("AddCardFragment", "Uploading image from URI: $uri")
         imageRef.putFile(uri)
             .addOnSuccessListener {
                 imageRef.downloadUrl.addOnSuccessListener { downloadUrl ->
-                    Log.d("AddCardFragment", "Uploaded image URL: ${downloadUrl}")
-                    onSuccess(downloadUrl.toString())
+                     onSuccess(downloadUrl.toString())
                 }.addOnFailureListener { e ->
                     Log.e("AddCardFragment", "Error getting download URL", e)
                     onFailure(e)
@@ -234,7 +228,6 @@ class AddCardFragment : Fragment() {
         return try {
             val file = File(requireContext().cacheDir, "captured_image_${System.currentTimeMillis()}.jpg")
             file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it) }
-            Log.d("AddCardFragment", "Bitmap saved: ${file.absolutePath}, size: ${file.length()} bytes")
             FileProvider.getUriForFile(requireContext(), "${requireContext().packageName}.provider", file)
         } catch (e: Exception) {
             Log.e("AddCardFragment", "Error saving bitmap", e)
