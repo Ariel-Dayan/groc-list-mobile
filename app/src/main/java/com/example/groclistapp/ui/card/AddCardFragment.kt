@@ -212,7 +212,7 @@ class AddCardFragment : Fragment() {
         imageRef.putFile(uri)
             .addOnSuccessListener {
                 imageRef.downloadUrl.addOnSuccessListener { downloadUrl ->
-                     onSuccess(downloadUrl.toString())
+                    onSuccess(downloadUrl.toString())
                 }.addOnFailureListener { e ->
                     Log.e("AddCardFragment", "Error getting download URL", e)
                     onFailure(e)

@@ -71,8 +71,7 @@ class MyCardsListFragment : Fragment() {
 
         setFragmentResultListener("shoppingListUpdated") { _, bundle ->
             if (bundle.getBoolean("updated", false)) {
-                Log.d("MyCardsListFragment", " רשימה חדשה נוספה, טוען מחדש נתונים...")
-                viewModel.loadShoppingLists()
+               viewModel.loadShoppingLists()
             }
         }
 

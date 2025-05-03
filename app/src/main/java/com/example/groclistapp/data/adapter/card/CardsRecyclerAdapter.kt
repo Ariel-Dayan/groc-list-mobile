@@ -8,7 +8,7 @@ import com.example.groclistapp.data.model.ShoppingListSummary
 
 class CardsRecyclerAdapter(
     private var shoppingLists: MutableList<ShoppingListSummary>,
-    var listener: OnItemClickListener
+    private var listener: OnItemClickListener
 ) : RecyclerView.Adapter<CardViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CardViewHolder {
         val itemView = LayoutInflater.from(parent.context)

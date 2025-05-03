@@ -125,18 +125,18 @@ class UpdateProfileFragment : Fragment() {
 
         binding.pbUpdateProfileSpinner.visibility = View.VISIBLE
         binding.btnUpdateProfileUpdate.isEnabled = false
-        binding.btnUpdateProfileUpdate.text = "Updating..."
+        binding.btnUpdateProfileUpdate.text = getString(R.string.updating_text)
 
         viewModel.updateProfile(
             fullName = fullName.ifEmpty { null },
             oldPassword = oldPassword.ifEmpty { null },
             newPassword = newPassword.ifEmpty { null },
             imageUri = if (imageHandler.selectedImageUri != null) imageHandler.selectedImageUri else null
-        ) { success, message ->
+        ) { _, message ->
             Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
             binding.pbUpdateProfileSpinner.visibility = View.GONE
             binding.btnUpdateProfileUpdate.isEnabled = true
-            binding.btnUpdateProfileUpdate.text = "Update"
+            binding.btnUpdateProfileUpdate.text = getString(R.string.update_button_text)
         }
     }
 

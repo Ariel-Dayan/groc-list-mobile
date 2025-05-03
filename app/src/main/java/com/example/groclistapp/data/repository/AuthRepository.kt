@@ -13,7 +13,7 @@ class AuthRepository {
     private val db = FirebaseFirestore.getInstance()
     private val storage = FirebaseStorage.getInstance()
 
-    fun registerUserWithProfileImage(
+    private fun registerUserWithProfileImage(
         fullName: String,
         email: String,
         imageUri: Uri?,

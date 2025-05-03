@@ -5,7 +5,6 @@ import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavOptions
@@ -79,7 +78,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
             authViewModel.login(email, password)
         }
 
-        authViewModel.loginStatus.observe(viewLifecycleOwner, Observer { isSuccess ->
+        authViewModel.loginStatus.observe(viewLifecycleOwner) { isSuccess ->
             if (isSuccess) {
                 lifecycleScope.launch {
                     shoppingListViewModel.syncUserDataFromFirebase()
@@ -99,7 +98,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
 
                 Toast.makeText(requireContext(), "Login failed. Please check your details.", Toast.LENGTH_SHORT).show()
             }
-        })
+        }
 
         signupNavigationButton.setOnClickListener {
             findNavController().navigate(R.id.action_loginFragment_to_signupFragment)

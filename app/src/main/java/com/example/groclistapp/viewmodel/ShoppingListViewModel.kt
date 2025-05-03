@@ -64,7 +64,7 @@ class ShoppingListViewModel(
         _addListStatus.value = null
     }
 
-     suspend fun addItems(items: List<ShoppingItem>) {
+    suspend fun addItems(items: List<ShoppingItem>) {
         withContext(Dispatchers.IO) {
             try {
                 repository.insertItems(items)
@@ -132,7 +132,6 @@ class ShoppingListViewModel(
             if (lists == null) {
                 Log.d("ShoppingListViewModel", "No lists found in local database")
             } else {
-                Log.d("ShoppingListViewModel", "Found ${lists.size} lists in local database.")
                 postFullShoppingLists(lists)
             }
         }
@@ -157,7 +156,7 @@ class ShoppingListViewModel(
                 onComplete(updatedList)
             }
             .addOnFailureListener {
-                Log.e("Upload", "Error uploading image: ${it.message}")
+                Log.e("Upload", " error in upload picture ${it.message}")
             }
     }
 
@@ -238,4 +237,3 @@ class ShoppingListViewModel(
         }
     }
 }
-

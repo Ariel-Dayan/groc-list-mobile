@@ -1,6 +1,5 @@
 package com.example.groclistapp.data.adapter.card
 
-import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
