@@ -192,11 +192,12 @@ class UpdateCardFragment : Fragment() {
                 }
 
             } ?: run {
-                Log.e("UpdateTest", "currentListSummary היה null")
+                Log.e("UpdateTest", "currentListSummary was null")
             }
         }
 
     val btnDelete = view.findViewById<Button>(R.id.btnUpdateCardDelete)
+
         btnDelete.setOnClickListener {
             currentListSummary?.let { list ->
                 AlertDialog.Builder(requireContext())

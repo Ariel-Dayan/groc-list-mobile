@@ -428,6 +428,8 @@ class ShoppingListRepository(
                return
             }
 
+
+
             val chunks = sharedListIds.chunked(10)
             for (chunk in chunks) {
                 val listsSnapshot = db.collection("shoppingLists")
@@ -443,7 +445,7 @@ class ShoppingListRepository(
                     val items = itemsSnapshot.toObjects(ShoppingItem::class.java)
                     items.forEach { it.listId = list.id }
                     shoppingItemDao.upsertItems(items)
-                }
+               }
             }
 
         } catch (e: Exception) {
@@ -453,13 +455,15 @@ class ShoppingListRepository(
 
     fun removeListIdFromSharedListArray(listId: String) {
         val user = FirebaseAuth.getInstance().currentUser ?: return
-        val userDoc = db.collection("users").document(user.uid)
 
+        val userDoc = db.collection("users").document(user.uid)
         userDoc.update("sharedListIds", FieldValue.arrayRemove(listId))
-            .addOnFailureListener { e ->
+             .addOnFailureListener { e ->
                 Log.e("SharedList", "Failed to remove listId from sharedListIds: ${e.message}")
             }
     }
+
+
 }
 
 

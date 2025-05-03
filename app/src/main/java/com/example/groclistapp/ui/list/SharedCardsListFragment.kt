@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.groclistapp.R
@@ -41,7 +42,7 @@ class SharedCardsListFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_shared_cards_list, container, false)
-        viewModel = androidx.lifecycle.ViewModelProvider(this).get(SharedCardsViewModel::class.java)
+        viewModel = ViewModelProvider(requireActivity())[SharedCardsViewModel::class.java]
         setupView(view)
         return view
     }
@@ -143,7 +144,7 @@ class SharedCardsListFragment : Fragment() {
                 cardsProgressBar.visibility = View.VISIBLE
 
             } else {
-                android.widget.Toast.makeText(requireContext(), "Please enter a valid share code", android.widget.Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Please enter a valid share code", Toast.LENGTH_SHORT).show()
             }
         }
     }

@@ -3,7 +3,6 @@ package com.example.groclistapp.data.image
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
-import android.util.Log
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.Toast

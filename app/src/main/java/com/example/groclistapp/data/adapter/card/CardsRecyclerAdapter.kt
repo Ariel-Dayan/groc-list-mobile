@@ -13,7 +13,8 @@ class CardsRecyclerAdapter(
     private var shoppingLists: MutableList<ShoppingListSummary>,
     private val shoppingListDao: ShoppingListDao,
     private val shoppingItemDao: ShoppingItemDao,
-    var listener: OnItemClickListener
+    private var listener: OnItemClickListener
+
 ) : RecyclerView.Adapter<CardViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CardViewHolder {
         val itemView = LayoutInflater.from(parent.context)
@@ -27,9 +28,9 @@ class CardsRecyclerAdapter(
         val repository = ShoppingListRepository(shoppingListDao, shoppingItemDao)
 
         repository.getCreatorName(shoppingList.creatorId) { creatorName ->
-            holder.creatorTextView.text = "Created by: $creatorName"
+            holder.creatorTextView.text =
+                holder.itemView.context.getString(R.string.created_by, creatorName)
         }
-
         holder.bind(shoppingList)
     }
 
