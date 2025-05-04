@@ -19,8 +19,7 @@ import com.example.groclistapp.R
 import com.example.groclistapp.data.image.ImageHandler
 import com.example.groclistapp.data.model.ShoppingItem
 import com.example.groclistapp.data.model.ShoppingList
-import com.example.groclistapp.data.repository.AppDatabase
-import com.example.groclistapp.data.repository.ShoppingListRepository
+import com.example.groclistapp.utils.CardUtils
 import com.example.groclistapp.utils.DialogUtils
 import com.example.groclistapp.utils.InputUtils
 import com.example.groclistapp.utils.ItemUtils
@@ -38,7 +37,6 @@ import java.util.*
 class AddCardFragment : Fragment() {
     private var listId: String = "-1"
     private lateinit var viewModel: ShoppingListViewModel
-    private lateinit var repository: ShoppingListRepository
     private lateinit var imageHandler: ImageHandler
     private lateinit var progressBar: ProgressBar
     private val pendingItems = mutableListOf<ShoppingItem>()
@@ -51,6 +49,8 @@ class AddCardFragment : Fragment() {
     private lateinit var tilItemName: TextInputLayout
     private lateinit var tilItemAmount: TextInputLayout
     private lateinit var chipGroup: ChipGroup
+
+    private val cardUtils = CardUtils.instance
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -100,15 +100,8 @@ class AddCardFragment : Fragment() {
         val btnCamera = view.findViewById<ImageButton>(R.id.ibAddCardTakePhoto)
         imageHandler = ImageHandler(ivImagePreview, this, btnGallery, btnCamera)
 
-        val shoppingListDao = AppDatabase.getDatabase(requireContext()).shoppingListDao()
-        val shoppingItemDao = AppDatabase.getDatabase(requireContext()).shoppingItemDao()
-        repository = ShoppingListRepository(shoppingListDao, shoppingItemDao)
-
-        viewModel = ViewModelProvider(
-            this,
-            ShoppingListViewModel.Factory(requireActivity().application, repository)
-        )[ShoppingListViewModel::class.java]
-
+        viewModel = ViewModelProvider(this)[ShoppingListViewModel::class.java]
+        
         inputUtils.addCleanErrorMessageOnInputListener(tilListName)
         inputUtils.addCleanErrorMessageOnInputListener(tilListDescription)
     }
@@ -161,7 +154,7 @@ class AddCardFragment : Fragment() {
 
         val user = FirebaseAuth.getInstance().currentUser
         val creatorId = user?.uid.orEmpty()
-        val shareCode = repository.generateShareCode()
+        val shareCode = cardUtils.generateShareCode()
 
         val uri = imageHandler.selectedImageUri ?: imageHandler.getBitmapPhoto()?.let { saveBitmapToFile(it) }
 
