@@ -1,7 +1,6 @@
 package com.example.groclistapp.ui.card
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,9 +15,6 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import androidx.navigation.fragment.findNavController
 import com.example.groclistapp.data.image.ImageHandler
-import com.example.groclistapp.data.model.ShoppingList
-import com.example.groclistapp.data.model.ShoppingListWithItems
-import com.example.groclistapp.data.repository.ShoppingListRepository
 import com.example.groclistapp.utils.ItemUtils
 import com.example.groclistapp.viewmodel.ShoppingListViewModel
 
@@ -34,17 +30,10 @@ class DisplayCardFragment : Fragment() {
     private lateinit var cardDescription: TextView
     private lateinit var imageView: ImageView
     private lateinit var removeButton: View
-//    private var listWithItems: ShoppingListWithItems? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewModel = ViewModelProvider(
-            this,
-            ShoppingListViewModel.Factory(
-                requireActivity().application,
-            )
-        )[ShoppingListViewModel::class.java]
-
+        viewModel = ViewModelProvider(this).get(ShoppingListViewModel::class.java)
         listId = arguments?.getString("listId") ?: "-1"
     }
 
@@ -101,24 +90,9 @@ class DisplayCardFragment : Fragment() {
                 progressBar.visibility = View.GONE
             }
         }
-//        viewModel.getItemsForList(listId).observe(viewLifecycleOwner) { items ->
-//            chipGroup.removeAllViews()
-//            for (item in items) {
-//                chipGroup.addView(createChip(item.name, item.amount.toString()))
-//            }
-//        }
-    
 
         removeButton.setOnClickListener {
             progressBar.visibility = View.VISIBLE
-//            val shoppingList = ShoppingList(
-//                id = list.id,
-//                name = list.name,
-//                description = list.description,
-//                creatorId = list.creatorId,
-//                shareCode = list.shareCode,
-//                imageUrl = list.imageUrl
-//            )
             viewModel.deleteSharedListById(listId)
         }
 

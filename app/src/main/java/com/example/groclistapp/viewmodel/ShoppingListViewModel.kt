@@ -8,6 +8,7 @@ import com.example.groclistapp.data.model.ShoppingListSummary
 import com.example.groclistapp.data.model.ShoppingItem
 import com.example.groclistapp.data.model.ShoppingList
 import com.example.groclistapp.data.model.ShoppingListWithItems
+import com.example.groclistapp.data.repository.AppDatabase
 import com.example.groclistapp.data.repository.ShoppingListRepository
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.Dispatchers
@@ -17,8 +18,13 @@ import kotlinx.coroutines.withContext
 
 class ShoppingListViewModel(
     application: Application,
-    private val repository: ShoppingListRepository
 ) : AndroidViewModel(application) {
+    private val shoppingListDao = AppDatabase.getDatabase(application).shoppingListDao()
+    private val shoppingItemDao = AppDatabase.getDatabase(application).shoppingItemDao()
+    private val repository = ShoppingListRepository(
+        shoppingListDao,
+        shoppingItemDao
+    )
 
     private val _shoppingLists = MediatorLiveData<List<ShoppingListSummary>>()
     val localShoppingLists: LiveData<List<ShoppingListSummary>> get() = _shoppingLists
@@ -81,10 +87,6 @@ class ShoppingListViewModel(
             repository.update(shoppingList)
         }
     }
-
-//    fun getItemsForList(listId: String): LiveData<List<ShoppingItem>> {
-//        return repository.getItemsForList(listId)
-//    }
     
     fun deleteShoppingList(shoppingList: ShoppingList) {
         viewModelScope.launch {
@@ -179,7 +181,7 @@ class ShoppingListViewModel(
         items: List<ShoppingItem>
     ) {
         viewModelScope.launch(Dispatchers.IO) {
-            val isSaved = repository.insertAndGetId(list)
+            val isSaved = repository.insertList(list)
             if (!isSaved) {
                 _addListStatus.postValue(false)
                 return@launch
@@ -208,33 +210,6 @@ class ShoppingListViewModel(
             addItems(items)
             updateShoppingList(updatedList)
             onComplete()
-        }
-    }
-
-
-    class Factory(
-        private val application: Application,
-        private val repository: ShoppingListRepository
-    ) : ViewModelProvider.Factory {
-
-        constructor(application: Application) : this(
-            application,
-            com.example.groclistapp.data.repository.ShoppingListRepository(
-                com.example.groclistapp.data.repository.AppDatabase
-                    .getDatabase(application.applicationContext)
-                    .shoppingListDao(),
-                com.example.groclistapp.data.repository.AppDatabase
-                    .getDatabase(application.applicationContext)
-                    .shoppingItemDao()
-            )
-        )
-
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(ShoppingListViewModel::class.java)) {
-                @Suppress("UNCHECKED_CAST")
-                return ShoppingListViewModel(application, repository) as T
-            }
-            throw IllegalArgumentException("Unknown ViewModel class")
         }
     }
 }

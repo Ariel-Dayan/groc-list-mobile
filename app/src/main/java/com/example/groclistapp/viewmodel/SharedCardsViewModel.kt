@@ -89,8 +89,7 @@ class SharedCardsViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     fun addSharedListByCode(
-        shareCode: String,
-        repository: ShoppingListRepository
+        shareCode: String
     ) {
         repository.addSharedListByCode(
             shareCode = shareCode,
