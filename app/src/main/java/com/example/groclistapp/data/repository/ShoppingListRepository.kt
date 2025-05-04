@@ -74,11 +74,11 @@ class ShoppingListRepository(
     }
 
 
-    suspend fun delete(shoppingList: ShoppingList) {
+    suspend fun delete(shoppingList: ShoppingList, onSuccess: (() -> Unit)?, onFailure: ((Exception) -> Unit)?) {
         shoppingListDao.deleteShoppingList(
             ShoppingList(id = shoppingList.id, name = shoppingList.name)
         )
-        deleteShoppingListFromFirestore(shoppingList.id)
+        deleteShoppingListFromFirestore(shoppingList.id, onSuccess, onFailure)
     }
 
     suspend fun getShoppingListById(listId: String): ShoppingListWithItems? {
@@ -112,10 +112,6 @@ class ShoppingListRepository(
             null
         }
     }
-    
-//    fun getItemsForList(listId: String): LiveData<List<ShoppingItem>> {
-//        return shoppingItemDao.getItemsForList(listId)
-//    }
 
     fun getCreatorNames(
         creatorIds: List<String>,
@@ -199,7 +195,7 @@ class ShoppingListRepository(
 
 
 
-    fun deleteShoppingListFromFirestore(listId: String) {
+    fun deleteShoppingListFromFirestore(listId: String, onSuccess: (() -> Unit)?, onFailure: ((Exception) -> Unit)?) {
         val listRef = db.collection("shoppingLists").document(listId)
         val itemsRef = listRef.collection("items")
 
@@ -208,7 +204,7 @@ class ShoppingListRepository(
                 val documents = querySnapshot.documents
 
                 if (documents.isEmpty()) {
-                    deleteListDocument(listRef)
+                    deleteListDocument(listRef, onSuccess, onFailure)
                     return@addOnSuccessListener
                 }
 
@@ -219,24 +215,39 @@ class ShoppingListRepository(
                             deletedCount++
 
                             if (deletedCount == documents.size) {
-                                deleteListDocument(listRef)
+                                deleteListDocument(listRef, onSuccess, onFailure)
                             }
                         }
                         .addOnFailureListener { e ->
+                            if (onFailure != null) {
+                                onFailure(e)
+                            }
+
                             Log.e("Firestore", "Error deleting item: ${e.message}", e)
                         }
                 }
             }
             .addOnFailureListener { e ->
+                if (onFailure != null) {
+                    onFailure(e)
+                }
                 Log.e("Firestore", "Error retrieving items for deletion: ${e.message}", e)
             }
     }
 
 
-    private fun deleteListDocument(listRef: DocumentReference) {
+    private fun deleteListDocument(listRef: DocumentReference, onSuccess: (() -> Unit)?, onFailure: ((Exception) -> Unit)?) {
         listRef.delete()
             .addOnFailureListener {
                 Log.e("Firestore", "Error deleting list: ${it.message}", it)
+                if (onFailure != null) {
+                    onFailure(it)
+                }
+            }
+            .addOnSuccessListener {
+                if (onSuccess != null) {
+                    onSuccess()
+                }
             }
     }
 

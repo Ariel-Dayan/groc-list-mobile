@@ -45,7 +45,8 @@ class ShoppingListViewModel(
 
             if (list != null) {
                 repository.deleteAllItemsForList(listId)
-                repository.delete(list.shoppingList)
+                repository.delete(list.shoppingList, null, null)
+
                 removeSharedListReference(listId,
                     onSuccess = {
                         _deleteStatus.postValue(true)
@@ -91,8 +92,12 @@ class ShoppingListViewModel(
     
     fun deleteShoppingList(shoppingList: ShoppingList) {
         viewModelScope.launch {
-            repository.delete(shoppingList)
-            _deleteStatus.postValue(true)
+            repository.delete(shoppingList, onSuccess = {
+                _deleteStatus.postValue(true)
+            }, onFailure = { exception ->
+                Log.e("ShoppingListViewModel", "Error deleting list: ${exception.message}")
+                _deleteStatus.postValue(false)
+            })
         }
     }
 

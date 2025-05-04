@@ -191,24 +191,24 @@ class UpdateCardFragment : Fragment() {
                 }
 
             } ?: run {
-                Log.e("UpdateTest", "currentList היה null")
+                Log.e("UpdateTest", "currentList was null")
             }
         }
 
     val btnDelete = view.findViewById<Button>(R.id.btnUpdateCardDelete)
-        btnDelete.setOnClickListener {
-            currentList?.let { list ->
-                AlertDialog.Builder(requireContext())
-                    .setTitle("Delete List")
-                    .setMessage("Are you sure you want to delete this list?")
-                    .setPositiveButton("Yes") { _, _ ->
-                        viewModel.deleteShoppingList(list.shoppingList)
-                        progressBar.visibility = View.VISIBLE
-                    }
-                    .setNegativeButton("Cancel", null)
-                    .show()
-            }
+    btnDelete.setOnClickListener {
+        currentList?.let { list ->
+            AlertDialog.Builder(requireContext())
+                .setTitle("Delete List")
+                .setMessage("Are you sure you want to delete this list?")
+                .setPositiveButton("Yes") { _, _ ->
+                    viewModel.deleteShoppingList(list.shoppingList)
+                    progressBar.visibility = View.VISIBLE
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
         }
+    }
 
         viewModel.deleteStatus.observe(viewLifecycleOwner) { isDeleted ->
             if (isDeleted == true) {
