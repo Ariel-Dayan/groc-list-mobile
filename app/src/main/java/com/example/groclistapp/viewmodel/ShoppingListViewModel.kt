@@ -4,11 +4,11 @@ import android.app.Application
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.*
+import com.example.groclistapp.data.database.DBImplementation
 import com.example.groclistapp.data.model.ShoppingListSummary
-import com.example.groclistapp.data.model.ShoppingItem
-import com.example.groclistapp.data.model.ShoppingList
-import com.example.groclistapp.data.model.ShoppingListWithItems
-import com.example.groclistapp.data.repository.AppDatabase
+import com.example.groclistapp.data.database.schema.ShoppingItem
+import com.example.groclistapp.data.database.schema.ShoppingList
+import com.example.groclistapp.data.database.schema.ShoppingListWithItems
 import com.example.groclistapp.data.repository.ShoppingListRepository
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.Dispatchers
@@ -19,8 +19,9 @@ import kotlinx.coroutines.withContext
 class ShoppingListViewModel(
     application: Application,
 ) : AndroidViewModel(application) {
-    private val shoppingListDao = AppDatabase.getDatabase(application).shoppingListDao()
-    private val shoppingItemDao = AppDatabase.getDatabase(application).shoppingItemDao()
+    private val db = DBImplementation.getInstance()
+    private val shoppingListDao = db.getShoppingListDao()
+    private val shoppingItemDao = db.getShoppingItemDao()
     private val repository = ShoppingListRepository(
         shoppingListDao,
         shoppingItemDao

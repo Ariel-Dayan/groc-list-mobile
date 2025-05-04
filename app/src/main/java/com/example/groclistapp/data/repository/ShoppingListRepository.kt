@@ -2,9 +2,11 @@ package com.example.groclistapp.data.repository
 
 import androidx.lifecycle.LiveData
 import android.util.Log
-import com.example.groclistapp.data.model.ShoppingList
-import com.example.groclistapp.data.model.ShoppingItem
-import com.example.groclistapp.data.model.ShoppingListWithItems
+import com.example.groclistapp.data.database.dao.ShoppingItemDao
+import com.example.groclistapp.data.database.dao.ShoppingListDao
+import com.example.groclistapp.data.database.schema.ShoppingList
+import com.example.groclistapp.data.database.schema.ShoppingItem
+import com.example.groclistapp.data.database.schema.ShoppingListWithItems
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot

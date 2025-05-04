@@ -1,4 +1,4 @@
-package com.example.groclistapp.data.model
+package com.example.groclistapp.data.database.schema
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

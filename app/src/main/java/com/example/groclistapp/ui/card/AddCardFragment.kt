@@ -17,8 +17,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.groclistapp.R
 import com.example.groclistapp.data.image.ImageHandler
-import com.example.groclistapp.data.model.ShoppingItem
-import com.example.groclistapp.data.model.ShoppingList
+import com.example.groclistapp.data.database.schema.ShoppingItem
+import com.example.groclistapp.data.database.schema.ShoppingList
 import com.example.groclistapp.utils.CardUtils
 import com.example.groclistapp.utils.DialogUtils
 import com.example.groclistapp.utils.InputUtils

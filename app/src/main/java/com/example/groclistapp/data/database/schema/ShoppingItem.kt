@@ -1,4 +1,4 @@
-package com.example.groclistapp.data.model
+package com.example.groclistapp.data.database.schema
 
 import androidx.room.*
 import java.util.UUID

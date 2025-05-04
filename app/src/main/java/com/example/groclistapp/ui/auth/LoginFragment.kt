@@ -46,7 +46,6 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
         signupNavigationButton = view.findViewById(R.id.btnLoginSignupNavigation)
         progressBar = view.findViewById(R.id.pbLoginSpinner)
 
-
         loginButton.setOnClickListener {
             val email = emailInput.text?.toString()?.trim()
             val password = passwordInput.text?.toString()?.trim()

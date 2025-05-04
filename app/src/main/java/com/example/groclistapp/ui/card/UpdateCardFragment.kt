@@ -21,7 +21,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.textfield.TextInputLayout
 import androidx.navigation.fragment.findNavController
-import com.example.groclistapp.data.model.ShoppingListWithItems
+import com.example.groclistapp.data.database.schema.ShoppingListWithItems
 import com.example.groclistapp.utils.DialogUtils
 import com.example.groclistapp.utils.InputUtils
 import com.example.groclistapp.utils.ItemUtils
