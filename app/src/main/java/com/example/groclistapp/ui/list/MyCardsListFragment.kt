@@ -13,12 +13,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.groclistapp.R
 import com.example.groclistapp.data.adapter.card.CardsRecyclerAdapter
-import com.example.groclistapp.data.repository.AppDatabase
-import com.example.groclistapp.data.repository.ShoppingListRepository
 import com.example.groclistapp.viewmodel.ShoppingListViewModel
 import androidx.fragment.app.setFragmentResultListener
-import com.example.groclistapp.data.repository.ShoppingListDao
-import com.example.groclistapp.data.repository.ShoppingItemDao
 import com.example.groclistapp.data.adapter.card.OnItemClickListener
 import com.example.groclistapp.data.network.jokes.JokesClient.setJoke
 import com.example.groclistapp.utils.ListUtils
@@ -47,10 +43,6 @@ class MyCardsListFragment : Fragment() {
     ): View {
         val view = inflater.inflate(R.layout.fragment_my_cards_list, container, false)
 
-        val shoppingListDao = AppDatabase.getDatabase(requireContext()).shoppingListDao()
-        val shoppingItemDao = AppDatabase.getDatabase(requireContext()).shoppingItemDao()
-        val repository = ShoppingListRepository(shoppingListDao, shoppingItemDao)
-
         jokeTextView = view.findViewById(R.id.tvMyCardsListJoke)
         noCardsTextView = view.findViewById(R.id.tvMyCardsListNoCardsMessage)
         cardsProgressBar = view.findViewById(R.id.pbMyCardsListCardsSpinner)
@@ -59,10 +51,7 @@ class MyCardsListFragment : Fragment() {
 
         cardsProgressBar.visibility = View.VISIBLE
 
-        viewModel = ViewModelProvider(
-            this,
-            ShoppingListViewModel.Factory(requireActivity().application, repository)
-        )[ShoppingListViewModel::class.java]
+        viewModel = ViewModelProvider(this).get(ShoppingListViewModel::class.java)
 
         setupRecyclerView(view)
         observeShoppingLists()
@@ -71,7 +60,6 @@ class MyCardsListFragment : Fragment() {
 
         setFragmentResultListener("shoppingListUpdated") { _, bundle ->
             if (bundle.getBoolean("updated", false)) {
-                Log.d("MyCardsListFragment", " רשימה חדשה נוספה, טוען מחדש נתונים...")
                 viewModel.loadShoppingLists()
             }
         }
@@ -83,12 +71,6 @@ class MyCardsListFragment : Fragment() {
                 swipeRefreshLayout
             )
         }
-
-        listUtils.refreshData(
-            cardsRecyclerView,
-            { fetchUserListsFromFirebase() },
-            swipeRefreshLayout
-        )
 
         return view
     }

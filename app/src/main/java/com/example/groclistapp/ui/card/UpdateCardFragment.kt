@@ -21,7 +21,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.textfield.TextInputLayout
 import androidx.navigation.fragment.findNavController
-import com.example.groclistapp.data.model.ShoppingList
 import com.example.groclistapp.data.model.ShoppingListWithItems
 import com.example.groclistapp.utils.DialogUtils
 import com.example.groclistapp.utils.InputUtils
@@ -48,10 +47,7 @@ class UpdateCardFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel = ViewModelProvider(
-            this,
-            ShoppingListViewModel.Factory(requireActivity().application)
-        )[ShoppingListViewModel::class.java]
+        viewModel = ViewModelProvider(this).get(ShoppingListViewModel::class.java)
 
         val listId = arguments?.getString("listId") ?: return
         viewModel.loadShoppingListById(listId)
@@ -76,7 +72,6 @@ class UpdateCardFragment : Fragment() {
 
         viewModel.currentList.observe(viewLifecycleOwner) { list ->
             list?.shoppingList?.let {
-//                currentList = it
                 tilTitle.editText?.setText(it.name)
                 tilDescription.editText?.setText(it.description)
                 if (!it.imageUrl.isNullOrEmpty()) {
