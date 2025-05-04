@@ -49,8 +49,9 @@ class UpdateProfileFragment : Fragment() {
             viewModel.loadProfileImage(userId) { imageUrl ->
                 if (!imageUrl.isNullOrEmpty()) {
                     imageHandler.loadImage(imageUrl, R.drawable.user_placeholder)
-                    binding.pbUpdateProfileSpinner.visibility = View.GONE
                 }
+
+                binding.pbUpdateProfileSpinner.visibility = View.GONE
             }
         } else {
             Toast.makeText(requireContext(), "User not found", Toast.LENGTH_SHORT).show()
