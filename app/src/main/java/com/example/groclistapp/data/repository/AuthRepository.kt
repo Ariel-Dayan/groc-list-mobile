@@ -8,7 +8,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 
 class AuthRepository {
-
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
     private val storage = FirebaseStorage.getInstance()
@@ -98,5 +97,14 @@ class AuthRepository {
                     onComplete(false, null, task.exception?.message ?: "Login failed")
                 }
             }
+    }
+
+    fun logout(callback: (Boolean) -> Unit) {
+        try {
+            FirebaseAuth.getInstance().signOut()
+            callback(true)
+        } catch (e: Exception) {
+            callback(false)
+        }
     }
 }

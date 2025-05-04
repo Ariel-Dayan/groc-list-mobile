@@ -16,6 +16,7 @@ import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import com.example.groclistapp.R
 import com.example.groclistapp.data.image.ImageHandler
+import com.example.groclistapp.viewmodel.AuthViewModel
 import com.example.groclistapp.viewmodel.ShoppingListViewModel
 
 class UpdateProfileFragment : Fragment() {
@@ -23,7 +24,8 @@ class UpdateProfileFragment : Fragment() {
     private var _binding: FragmentUpdateProfileBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var viewModel: ProfileViewModel
+    private lateinit var profileViewModel: ProfileViewModel
+    private lateinit var authViewModel: AuthViewModel
     private lateinit var auth: FirebaseAuth
     private lateinit var storage: FirebaseStorage
     private lateinit var shoppingListViewModel: ShoppingListViewModel
@@ -37,7 +39,8 @@ class UpdateProfileFragment : Fragment() {
         binding.pbUpdateProfileSpinner.visibility = View.VISIBLE
         shoppingListViewModel = ViewModelProvider(this).get(ShoppingListViewModel::class.java)
 
-        viewModel = ViewModelProvider(this)[ProfileViewModel::class.java]
+        profileViewModel = ViewModelProvider(this)[ProfileViewModel::class.java]
+        authViewModel = ViewModelProvider(this)[AuthViewModel::class.java]
         auth = FirebaseAuth.getInstance()
         storage = FirebaseStorage.getInstance()
 
@@ -46,7 +49,7 @@ class UpdateProfileFragment : Fragment() {
         setupListeners()
         val userId = FirebaseAuth.getInstance().currentUser?.uid
         if (userId != null) {
-            viewModel.loadProfileImage(userId) { imageUrl ->
+            profileViewModel.loadProfileImage(userId) { imageUrl ->
                 if (!imageUrl.isNullOrEmpty()) {
                     imageHandler.loadImage(imageUrl, R.drawable.user_placeholder)
                 }
@@ -64,9 +67,9 @@ class UpdateProfileFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel.loadDisplayName()
+        profileViewModel.loadDisplayName()
 
-        viewModel.displayName.observe(viewLifecycleOwner) { name ->
+        profileViewModel.displayName.observe(viewLifecycleOwner) { name ->
             binding.tilUpdateProfileFullName.editText?.setText(name)
         }
     }
@@ -119,7 +122,7 @@ class UpdateProfileFragment : Fragment() {
         binding.btnUpdateProfileUpdate.isEnabled = false
         binding.btnUpdateProfileUpdate.text = "Updating..."
 
-        viewModel.updateProfile(
+        profileViewModel.updateProfile(
             fullName = fullName.ifEmpty { null },
             oldPassword = oldPassword.ifEmpty { null },
             newPassword = newPassword.ifEmpty { null },
@@ -135,9 +138,9 @@ class UpdateProfileFragment : Fragment() {
 
     private fun logout() {
         binding.pbUpdateProfileSpinner.visibility = View.VISIBLE
-        viewModel.logout()
+        authViewModel.logout()
 
-        viewModel.logoutStatus.observe(viewLifecycleOwner) { success ->
+        authViewModel.logoutStatus.observe(viewLifecycleOwner) { success ->
             binding.pbUpdateProfileSpinner.visibility = View.GONE
             if (success) {
                 Toast.makeText(requireContext(), "Successfully logged out!", Toast.LENGTH_SHORT).show()

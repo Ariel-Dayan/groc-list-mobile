@@ -125,15 +125,6 @@ class ProfileRepository {
                 callback(null)
             }
     }
-
-    fun logout(callback: (Boolean) -> Unit) {
-        try {
-            FirebaseAuth.getInstance().signOut()
-            callback(true)
-        } catch (e: Exception) {
-            callback(false)
-        }
-    }
 }
 
 

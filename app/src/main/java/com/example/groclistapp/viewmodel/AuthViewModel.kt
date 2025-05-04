@@ -19,6 +19,9 @@ class AuthViewModel : ViewModel() {
     private val _signupStatus = MutableLiveData<Boolean>()
     val signupStatus: LiveData<Boolean> get() = _signupStatus
 
+    private val _logoutStatus = MutableLiveData<Boolean>()
+    val logoutStatus: LiveData<Boolean> get() = _logoutStatus
+
     private val _currentUser = MutableLiveData<FirebaseUser?>()
     val currentUser: LiveData<FirebaseUser?> get() = _currentUser
 
@@ -69,6 +72,12 @@ class AuthViewModel : ViewModel() {
             }
         } else {
             _currentUser.value = null
+        }
+    }
+
+    fun logout() {
+        repository.logout { success ->
+            _logoutStatus.postValue(success)
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.example.groclistapp.ui.auth
 
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.ImageButton
 import android.widget.Toast
@@ -16,9 +17,7 @@ import com.google.android.material.button.MaterialButton
 import de.hdodenhof.circleimageview.CircleImageView
 import android.widget.ProgressBar
 
-
 class SignupFragment : Fragment(R.layout.fragment_signup) {
-
     private val authViewModel: AuthViewModel by viewModels()
 
     private lateinit var emailInput: TextInputEditText
@@ -97,7 +96,7 @@ class SignupFragment : Fragment(R.layout.fragment_signup) {
             progressBar.visibility = View.GONE
             if (success) {
                 Toast.makeText(requireContext(), "User registered successfully!", Toast.LENGTH_SHORT).show()
-                findNavController().navigateUp()
+                authViewModel.logout()
             } else {
                 registerButton.isEnabled = true
                 registerButton.text = getString(R.string.sign_up)
@@ -108,6 +107,13 @@ class SignupFragment : Fragment(R.layout.fragment_signup) {
             message?.let {
                 Toast.makeText(requireContext(), "Signup failed: $it", Toast.LENGTH_SHORT).show()
             }
+        }
+
+        authViewModel.logoutStatus.observe(viewLifecycleOwner) { success ->
+            if (!success) {
+                Log.w("SignupFragment", "Logout failed after signup")
+            }
+            findNavController().navigateUp()
         }
     }
 }

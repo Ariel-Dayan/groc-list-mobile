@@ -14,9 +14,6 @@ class ProfileViewModel : ViewModel() {
     private val _displayName = MutableLiveData<String>()
     val displayName: LiveData<String> get() = _displayName
 
-    private val _logoutStatus = MutableLiveData<Boolean>()
-    val logoutStatus: LiveData<Boolean> get() = _logoutStatus
-
     fun updateProfile(fullName: String?, oldPassword: String?, newPassword: String?, imageUri: Uri?, callback: (Boolean, String) -> Unit) {
         repository.updateUserProfile(fullName, oldPassword, newPassword, imageUri, callback)
     }
@@ -29,12 +26,6 @@ class ProfileViewModel : ViewModel() {
         val auth = FirebaseAuth.getInstance()
         val currentUser = auth.currentUser
         _displayName.value = currentUser?.displayName ?: ""
-    }
-
-    fun logout() {
-        repository.logout { success ->
-            _logoutStatus.postValue(success)
-        }
     }
 }
 
