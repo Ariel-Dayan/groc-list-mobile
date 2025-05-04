@@ -74,11 +74,11 @@ class ShoppingListRepository(
     }
 
 
-    suspend fun delete(shoppingList: ShoppingList) {
+    suspend fun delete(shoppingList: ShoppingList, onSuccess: () -> Unit) {
         shoppingListDao.deleteShoppingList(
             ShoppingList(id = shoppingList.id, name = shoppingList.name)
         )
-        deleteShoppingListFromFirestore(shoppingList.id)
+        deleteShoppingListFromFirestore(shoppingList.id, onSuccess)
     }
 
     suspend fun getShoppingListById(listId: String): ShoppingListWithItems? {
@@ -199,7 +199,7 @@ class ShoppingListRepository(
 
 
 
-    fun deleteShoppingListFromFirestore(listId: String) {
+    private fun deleteShoppingListFromFirestore(listId: String, onSuccess: () -> Unit) {
         val listRef = db.collection("shoppingLists").document(listId)
         val itemsRef = listRef.collection("items")
 
@@ -208,7 +208,7 @@ class ShoppingListRepository(
                 val documents = querySnapshot.documents
 
                 if (documents.isEmpty()) {
-                    deleteListDocument(listRef)
+                    deleteListDocument(listRef, onSuccess)
                     return@addOnSuccessListener
                 }
 
@@ -219,7 +219,7 @@ class ShoppingListRepository(
                             deletedCount++
 
                             if (deletedCount == documents.size) {
-                                deleteListDocument(listRef)
+                                deleteListDocument(listRef, onSuccess)
                             }
                         }
                         .addOnFailureListener { e ->
@@ -233,10 +233,13 @@ class ShoppingListRepository(
     }
 
 
-    private fun deleteListDocument(listRef: DocumentReference) {
+    private fun deleteListDocument(listRef: DocumentReference, onSuccess: () -> Unit = {}) {
         listRef.delete()
             .addOnFailureListener {
                 Log.e("Firestore", "Error deleting list: ${it.message}", it)
+            }
+            .addOnSuccessListener {
+                onSuccess()
             }
     }
 
