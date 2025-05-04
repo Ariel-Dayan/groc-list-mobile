@@ -45,15 +45,16 @@ class ShoppingListViewModel(
 
             if (list != null) {
                 repository.deleteAllItemsForList(listId)
-                repository.delete(list.shoppingList)
-                removeSharedListReference(listId,
-                    onSuccess = {
-                        _deleteStatus.postValue(true)
-                    },
-                    onFailure = { exception ->
-                        _deleteStatus.postValue(false)
-                    }
-                )
+                repository.delete(list.shoppingList, onSuccess = {
+                    removeSharedListReference(listId,
+                        onSuccess = {
+                            _deleteStatus.postValue(true)
+                        },
+                        onFailure = { exception ->
+                            _deleteStatus.postValue(false)
+                        }
+                    )
+                })
             } else {
                 _deleteStatus.postValue(false)
             }
@@ -91,8 +92,9 @@ class ShoppingListViewModel(
     
     fun deleteShoppingList(shoppingList: ShoppingList) {
         viewModelScope.launch {
-            repository.delete(shoppingList)
-            _deleteStatus.postValue(true)
+            repository.delete(shoppingList, onSuccess = {
+                _deleteStatus.postValue(true)
+            })
         }
     }
 
