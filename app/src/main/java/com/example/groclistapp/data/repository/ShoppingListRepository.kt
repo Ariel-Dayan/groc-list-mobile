@@ -2,9 +2,11 @@ package com.example.groclistapp.data.repository
 
 import androidx.lifecycle.LiveData
 import android.util.Log
-import com.example.groclistapp.data.model.ShoppingList
-import com.example.groclistapp.data.model.ShoppingItem
-import com.example.groclistapp.data.model.ShoppingListWithItems
+import com.example.groclistapp.data.database.dao.ShoppingItemDao
+import com.example.groclistapp.data.database.dao.ShoppingListDao
+import com.example.groclistapp.data.database.schema.ShoppingList
+import com.example.groclistapp.data.database.schema.ShoppingItem
+import com.example.groclistapp.data.database.schema.ShoppingListWithItems
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
@@ -12,7 +14,6 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
-import kotlin.random.Random
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -28,15 +29,7 @@ class ShoppingListRepository(
     val allShoppingLists: LiveData<List<ShoppingList>> =
         shoppingListDao.getAllShoppingLists(FirebaseAuth.getInstance().uid)
 
-
-    fun generateShareCode(): String {
-        val timestamp = System.currentTimeMillis() / 1000
-        val salt = Random.nextInt(0, 100)
-        val combined = timestamp * 100 + salt
-        return combined.toString(36).uppercase()
-    }
-
-    suspend fun insertAndGetId(shoppingList: ShoppingList): Boolean {
+    suspend fun insertList(shoppingList: ShoppingList): Boolean {
         val user = FirebaseAuth.getInstance().currentUser
 
         if (user == null) {
@@ -50,7 +43,7 @@ class ShoppingListRepository(
             description = shoppingList.description,
             imageUrl = shoppingList.imageUrl,
             creatorId = user.uid,
-            shareCode = generateShareCode()
+            shareCode = shoppingList.shareCode
         )
 
         shoppingListDao.insertShoppingList(newList)

@@ -16,14 +16,10 @@ import com.example.groclistapp.R
 import com.example.groclistapp.data.adapter.card.CardsRecyclerAdapter
 import com.example.groclistapp.data.adapter.card.OnItemClickListener
 import com.example.groclistapp.data.network.jokes.JokesClient.setJoke
-import com.example.groclistapp.data.repository.AppDatabase
 import com.example.groclistapp.viewmodel.SharedCardsViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.example.groclistapp.data.repository.ShoppingItemDao
-import com.example.groclistapp.data.repository.ShoppingListDao
-import com.example.groclistapp.data.repository.ShoppingListRepository
 import com.example.groclistapp.utils.ListUtils
 import com.example.groclistapp.utils.MessageUtils
 import kotlinx.coroutines.launch
@@ -39,9 +35,6 @@ class SharedCardsListFragment : Fragment() {
     private lateinit var cardsProgressBar: ProgressBar
     private lateinit var jokeProgressBar: ProgressBar
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
-    private lateinit var shoppingListDao: ShoppingListDao
-    private lateinit var shoppingItemDao: ShoppingItemDao
-    private lateinit var repository: ShoppingListRepository
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -49,13 +42,6 @@ class SharedCardsListFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_shared_cards_list, container, false)
         viewModel = ViewModelProvider(requireActivity())[SharedCardsViewModel::class.java]
-
-        shoppingListDao = AppDatabase.getDatabase(requireContext()).shoppingListDao()
-        shoppingItemDao = AppDatabase.getDatabase(requireContext()).shoppingItemDao()
-        repository = ShoppingListRepository(
-            shoppingListDao,
-            shoppingItemDao
-        )
 
         setupView(view)
         return view
@@ -116,8 +102,6 @@ class SharedCardsListFragment : Fragment() {
             )
         }
 
-        fetchSharedListsFromFirebase()
-
         viewModel.sharedLists.observe(viewLifecycleOwner) { list ->
             listUtils.toggleNoCardListsMessage(noCardsMessageTextView, list)
             adapter?.updateData(list)
@@ -144,7 +128,7 @@ class SharedCardsListFragment : Fragment() {
 
             if (!shareCode.isNullOrEmpty()) {
                 cardsProgressBar.visibility = View.VISIBLE
-                viewModel.addSharedListByCode(shareCode, repository)
+                viewModel.addSharedListByCode(shareCode)
             } else {
                 Toast.makeText(requireContext(), "Please enter a valid share code", Toast.LENGTH_SHORT).show()
             }

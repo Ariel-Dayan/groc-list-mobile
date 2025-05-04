@@ -16,8 +16,6 @@ import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import com.example.groclistapp.R
 import com.example.groclistapp.data.image.ImageHandler
-import com.example.groclistapp.data.repository.AppDatabase
-import com.example.groclistapp.data.repository.ShoppingListRepository
 import com.example.groclistapp.viewmodel.ShoppingListViewModel
 
 class UpdateProfileFragment : Fragment() {
@@ -37,14 +35,7 @@ class UpdateProfileFragment : Fragment() {
     ): View {
         _binding = FragmentUpdateProfileBinding.inflate(inflater, container, false)
         binding.pbUpdateProfileSpinner.visibility = View.VISIBLE
-        shoppingListViewModel = ViewModelProvider(
-            this,
-            ShoppingListViewModel.Factory(requireActivity().application, ShoppingListRepository(
-                AppDatabase.getDatabase(requireContext()).shoppingListDao(),
-                AppDatabase.getDatabase(requireContext()).shoppingItemDao()
-            )
-            )
-        )[ShoppingListViewModel::class.java]
+        shoppingListViewModel = ViewModelProvider(this).get(ShoppingListViewModel::class.java)
 
         viewModel = ViewModelProvider(this)[ProfileViewModel::class.java]
         auth = FirebaseAuth.getInstance()

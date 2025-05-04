@@ -10,8 +10,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import com.example.groclistapp.R
-import com.example.groclistapp.data.repository.AppDatabase
-import com.example.groclistapp.data.repository.ShoppingListRepository
 import com.example.groclistapp.viewmodel.AuthViewModel
 import com.example.groclistapp.viewmodel.ShoppingListViewModel
 import com.google.android.material.textfield.TextInputLayout
@@ -35,17 +33,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         sharedCardsViewModel = ViewModelProvider(this)[SharedCardsViewModel::class.java]
-        shoppingListViewModel = ViewModelProvider(
-            this,
-            ShoppingListViewModel.Factory(
-                requireActivity().application,
-                ShoppingListRepository(
-                    AppDatabase.getDatabase(requireContext()).shoppingListDao(),
-                    AppDatabase.getDatabase(requireContext()).shoppingItemDao()
-                )
-            )
-        )[ShoppingListViewModel::class.java]
-
+        shoppingListViewModel = ViewModelProvider(this)[ShoppingListViewModel::class.java]
 
         val emailLayout = view.findViewById<TextInputLayout>(R.id.tilLoginEmail)
         val passwordLayout = view.findViewById<TextInputLayout>(R.id.tilLoginPassword)
@@ -56,7 +44,6 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
         loginButton = view.findViewById(R.id.btnLoginEnter)
         signupNavigationButton = view.findViewById(R.id.btnLoginSignupNavigation)
         progressBar = view.findViewById(R.id.pbLoginSpinner)
-
 
         loginButton.setOnClickListener {
             val email = emailInput.text?.toString()?.trim()

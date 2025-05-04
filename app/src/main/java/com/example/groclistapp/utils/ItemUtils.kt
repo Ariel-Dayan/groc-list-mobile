@@ -1,6 +1,6 @@
 package com.example.groclistapp.utils
 
-import com.example.groclistapp.data.model.ShoppingItem
+import com.example.groclistapp.data.database.schema.ShoppingItem
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import java.util.UUID

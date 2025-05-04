@@ -1,9 +1,9 @@
-package com.example.groclistapp.data.repository
+package com.example.groclistapp.data.database.dao
 
 import androidx.room.*
-import com.example.groclistapp.data.model.ShoppingList
+import com.example.groclistapp.data.database.schema.ShoppingList
 import androidx.lifecycle.LiveData
-import com.example.groclistapp.data.model.ShoppingListWithItems
+import com.example.groclistapp.data.database.schema.ShoppingListWithItems
 
 @Dao
 interface ShoppingListDao {
