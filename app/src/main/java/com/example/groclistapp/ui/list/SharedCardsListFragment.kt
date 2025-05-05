@@ -52,21 +52,27 @@ class SharedCardsListFragment : Fragment() {
     }
 
     private fun setupView(view: View) {
+        initViews(view)
+        setupRecyclerView()
+        setupJoke()
+        setupSwipeToRefresh()
+        observeSharedLists()
+        observeAddSharedListStatus()
+        setupAddButton(view)
+    }
+
+    private fun initViews(view: View) {
         cardsRecyclerView = view.findViewById(R.id.rvSharedCardsList)
         jokeTextView = view.findViewById(R.id.tvSharedCardsListJoke)
         cardsProgressBar = view.findViewById(R.id.pbSharedCardsListCardsSpinner)
         jokeProgressBar = view.findViewById(R.id.pbSharedCardsListJokeSpinner)
         swipeRefreshLayout = view.findViewById(R.id.srlSharedCardsListSwipeRefresh)
-
-        cardsProgressBar.visibility = View.VISIBLE
-
-        val inputLayout = view.findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.tilSharedCardsListSharedCode)
-        val shareCodeInput = inputLayout.editText
-
-        val addButton = view.findViewById<View>(R.id.btnSharedCardsListAdd)
-
         noCardsMessageTextView = view.findViewById(R.id.tvSharedCardsListNoCardsMessage)
 
+        cardsProgressBar.visibility = View.VISIBLE
+    }
+
+    private fun setupRecyclerView() {
         adapter = CardsRecyclerAdapter(
             mutableListOf(),
             object : OnItemClickListener {
@@ -74,25 +80,30 @@ class SharedCardsListFragment : Fragment() {
                     val bundle = Bundle().apply {
                         putString("listId", listId)
                     }
-                    val navController = findNavController()
-                    navController.navigate(R.id.action_sharedCardsListFragment_to_displayCardFragment, bundle)
+                    findNavController().navigate(
+                        R.id.action_sharedCardsListFragment_to_displayCardFragment,
+                        bundle
+                    )
                 }
 
                 override fun onShareCodeClick(code: String, itemView: View) {
                     messageUtils.shareShoppingListCode(code, itemView)
                 }
             }
-
         )
-
-        setJoke(jokeTextView, jokeProgressBar)
 
         cardsRecyclerView?.apply {
             layoutManager = LinearLayoutManager(context)
             setHasFixedSize(true)
             adapter = this@SharedCardsListFragment.adapter
         }
+    }
 
+    private fun setupJoke() {
+        setJoke(jokeTextView, jokeProgressBar)
+    }
+
+    private fun setupSwipeToRefresh() {
         swipeRefreshLayout.setOnRefreshListener {
             listUtils.refreshData(
                 cardsRecyclerView,
@@ -100,7 +111,9 @@ class SharedCardsListFragment : Fragment() {
                 swipeRefreshLayout
             )
         }
+    }
 
+    private fun observeSharedLists() {
         viewModel.sharedLists.observe(viewLifecycleOwner) { list ->
             listUtils.toggleNoCardListsMessage(noCardsMessageTextView, list)
             adapter?.updateData(list)
@@ -108,7 +121,9 @@ class SharedCardsListFragment : Fragment() {
                 cardsProgressBar.visibility = View.GONE
             }
         }
+    }
 
+    private fun observeAddSharedListStatus() {
         viewModel.addSharedListStatus.observe(viewLifecycleOwner) { result ->
             result
                 .onSuccess { list ->
@@ -121,15 +136,26 @@ class SharedCardsListFragment : Fragment() {
                     Log.e("SharedCardsListFragment", "Error adding shared list", e)
                 }
         }
+    }
 
-        addButton.setOnClickListener {
+    private fun setupAddButton(view: View) {
+        val inputLayout = view.findViewById<com.google.android.material.textfield.TextInputLayout>(
+            R.id.tilSharedCardsListSharedCode
+        )
+        val shareCodeInput = inputLayout?.editText
+        val addButton = view.findViewById<View>(R.id.btnSharedCardsListAdd)
+
+        addButton?.setOnClickListener {
             val shareCode = shareCodeInput?.text?.toString()?.trim()
-
             if (!shareCode.isNullOrEmpty()) {
                 cardsProgressBar.visibility = View.VISIBLE
                 viewModel.addSharedListByCode(shareCode)
             } else {
-                Toast.makeText(requireContext(), "Please enter a valid share code", android.widget.Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    requireContext(),
+                    "Please enter a valid share code",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }

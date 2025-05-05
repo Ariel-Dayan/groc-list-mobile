@@ -18,6 +18,7 @@ import com.example.groclistapp.R
 import com.example.groclistapp.data.image.ImageHandler
 import com.example.groclistapp.viewmodel.AuthViewModel
 import com.example.groclistapp.viewmodel.ShoppingListViewModel
+import com.google.android.material.textfield.TextInputLayout
 
 class UpdateProfileFragment : Fragment() {
 
@@ -85,56 +86,79 @@ class UpdateProfileFragment : Fragment() {
     }
 
     private fun updateProfile() {
-        val fullName = binding.tilUpdateProfileFullName.editText?.text.toString().trim()
-        val oldPassword = binding.tilUpdateProfileOldPassword.editText?.text.toString().trim()
-        val newPassword = binding.tilUpdateProfilePassword.editText?.text.toString().trim()
-        val confirmPassword = binding.tilUpdateProfileConfirmPassword.editText?.text.toString().trim()
+        val fullName = getTrimmedText(binding.tilUpdateProfileFullName)
+        val oldPassword = getTrimmedText(binding.tilUpdateProfileOldPassword)
+        val newPassword = getTrimmedText(binding.tilUpdateProfilePassword)
+        val confirmPassword = getTrimmedText(binding.tilUpdateProfileConfirmPassword)
 
-        if (fullName.isEmpty() && newPassword.isEmpty() && imageHandler.selectedImageUri == null) {
-            Toast.makeText(requireContext(), "Please enter at least one field to update", Toast.LENGTH_SHORT).show()
-            return
-        }
+        if (!validateFields(fullName, oldPassword, newPassword, confirmPassword)) return
 
-        if (newPassword.isNotEmpty()) {
-            if (oldPassword.isEmpty()) {
-                Toast.makeText(requireContext(), "Enter your current password to change password", Toast.LENGTH_SHORT).show()
-                return
-            }
-
-            if (newPassword != confirmPassword) {
-                Toast.makeText(requireContext(), "Passwords do not match", Toast.LENGTH_SHORT).show()
-                return
-            }
-
-            if (newPassword.length < 6) {
-                Toast.makeText(requireContext(), "Password must be at least 6 characters long", Toast.LENGTH_SHORT).show()
-                return
-            }
-
-            if (oldPassword == newPassword) {
-                Toast.makeText(requireContext(), "New password must be different from the old password", Toast.LENGTH_SHORT).show()
-                return
-            }
-        }
-
-
-        binding.pbUpdateProfileSpinner.visibility = View.VISIBLE
-        binding.btnUpdateProfileUpdate.isEnabled = false
-        binding.btnUpdateProfileUpdate.text = "Updating..."
+        showUpdatingUI()
 
         profileViewModel.updateProfile(
             fullName = fullName.ifEmpty { null },
             oldPassword = oldPassword.ifEmpty { null },
             newPassword = newPassword.ifEmpty { null },
-            imageUri = if (imageHandler.selectedImageUri != null) imageHandler.selectedImageUri else null
+            imageUri = imageHandler.selectedImageUri
         ) { success, message ->
             Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-            binding.pbUpdateProfileSpinner.visibility = View.GONE
-            binding.btnUpdateProfileUpdate.isEnabled = true
-            binding.btnUpdateProfileUpdate.text = "Update"
+            hideUpdatingUI()
         }
     }
 
+
+    private fun getTrimmedText(field: TextInputLayout): String {
+        return field.editText?.text?.toString()?.trim().orEmpty()
+    }
+
+    private fun validateFields(
+        fullName: String,
+        oldPassword: String,
+        newPassword: String,
+        confirmPassword: String
+    ): Boolean {
+        if (fullName.isEmpty() && newPassword.isEmpty() && imageHandler.selectedImageUri == null) {
+            showToast("Please enter at least one field to update")
+            return false
+        }
+
+        if (newPassword.isNotEmpty()) {
+            if (oldPassword.isEmpty()) {
+                showToast("Enter your current password to change password")
+                return false
+            }
+            if (newPassword != confirmPassword) {
+                showToast("Passwords do not match")
+                return false
+            }
+            if (newPassword.length < 6) {
+                showToast("Password must be at least 6 characters long")
+                return false
+            }
+            if (oldPassword == newPassword) {
+                showToast("New password must be different from the old password")
+                return false
+            }
+        }
+
+        return true
+    }
+
+    private fun showUpdatingUI() {
+        binding.pbUpdateProfileSpinner.visibility = View.VISIBLE
+        binding.btnUpdateProfileUpdate.isEnabled = false
+        binding.btnUpdateProfileUpdate.text = "Updating..."
+    }
+
+    private fun hideUpdatingUI() {
+        binding.pbUpdateProfileSpinner.visibility = View.GONE
+        binding.btnUpdateProfileUpdate.isEnabled = true
+        binding.btnUpdateProfileUpdate.text = "Update"
+    }
+
+    private fun showToast(message: String) {
+        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+    }
 
     private fun logout() {
         binding.pbUpdateProfileSpinner.visibility = View.VISIBLE

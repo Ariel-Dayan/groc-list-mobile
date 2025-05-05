@@ -86,31 +86,44 @@ class ShoppingListRepository(
         if (localList != null) return localList
 
         return try {
-            val documentSnapshot = db.collection("shoppingLists")
-                .document(listId)
-                .get()
-                .await()
-
-            if (documentSnapshot.exists()) {
-                val firebaseList = documentSnapshot.toObject(ShoppingList::class.java)
-                if (firebaseList != null) {
-                    val itemsSnapshot = db.collection("shoppingLists")
-                        .document(listId)
-                        .collection("items")
-                        .get()
-                        .await()
-
-                    val items = itemsSnapshot.toObjects(ShoppingItem::class.java)
-                    ShoppingListWithItems(
-                        items = items,
-                        shoppingList = firebaseList
-                    )
-                } else null
-            } else null
+            val firebaseList = loadListFromFirestore(listId) ?: return null
+            val items = loadItemsFromFirestore(listId)
+            buildShoppingListWithItems(firebaseList, items)
         } catch (e: Exception) {
             Log.e("Firestore", "Error retrieving document from Firestore: ${e.message}")
             null
         }
+    }
+
+    private suspend fun loadListFromFirestore(listId: String): ShoppingList? {
+        val documentSnapshot = db.collection("shoppingLists")
+            .document(listId)
+            .get()
+            .await()
+
+        return if (documentSnapshot.exists()) {
+            documentSnapshot.toObject(ShoppingList::class.java)
+        } else null
+    }
+
+    private suspend fun loadItemsFromFirestore(listId: String): List<ShoppingItem> {
+        val itemsSnapshot = db.collection("shoppingLists")
+            .document(listId)
+            .collection("items")
+            .get()
+            .await()
+
+        return itemsSnapshot.toObjects(ShoppingItem::class.java)
+    }
+
+    private fun buildShoppingListWithItems(
+        shoppingList: ShoppingList,
+        items: List<ShoppingItem>
+    ): ShoppingListWithItems {
+        return ShoppingListWithItems(
+            items = items,
+            shoppingList = shoppingList
+        )
     }
 
     fun getCreatorNames(
@@ -193,48 +206,66 @@ class ShoppingListRepository(
             }
     }
 
-
-
-    fun deleteShoppingListFromFirestore(listId: String, onSuccess: (() -> Unit)?, onFailure: ((Exception) -> Unit)?) {
+    fun deleteShoppingListFromFirestore(
+        listId: String,
+        onSuccess: (() -> Unit)?,
+        onFailure: ((Exception) -> Unit)?
+    ) {
         val listRef = db.collection("shoppingLists").document(listId)
         val itemsRef = listRef.collection("items")
 
-        itemsRef.get()
-            .addOnSuccessListener { querySnapshot ->
-                val documents = querySnapshot.documents
-
+        fetchItemsForDeletion(
+            itemsRef = itemsRef,
+            onSuccess = { documents ->
                 if (documents.isEmpty()) {
                     deleteListDocument(listRef, onSuccess, onFailure)
-                    return@addOnSuccessListener
+                } else {
+                    deleteAllItems(documents, listRef, onSuccess, onFailure)
                 }
+            },
+            onFailure = { e ->
+                onFailure?.invoke(e)
+                Log.e("Firestore", "Error retrieving items for deletion: ${e.message}", e)
+            }
+        )
+    }
 
-                var deletedCount = 0
-                for (doc in documents) {
-                    doc.reference.delete()
-                        .addOnSuccessListener {
-                            deletedCount++
-
-                            if (deletedCount == documents.size) {
-                                deleteListDocument(listRef, onSuccess, onFailure)
-                            }
-                        }
-                        .addOnFailureListener { e ->
-                            if (onFailure != null) {
-                                onFailure(e)
-                            }
-
-                            Log.e("Firestore", "Error deleting item: ${e.message}", e)
-                        }
-                }
+    private fun fetchItemsForDeletion(
+        itemsRef: com.google.firebase.firestore.CollectionReference,
+        onSuccess: (List<com.google.firebase.firestore.DocumentSnapshot>) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        itemsRef.get()
+            .addOnSuccessListener { querySnapshot ->
+                onSuccess(querySnapshot.documents)
             }
             .addOnFailureListener { e ->
-                if (onFailure != null) {
-                    onFailure(e)
-                }
-                Log.e("Firestore", "Error retrieving items for deletion: ${e.message}", e)
+                onFailure(e)
             }
     }
 
+    private fun deleteAllItems(
+        documents: List<com.google.firebase.firestore.DocumentSnapshot>,
+        listRef: com.google.firebase.firestore.DocumentReference,
+        onSuccess: (() -> Unit)?,
+        onFailure: ((Exception) -> Unit)?
+    ) {
+        var deletedCount = 0
+
+        for (doc in documents) {
+            doc.reference.delete()
+                .addOnSuccessListener {
+                    deletedCount++
+                    if (deletedCount == documents.size) {
+                        deleteListDocument(listRef, onSuccess, onFailure)
+                    }
+                }
+                .addOnFailureListener { e ->
+                    onFailure?.invoke(e)
+                    Log.e("Firestore", "Error deleting item: ${e.message}", e)
+                }
+        }
+    }
 
     private fun deleteListDocument(listRef: DocumentReference, onSuccess: (() -> Unit)?, onFailure: ((Exception) -> Unit)?) {
         listRef.delete()
@@ -280,34 +311,52 @@ class ShoppingListRepository(
             return
         }
 
-        fetchSharedList(shareCode,
+        fetchSharedList(
+            shareCode = shareCode,
             onFailure = onFailure,
             onListFetched = { document, sharedList ->
-                if (sharedList.creatorId == currentUser.uid) {
-                    onFailure(Exception("You cannot add your own list"))
-                    return@fetchSharedList
-                }
-
-                checkIfUserAlreadyHasList(
-                    userId = currentUser.uid,
-                    listId = sharedList.id,
-                    onAlreadyExists = {
-                        onFailure(Exception("This list is already added to your account"))
-                    },
-                    onNotExists = {
-                        saveListAndItemsLocallyAndLinkUser(
-                            documentId = document.id,
-                            sharedList = sharedList,
-                            userId = currentUser.uid,
-                            onSuccess = onSuccess,
-                            onFailure = onFailure
-                        )
-                    },
+                handleSharedListFetchResult(
+                    document = document,
+                    sharedList = sharedList,
+                    currentUserId = currentUser.uid,
+                    onSuccess = onSuccess,
                     onFailure = onFailure
                 )
             }
         )
     }
+
+    private fun handleSharedListFetchResult(
+        document: com.google.firebase.firestore.DocumentSnapshot,
+        sharedList: ShoppingList,
+        currentUserId: String,
+        onSuccess: (ShoppingList) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        if (sharedList.creatorId == currentUserId) {
+            onFailure(Exception("You cannot add your own list"))
+            return
+        }
+
+        checkIfUserAlreadyHasList(
+            userId = currentUserId,
+            listId = sharedList.id,
+            onAlreadyExists = {
+                onFailure(Exception("This list is already added to your account"))
+            },
+            onNotExists = {
+                saveListAndItemsLocallyAndLinkUser(
+                    documentId = document.id,
+                    sharedList = sharedList,
+                    userId = currentUserId,
+                    onSuccess = onSuccess,
+                    onFailure = onFailure
+                )
+            },
+            onFailure = onFailure
+        )
+    }
+
 
     private fun fetchSharedList(
         shareCode: String,
@@ -454,33 +503,38 @@ class ShoppingListRepository(
         val user = FirebaseAuth.getInstance().currentUser ?: return
 
         try {
-            val userDoc = db.collection("users").document(user.uid).get().await()
-            val sharedListIds = userDoc.get("sharedListIds") as? List<String> ?: emptyList()
-
-            if (sharedListIds.isEmpty()) {
-               return
-            }
+            val sharedListIds = getSharedListIds(user.uid)
+            if (sharedListIds.isEmpty()) return
 
             val chunks = sharedListIds.chunked(10)
             for (chunk in chunks) {
-                val listsSnapshot = db.collection("shoppingLists")
-                    .whereIn(FieldPath.documentId(), chunk)
-                    .get()
-                    .await()
-
-                for (doc in listsSnapshot.documents) {
-                    val list = doc.toObject(ShoppingList::class.java) ?: continue
-                    shoppingListDao.insertShoppingList(list)
-
-                    val itemsSnapshot = doc.reference.collection("items").get().await()
-                    val items = itemsSnapshot.toObjects(ShoppingItem::class.java)
-                    items.forEach { it.listId = list.id }
-                    shoppingItemDao.upsertItems(items)
-                }
+                processSharedListChunk(chunk)
             }
-
         } catch (e: Exception) {
             Log.e("SharedSync", "Failed loading shared lists: ${e.message}")
+        }
+    }
+
+
+    private suspend fun getSharedListIds(userId: String): List<String> {
+        val userDoc = db.collection("users").document(userId).get().await()
+        return userDoc.get("sharedListIds") as? List<String> ?: emptyList()
+    }
+
+    private suspend fun processSharedListChunk(chunk: List<String>) {
+        val listsSnapshot = db.collection("shoppingLists")
+            .whereIn(FieldPath.documentId(), chunk)
+            .get()
+            .await()
+
+        for (doc in listsSnapshot.documents) {
+            val list = doc.toObject(ShoppingList::class.java) ?: continue
+            shoppingListDao.insertShoppingList(list)
+
+            val itemsSnapshot = doc.reference.collection("items").get().await()
+            val items = itemsSnapshot.toObjects(ShoppingItem::class.java)
+            items.forEach { it.listId = list.id }
+            shoppingItemDao.upsertItems(items)
         }
     }
 

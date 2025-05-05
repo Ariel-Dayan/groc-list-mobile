@@ -12,47 +12,6 @@ class AuthRepository {
     private val db = FirebaseFirestore.getInstance()
     private val storage = FirebaseStorage.getInstance()
 
-    fun registerUserWithProfileImage(
-        fullName: String,
-        email: String,
-        imageUri: Uri?,
-        onComplete: (Boolean, String?) -> Unit
-    ) {
-        val userId = auth.currentUser?.uid ?: run {
-            onComplete(false, "User ID not found")
-            return
-        }
-
-        val userRef = db.collection("users").document(userId)
-
-        fun saveUserData(imageUrl: String?) {
-            val userData = hashMapOf(
-                "fullName" to fullName,
-                "email" to email
-            )
-            imageUrl?.let { userData["imageUrl"] = it }
-
-            userRef.set(userData)
-                .addOnSuccessListener { onComplete(true, null) }
-                .addOnFailureListener { e -> onComplete(false, e.message) }
-        }
-
-        if (imageUri != null) {
-            val imageRef = storage.reference.child("profile_images/$userId.jpg")
-            imageRef.putFile(imageUri)
-                .addOnSuccessListener {
-                    imageRef.downloadUrl.addOnSuccessListener { uri ->
-                        saveUserData(uri.toString())
-                    }
-                }
-                .addOnFailureListener { e ->
-                    onComplete(false, "Image upload failed: ${e.message}")
-                }
-        } else {
-            saveUserData(null)
-        }
-    }
-
     fun registerUser(
         fullName: String,
         email: String,
@@ -64,14 +23,13 @@ class AuthRepository {
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val user = auth.currentUser
-
                     val profileUpdates = UserProfileChangeRequest.Builder()
                         .setDisplayName(fullName)
                         .build()
 
                     user?.updateProfile(profileUpdates)?.addOnCompleteListener { profileTask ->
                         if (profileTask.isSuccessful) {
-                            registerUserWithProfileImage(
+                            completeUserRegistration(
                                 fullName = fullName,
                                 email = email,
                                 imageUri = imageUri,
@@ -106,5 +64,72 @@ class AuthRepository {
         } catch (e: Exception) {
             callback(false)
         }
+    }
+    
+    private fun completeUserRegistration(
+        fullName: String,
+        email: String,
+        imageUri: Uri?,
+        onComplete: (Boolean, String?) -> Unit
+    ) {
+        val userId = auth.currentUser?.uid ?: run {
+            onComplete(false, "User ID not found")
+            return
+        }
+
+        if (imageUri != null) {
+            uploadProfileImageAndSaveData(
+                storage = storage,
+                db = db,
+                userId = userId,
+                imageUri = imageUri,
+                fullName = fullName,
+                email = email,
+                onComplete = onComplete
+            )
+        } else {
+            saveUserData(db, userId, fullName, email, null, onComplete)
+        }
+    }
+
+    private fun saveUserData(
+        db: FirebaseFirestore,
+        userId: String,
+        fullName: String,
+        email: String,
+        imageUrl: String?,
+        onComplete: (Boolean, String?) -> Unit
+    ) {
+        val userRef = db.collection("users").document(userId)
+        val userData = hashMapOf(
+            "fullName" to fullName,
+            "email" to email
+        )
+        imageUrl?.let { userData["imageUrl"] = it }
+
+        userRef.set(userData)
+            .addOnSuccessListener { onComplete(true, null) }
+            .addOnFailureListener { e -> onComplete(false, e.message) }
+    }
+
+    private fun uploadProfileImageAndSaveData(
+        storage: FirebaseStorage,
+        db: FirebaseFirestore,
+        userId: String,
+        imageUri: Uri,
+        fullName: String,
+        email: String,
+        onComplete: (Boolean, String?) -> Unit
+    ) {
+        val imageRef = storage.reference.child("profile_images/$userId.jpg")
+        imageRef.putFile(imageUri)
+            .addOnSuccessListener {
+                imageRef.downloadUrl.addOnSuccessListener { uri ->
+                    saveUserData(db, userId, fullName, email, uri.toString(), onComplete)
+                }
+            }
+            .addOnFailureListener { e ->
+                onComplete(false, "Image upload failed: ${e.message}")
+            }
     }
 }
