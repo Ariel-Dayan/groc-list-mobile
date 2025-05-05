@@ -33,7 +33,7 @@ class DisplayCardFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewModel = ViewModelProvider(this).get(ShoppingListViewModel::class.java)
-        listId = arguments?.getString("listId") ?: "-1"
+        listId = DisplayCardFragmentArgs.fromBundle(requireArguments()).listId
     }
 
     override fun onCreateView(

@@ -49,7 +49,7 @@ class UpdateCardFragment : Fragment() {
 
         viewModel = ViewModelProvider(this).get(ShoppingListViewModel::class.java)
 
-        val listId = arguments?.getString("listId") ?: return
+        val listId = UpdateCardFragmentArgs.fromBundle(requireArguments()).listId
         viewModel.loadShoppingListById(listId)
 
 

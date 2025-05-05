@@ -80,6 +80,7 @@ class SharedCardsListFragment : Fragment() {
                     val bundle = Bundle().apply {
                         putString("listId", listId)
                     }
+
                     findNavController().navigate(
                         R.id.action_sharedCardsListFragment_to_displayCardFragment,
                         bundle
