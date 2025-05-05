@@ -49,4 +49,8 @@
     <string name="signing_up">Signing up...</string>
     <string name="old_password_hint">Old Password</string>
     <string name="share_icon_description">share code action</string>
+    <string name="updating_action">Updating...</string>
+    <string name="shared_cards_list_recycler_view_hint">Shared cards List</string>
+    <string name="my_cards_recycler_view_hint">My cards list</string>
+    <string name="shared_code_value_description" />
 </resources>

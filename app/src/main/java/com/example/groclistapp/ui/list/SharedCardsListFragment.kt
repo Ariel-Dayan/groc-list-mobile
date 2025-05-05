@@ -40,7 +40,7 @@ class SharedCardsListFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_shared_cards_list, container, false)
-        viewModel = androidx.lifecycle.ViewModelProvider(this).get(SharedCardsViewModel::class.java)
+        viewModel = androidx.lifecycle.ViewModelProvider(this)[SharedCardsViewModel::class.java]
 
         setupView(view)
         return view
@@ -129,12 +129,12 @@ class SharedCardsListFragment : Fragment() {
             result
                 .onSuccess { list ->
                     cardsProgressBar.visibility = View.GONE
-                    Toast.makeText(requireContext(), "Shared list loaded: ${list.name}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Handling shared list: ${list.name}", Toast.LENGTH_LONG).show()
                 }
                 .onFailure { e ->
                     cardsProgressBar.visibility = View.GONE
                     Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_LONG).show()
-                    Log.e("SharedCardsListFragment", "Error adding shared list", e)
+                    Log.e("SharedCardsListFragment", "Error handling shared list: ${e.message}")
                 }
         }
     }

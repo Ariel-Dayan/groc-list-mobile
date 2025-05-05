@@ -1,6 +1,5 @@
 package com.example.groclistapp.data.adapter.card
 
-import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -14,7 +13,7 @@ class CardViewHolder(itemView: View, private val listener: OnItemClickListener?)
     : RecyclerView.ViewHolder(itemView) {
     private val titleTextView: TextView = itemView.findViewById(R.id.tvCardsListRowTitle)
     private val descriptionTextView: TextView = itemView.findViewById(R.id.tvCardsListRowDescription)
-    val creatorTextView: TextView = itemView.findViewById(R.id.tvCardsListRowCreatedByName)
+    private val creatorTextView: TextView = itemView.findViewById(R.id.tvCardsListRowCreatedByName)
     private val shareCodeTextView: TextView = itemView.findViewById(R.id.tvCardsListRowSharedCodeValue)
     private val ivTop: ImageView = itemView.findViewById(R.id.ivCardsListRowTop)
     private val shareCodeIcon: ImageView = itemView.findViewById(R.id.ivShareIcon)
@@ -30,7 +29,7 @@ class CardViewHolder(itemView: View, private val listener: OnItemClickListener?)
             "No share code"
         }
 
-        creatorTextView.text = shoppingList.creatorName?.ifEmpty {
+        creatorTextView.text = shoppingList.creatorName.ifEmpty {
             "Unknown"
         }
 

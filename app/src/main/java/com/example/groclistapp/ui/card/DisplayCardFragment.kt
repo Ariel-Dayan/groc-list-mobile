@@ -32,7 +32,7 @@ class DisplayCardFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewModel = ViewModelProvider(this).get(ShoppingListViewModel::class.java)
+        viewModel = ViewModelProvider(this)[ShoppingListViewModel::class.java]
         listId = DisplayCardFragmentArgs.fromBundle(requireArguments()).listId
     }
 

@@ -37,7 +37,8 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvMyCardsList"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:contentDescription="@string/my_cards_recycler_view_hint" />
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <Button

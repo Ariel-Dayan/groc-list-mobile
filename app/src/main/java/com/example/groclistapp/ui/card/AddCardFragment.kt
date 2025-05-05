@@ -1,6 +1,5 @@
 package com.example.groclistapp.ui.card
 
-import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -55,7 +54,7 @@ class AddCardFragment : Fragment(R.layout.fragment_add_card) {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ) = inflater.inflate(R.layout.fragment_add_card, container, false)
+    ): View? = inflater.inflate(R.layout.fragment_add_card, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

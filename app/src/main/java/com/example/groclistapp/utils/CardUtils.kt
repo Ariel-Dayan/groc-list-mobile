@@ -1,7 +1,5 @@
 package com.example.groclistapp.utils
 
-import androidx.core.widget.addTextChangedListener
-import com.google.android.material.textfield.TextInputLayout
 import kotlin.random.Random
 
 class CardUtils private constructor() {

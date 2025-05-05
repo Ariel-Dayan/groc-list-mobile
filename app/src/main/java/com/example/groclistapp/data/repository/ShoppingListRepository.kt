@@ -177,7 +177,7 @@ class ShoppingListRepository(
             val itemRef = listRef.collection("items")
             val batch = db.batch()
 
-            items.map { it ->
+            items.map {
                 val itemDocRef = itemRef.document(it.id)
                 batch.set(itemDocRef, it)
             }
@@ -189,7 +189,7 @@ class ShoppingListRepository(
         }
     }
 
-    fun updateShoppingListInFirestore(shoppingList: ShoppingList) {
+    private fun updateShoppingListInFirestore(shoppingList: ShoppingList) {
         val data = mapOf(
             "name" to shoppingList.name,
             "description" to shoppingList.description,
@@ -206,7 +206,7 @@ class ShoppingListRepository(
             }
     }
 
-    fun deleteShoppingListFromFirestore(
+    private fun deleteShoppingListFromFirestore(
         listId: String,
         onSuccess: (() -> Unit)?,
         onFailure: ((Exception) -> Unit)?
@@ -232,7 +232,7 @@ class ShoppingListRepository(
 
     private fun fetchItemsForDeletion(
         itemsRef: com.google.firebase.firestore.CollectionReference,
-        onSuccess: (List<com.google.firebase.firestore.DocumentSnapshot>) -> Unit,
+        onSuccess: (List<DocumentSnapshot>) -> Unit,
         onFailure: (Exception) -> Unit
     ) {
         itemsRef.get()
@@ -245,8 +245,8 @@ class ShoppingListRepository(
     }
 
     private fun deleteAllItems(
-        documents: List<com.google.firebase.firestore.DocumentSnapshot>,
-        listRef: com.google.firebase.firestore.DocumentReference,
+        documents: List<DocumentSnapshot>,
+        listRef: DocumentReference,
         onSuccess: (() -> Unit)?,
         onFailure: ((Exception) -> Unit)?
     ) {
@@ -327,7 +327,7 @@ class ShoppingListRepository(
     }
 
     private fun handleSharedListFetchResult(
-        document: com.google.firebase.firestore.DocumentSnapshot,
+        document: DocumentSnapshot,
         sharedList: ShoppingList,
         currentUserId: String,
         onSuccess: (ShoppingList) -> Unit,
@@ -518,7 +518,7 @@ class ShoppingListRepository(
 
     private suspend fun getSharedListIds(userId: String): List<String> {
         val userDoc = db.collection("users").document(userId).get().await()
-        return userDoc.get("sharedListIds") as? List<String> ?: emptyList()
+        return (userDoc.get("sharedListIds") as? List<*>)?.filterIsInstance<String>() ?: emptyList()
     }
 
     private suspend fun processSharedListChunk(chunk: List<String>) {

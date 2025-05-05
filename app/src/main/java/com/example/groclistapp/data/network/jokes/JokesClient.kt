@@ -17,7 +17,7 @@ object JokesClient {
         JokesRetrofitClient.retrofit.create(JokesApiService::class.java)
     }
 
-    fun getFoodRandomJoke(callback: HttpResponseHandler<String>) {
+    private fun getFoodRandomJoke(callback: HttpResponseHandler<String>) {
         val call = jokeApiService.getRandomJokeByCategory("food")
 
         call.enqueue(object : Callback<JokeResponse> {

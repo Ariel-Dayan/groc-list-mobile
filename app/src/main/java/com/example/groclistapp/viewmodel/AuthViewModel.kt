@@ -1,12 +1,12 @@
 package com.example.groclistapp.viewmodel
 
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.groclistapp.data.repository.AuthRepository
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 
 class AuthViewModel : ViewModel() {
 
@@ -22,14 +22,8 @@ class AuthViewModel : ViewModel() {
     private val _logoutStatus = MutableLiveData<Boolean>()
     val logoutStatus: LiveData<Boolean> get() = _logoutStatus
 
-    private val _currentUser = MutableLiveData<FirebaseUser?>()
-    val currentUser: LiveData<FirebaseUser?> get() = _currentUser
-
-    private val _updateProfileStatus = MutableLiveData<Boolean>()
-    val updateProfileStatus: LiveData<Boolean> get() = _updateProfileStatus
-
-    private val _errorMessage = MutableLiveData<String>()
-    val errorMessage: LiveData<String> get() = _errorMessage
+    private val _errorMessage = MutableLiveData<String?>()
+    val errorMessage: MutableLiveData<String?> get() = _errorMessage
 
 
     init {
@@ -37,12 +31,10 @@ class AuthViewModel : ViewModel() {
     }
 
     fun login(email: String, password: String) {
-        repository.login(email, password) { success, user, error ->
+        repository.login(email, password) { success, _, error ->
             _loginStatus.postValue(success)
 
-            if (success) {
-                _currentUser.postValue(user)
-            } else {
+            if (!success) {
                 _errorMessage.postValue(error ?: "Login failed")
             }
         }
@@ -57,21 +49,15 @@ class AuthViewModel : ViewModel() {
         ) { success, error ->
             _signupStatus.postValue(success)
             if (!success && error != null) {
-                _errorMessage.postValue(error ?: "Unknown error")
+                _errorMessage.postValue(error)
             }
         }
     }
 
-    fun checkUserLoggedIn() {
+    private fun checkUserLoggedIn() {
         val user = auth.currentUser
-        if (user != null) {
-            user.reload().addOnCompleteListener { reloadTask ->
-                if (reloadTask.isSuccessful) {
-                    _currentUser.value = auth.currentUser
-                }
-            }
-        } else {
-            _currentUser.value = null
+        user?.reload()?.addOnCompleteListener { reloadTask ->
+            Log.d("AuthViewModel", "User reload task: ${reloadTask.isSuccessful}")
         }
     }
 

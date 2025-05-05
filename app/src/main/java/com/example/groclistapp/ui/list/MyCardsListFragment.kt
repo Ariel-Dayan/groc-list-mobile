@@ -51,7 +51,7 @@ class MyCardsListFragment : Fragment() {
 
         cardsProgressBar.visibility = View.VISIBLE
 
-        viewModel = ViewModelProvider(this).get(ShoppingListViewModel::class.java)
+        viewModel = ViewModelProvider(this)[ShoppingListViewModel::class.java]
 
         setupRecyclerView(view)
         observeShoppingLists()

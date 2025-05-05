@@ -51,7 +51,7 @@ class ShoppingListViewModel(
                     onSuccess = {
                         _deleteStatus.postValue(true)
                     },
-                    onFailure = { exception ->
+                    onFailure = { _ ->
                         _deleteStatus.postValue(false)
                     }
                 )
@@ -72,7 +72,7 @@ class ShoppingListViewModel(
         _addListStatus.value = null
     }
 
-     suspend fun addItems(items: List<ShoppingItem>) {
+     private suspend fun addItems(items: List<ShoppingItem>) {
         withContext(Dispatchers.IO) {
             try {
                 repository.insertItems(items)
@@ -84,7 +84,7 @@ class ShoppingListViewModel(
     }
 
 
-    fun updateShoppingList(shoppingList: ShoppingList) {
+    private fun updateShoppingList(shoppingList: ShoppingList) {
         viewModelScope.launch {
             repository.update(shoppingList)
         }
@@ -170,7 +170,7 @@ class ShoppingListViewModel(
     }
 
 
-    suspend fun deleteAllItemsForListNow(listId: String) {
+    private suspend fun deleteAllItemsForListNow(listId: String) {
         repository.deleteAllItemsForList(listId)
     }
 
@@ -178,7 +178,7 @@ class ShoppingListViewModel(
         repository.loadAllUserDataFromFirebase()
     }
 
-    fun removeSharedListReference(listId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+    private fun removeSharedListReference(listId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
         repository.removeListIdFromSharedListArray(listId, onSuccess, onFailure)
     }
 

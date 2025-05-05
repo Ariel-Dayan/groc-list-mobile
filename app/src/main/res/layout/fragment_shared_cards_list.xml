@@ -75,7 +75,8 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvSharedCardsList"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:contentDescription="@string/shared_cards_list_recycler_view_hint" />
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <TextView

@@ -38,7 +38,7 @@ class UpdateProfileFragment : Fragment() {
     ): View {
         _binding = FragmentUpdateProfileBinding.inflate(inflater, container, false)
         binding.pbUpdateProfileSpinner.visibility = View.VISIBLE
-        shoppingListViewModel = ViewModelProvider(this).get(ShoppingListViewModel::class.java)
+        shoppingListViewModel = ViewModelProvider(this)[ShoppingListViewModel::class.java]
 
         profileViewModel = ViewModelProvider(this)[ProfileViewModel::class.java]
         authViewModel = ViewModelProvider(this)[AuthViewModel::class.java]
@@ -100,7 +100,7 @@ class UpdateProfileFragment : Fragment() {
             oldPassword = oldPassword.ifEmpty { null },
             newPassword = newPassword.ifEmpty { null },
             imageUri = imageHandler.selectedImageUri
-        ) { success, message ->
+        ) { _, message ->
             Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
             hideUpdatingUI()
         }
@@ -147,13 +147,13 @@ class UpdateProfileFragment : Fragment() {
     private fun showUpdatingUI() {
         binding.pbUpdateProfileSpinner.visibility = View.VISIBLE
         binding.btnUpdateProfileUpdate.isEnabled = false
-        binding.btnUpdateProfileUpdate.text = "Updating..."
+        binding.btnUpdateProfileUpdate.text = getString(R.string.updating_action)
     }
 
     private fun hideUpdatingUI() {
         binding.pbUpdateProfileSpinner.visibility = View.GONE
         binding.btnUpdateProfileUpdate.isEnabled = true
-        binding.btnUpdateProfileUpdate.text = "Update"
+        binding.btnUpdateProfileUpdate.text =  getString(R.string.update)
     }
 
     private fun showToast(message: String) {

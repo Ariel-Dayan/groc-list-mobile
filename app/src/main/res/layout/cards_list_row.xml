@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
@@ -112,16 +113,18 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
+                android:contentDescription="@string/shared_code_value_description"
                 android:ellipsize="end"
+                android:longClickable="true"
                 android:maxLines="1"
                 android:nestedScrollingEnabled="false"
                 android:singleLine="true"
-                android:textSize="12sp"
                 android:textIsSelectable="true"
-                android:longClickable="true"
+                android:textSize="12sp"
                 app:layout_constraintBaseline_toBaselineOf="@+id/tvCardsListRowSharedCodeHint"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/tvCardsListRowSharedCodeHint" />
+                app:layout_constraintStart_toEndOf="@+id/tvCardsListRowSharedCodeHint"
+                tools:ignore="SpeakableTextPresentCheck" />
 
             <ImageButton
                 android:id="@+id/ivShareIcon"

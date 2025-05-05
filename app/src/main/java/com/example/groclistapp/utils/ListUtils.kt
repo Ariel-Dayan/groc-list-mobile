@@ -1,6 +1,5 @@
 package com.example.groclistapp.utils
 
-import android.util.Log
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.groclistapp.data.model.ShoppingListSummary

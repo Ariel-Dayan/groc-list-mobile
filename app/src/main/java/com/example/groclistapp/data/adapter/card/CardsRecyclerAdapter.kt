@@ -1,5 +1,6 @@
 package com.example.groclistapp.data.adapter.card
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -8,7 +9,7 @@ import com.example.groclistapp.data.model.ShoppingListSummary
 
 class CardsRecyclerAdapter(
     private var shoppingLists: MutableList<ShoppingListSummary>,
-    var listener: OnItemClickListener
+    private var listener: OnItemClickListener
 ) : RecyclerView.Adapter<CardViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CardViewHolder {
         val itemView = LayoutInflater.from(parent.context)
@@ -24,6 +25,7 @@ class CardsRecyclerAdapter(
 
     override fun getItemCount(): Int = shoppingLists.size
 
+    @SuppressLint("NotifyDataSetChanged")
     fun updateData(newLists: List<ShoppingListSummary>) {
         shoppingLists = newLists.toMutableList()
         notifyDataSetChanged()

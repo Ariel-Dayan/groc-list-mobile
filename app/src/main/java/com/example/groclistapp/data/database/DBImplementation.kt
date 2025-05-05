@@ -4,7 +4,7 @@ import com.example.groclistapp.data.database.dao.ShoppingItemDao
 import com.example.groclistapp.data.database.dao.ShoppingListDao
 
 class DBImplementation {
-    val localDB: AppLocalDbRepository = AppLocalDB.getAppDB()
+    private val localDB: AppLocalDbRepository = AppLocalDB.getAppDB()
 
     companion object {
         @Volatile
