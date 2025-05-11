@@ -4,7 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.list.MyCardsListFragment">
+    tools:context=".ui.list.MyCardsListFragment"
+    android:layoutDirection="locale"
+    android:textDirection="locale"
+    >
 
     <TextView
         android:id="@+id/tvMyCardsListJoke"

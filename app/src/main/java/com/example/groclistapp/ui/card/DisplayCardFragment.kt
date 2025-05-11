@@ -67,7 +67,7 @@ class DisplayCardFragment : Fragment() {
 
     private fun validateListId(): Boolean {
         if (listId == "-1") {
-            Toast.makeText(requireContext(), "Invalid list ID", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.error_invalid_list_id), Toast.LENGTH_SHORT).show()
             return false
         }
         return true
@@ -116,7 +116,7 @@ class DisplayCardFragment : Fragment() {
         viewModel.deleteStatus.observe(viewLifecycleOwner) { isDeleted ->
             if (isDeleted == true) {
                 progressBar.visibility = View.GONE
-                Toast.makeText(requireContext(), "List deleted", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), getString(R.string.success_list_deleted), Toast.LENGTH_SHORT).show()
                 findNavController().popBackStack()
             }
         }

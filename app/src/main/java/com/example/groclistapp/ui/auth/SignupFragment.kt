@@ -73,19 +73,19 @@ class SignupFragment : Fragment(R.layout.fragment_signup) {
         confirmPassword: String?
     ): Boolean {
         if (email.isNullOrEmpty() || fullName.isNullOrEmpty() || password.isNullOrEmpty() || confirmPassword.isNullOrEmpty()) {
-            Toast.makeText(requireContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.error_empty_fields), Toast.LENGTH_SHORT).show()
             return false
         }
         if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            Toast.makeText(requireContext(), "Please enter a valid email address", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.error_invalid_email), Toast.LENGTH_SHORT).show()
             return false
         }
         if (password.length < 6) {
-            Toast.makeText(requireContext(), "Password must be at least 6 characters long", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.error_password_length), Toast.LENGTH_SHORT).show()
             return false
         }
         if (password != confirmPassword) {
-            Toast.makeText(requireContext(), "Passwords do not match", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.error_passwords_mismatch), Toast.LENGTH_SHORT).show()
             return false
         }
         return true
@@ -95,7 +95,7 @@ class SignupFragment : Fragment(R.layout.fragment_signup) {
         authViewModel.signupStatus.observe(viewLifecycleOwner) { success ->
             progressBar.visibility = View.GONE
             if (success) {
-                Toast.makeText(requireContext(), "User registered successfully!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), getString(R.string.success_user_registered), Toast.LENGTH_SHORT).show()
                 authViewModel.logout()
             } else {
                 registerButton.isEnabled = true
@@ -104,7 +104,7 @@ class SignupFragment : Fragment(R.layout.fragment_signup) {
         }
         authViewModel.errorMessage.observe(viewLifecycleOwner) { message ->
             message?.let {
-                Toast.makeText(requireContext(), "Signup failed: $it", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), getString(R.string.error_signup_failed, it), Toast.LENGTH_SHORT).show()
             }
         }
 

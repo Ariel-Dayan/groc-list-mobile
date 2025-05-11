@@ -1,6 +1,7 @@
 package com.example.groclistapp.data.network.jokes
 
 import android.util.Log
+import android.view.Gravity
 import android.view.View
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -56,12 +57,16 @@ object JokesClient {
             override fun onComplete(data: String) {
                 jokeTextView.text = data
                 jokeProgressBar.visibility = View.GONE
+                jokeTextView.textDirection = View.TEXT_DIRECTION_LTR
+                jokeTextView.gravity = Gravity.START
             }
 
             override fun onFailure(t: Throwable?, default: String?) {
                 Log.d("JokesClient", "Failed to fetch joke: $t?.message")
                 jokeTextView.text = default
                 jokeProgressBar.visibility = View.GONE
+                jokeTextView.textDirection = View.TEXT_DIRECTION_LTR
+                jokeTextView.gravity = Gravity.START
             }
          })
     }

@@ -4,7 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.auth.SignupFragment">
+    tools:context=".ui.auth.SignupFragment"
+    android:layoutDirection="locale"
+    android:textDirection="locale"
+    >
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/civSignupUserImage"

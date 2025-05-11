@@ -89,12 +89,12 @@ class AddCardFragment : Fragment(R.layout.fragment_add_card) {
         val name = tilItemName.editText?.text.toString().trim()
         val amountStr = tilItemAmount.editText?.text.toString().trim()
         itemUtils.validateName(name, pendingItems.map { it.name })?.let {
-            Toast.makeText(requireContext(), "Invalid item name: $it", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.error_invalid_item_name, it), Toast.LENGTH_SHORT).show()
             return
         }
         val (amount, amountError) = itemUtils.validateAmount(amountStr)
         amountError?.let {
-            Toast.makeText(requireContext(), "Invalid item amount: $it", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.error_invalid_item_amount, it), Toast.LENGTH_SHORT).show()
             return
         }
         chipGroup.addView(createChip(name, amountStr))
@@ -117,11 +117,11 @@ class AddCardFragment : Fragment(R.layout.fragment_add_card) {
     private fun validateListInputs(name: String, description: String): Boolean {
         var valid = true
         if (name.isEmpty()) {
-            tilListName.error = "The list name cannot be empty"
+            tilListName.error = getString(R.string.error_list_name_empty)
             valid = false
         }
         if (description.isEmpty()) {
-            tilListDescription.error = "Description cannot be empty"
+            tilListDescription.error = getString(R.string.error_description_empty)
             valid = false
         }
         return valid
@@ -187,7 +187,7 @@ class AddCardFragment : Fragment(R.layout.fragment_add_card) {
                     }
                 } else {
                     try {
-                        Toast.makeText(requireContext(), "Failed to save shopping list", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), getString(R.string.error_save_list), Toast.LENGTH_SHORT).show()
                     } catch (e: Exception) {
                         Log.e("AddCardFragment", "Error showing Toast: ${e.message}")
                     }

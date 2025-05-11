@@ -10,6 +10,8 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
+import com.example.groclistapp.R
+
 
 class ImageHandler(
     private val imageView: ImageView,
@@ -22,7 +24,9 @@ class ImageHandler(
     private val cameraLauncher: ActivityResultLauncher<Void?>? =
         activity?.registerForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
             if (bitmap == null) {
-                Toast.makeText(activity.context, "Failed to take photo", Toast.LENGTH_SHORT).show()
+                activity?.let {
+                    Toast.makeText(it.requireContext(), it.getString(R.string.error_take_photo), Toast.LENGTH_SHORT).show()
+                }
             } else {
                 imageView.setImageBitmap(bitmap)
                 try {
@@ -37,7 +41,9 @@ class ImageHandler(
                     )
                     selectedImageUri = uri
                 } catch (e: Exception) {
-                    Toast.makeText(activity.context, "Error saving captured image", Toast.LENGTH_SHORT).show()
+                    activity?.let {
+                        Toast.makeText(it.requireContext(), it.getString(R.string.error_saving_image), Toast.LENGTH_SHORT).show()
+                    }
                     e.printStackTrace()
                 }
 
@@ -47,7 +53,9 @@ class ImageHandler(
     private val galleryLauncher: ActivityResultLauncher<String>? =
         activity?.registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             if (uri == null) {
-                Toast.makeText(activity.context, "Failed to upload photo from gallery", Toast.LENGTH_SHORT).show()
+                activity?.let {
+                    Toast.makeText(it.requireContext(), it.getString(R.string.error_saving_image), Toast.LENGTH_SHORT).show()
+                }
             } else {
                 selectedImageUri = uri
                 imageView.setImageURI(uri)

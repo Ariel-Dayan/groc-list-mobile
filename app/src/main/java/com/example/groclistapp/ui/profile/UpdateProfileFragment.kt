@@ -58,7 +58,7 @@ class UpdateProfileFragment : Fragment() {
                 binding.pbUpdateProfileSpinner.visibility = View.GONE
             }
         } else {
-            Toast.makeText(requireContext(), "User not found", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.error_user_not_found), Toast.LENGTH_SHORT).show()
             binding.pbUpdateProfileSpinner.visibility = View.GONE
         }
 
@@ -118,25 +118,25 @@ class UpdateProfileFragment : Fragment() {
         confirmPassword: String
     ): Boolean {
         if (fullName.isEmpty() && newPassword.isEmpty() && imageHandler.selectedImageUri == null) {
-            showToast("Please enter at least one field to update")
+            showToast(getString(R.string.error_update_nothing))
             return false
         }
 
         if (newPassword.isNotEmpty()) {
             if (oldPassword.isEmpty()) {
-                showToast("Enter your current password to change password")
+                showToast(getString(R.string.error_enter_current_password))
                 return false
             }
             if (newPassword != confirmPassword) {
-                showToast("Passwords do not match")
+                showToast(getString(R.string.error_passwords_do_not_match))
                 return false
             }
             if (newPassword.length < 6) {
-                showToast("Password must be at least 6 characters long")
+                showToast(getString(R.string.error_password_length))
                 return false
             }
             if (oldPassword == newPassword) {
-                showToast("New password must be different from the old password")
+                showToast(getString(R.string.error_same_password))
                 return false
             }
         }
@@ -167,7 +167,7 @@ class UpdateProfileFragment : Fragment() {
         authViewModel.logoutStatus.observe(viewLifecycleOwner) { success ->
             binding.pbUpdateProfileSpinner.visibility = View.GONE
             if (success) {
-                Toast.makeText(requireContext(), "Successfully logged out!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), getString(R.string.success_logout), Toast.LENGTH_SHORT).show()
 
                 val navController = findNavController()
                 navController.navigate(
@@ -178,7 +178,7 @@ class UpdateProfileFragment : Fragment() {
                         .build()
                 )
             } else {
-                Toast.makeText(requireContext(), "Logout failed. Please try again.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), getString(R.string.error_logout_failed), Toast.LENGTH_SHORT).show()
             }
         }
     }

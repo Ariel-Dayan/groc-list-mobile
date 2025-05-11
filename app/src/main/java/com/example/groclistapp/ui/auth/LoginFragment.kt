@@ -64,11 +64,11 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
 
     private fun isInputValid(email: String?, password: String?): Boolean {
         if (email.isNullOrEmpty() || password.isNullOrEmpty()) {
-            Toast.makeText(requireContext(), "Please fill in all fields", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.error_empty_fields), Toast.LENGTH_SHORT).show()
             return false
         }
         if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            Toast.makeText(requireContext(), "Please enter a valid email address", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.error_invalid_email), Toast.LENGTH_SHORT).show()
             return false
         }
         return true
@@ -103,7 +103,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
         progressBar.visibility = View.GONE
         loginButton.isEnabled = true
         loginButton.text = getString(R.string.login)
-        Toast.makeText(requireContext(), "Login failed. Please check your details.", Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), getString(R.string.error_login_failed), Toast.LENGTH_SHORT).show()
     }
 }
 

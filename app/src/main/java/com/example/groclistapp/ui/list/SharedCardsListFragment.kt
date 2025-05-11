@@ -129,11 +129,11 @@ class SharedCardsListFragment : Fragment() {
             result
                 .onSuccess { list ->
                     cardsProgressBar.visibility = View.GONE
-                    Toast.makeText(requireContext(), "Handling shared list: ${list.name}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(requireContext(), getString(R.string.info_handling_shared_list, list.name), Toast.LENGTH_LONG).show()
                 }
                 .onFailure { e ->
                     cardsProgressBar.visibility = View.GONE
-                    Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(requireContext(), getString(R.string.error_generic_with_message, e.message), Toast.LENGTH_LONG).show()
                     Log.e("SharedCardsListFragment", "Error handling shared list: ${e.message}")
                 }
         }
@@ -154,7 +154,7 @@ class SharedCardsListFragment : Fragment() {
             } else {
                 Toast.makeText(
                     requireContext(),
-                    "Please enter a valid share code",
+                    getString(R.string.error_invalid_share_code),
                     Toast.LENGTH_SHORT
                 ).show()
             }

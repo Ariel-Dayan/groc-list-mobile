@@ -5,7 +5,10 @@
     android:id="@+id/clStudentsList"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.list.SharedCardsListFragment">
+    tools:context=".ui.list.SharedCardsListFragment"
+    android:layoutDirection="locale"
+    android:textDirection="locale"
+    >
 
     <TextView
         android:id="@+id/tvSharedCardsListJoke"

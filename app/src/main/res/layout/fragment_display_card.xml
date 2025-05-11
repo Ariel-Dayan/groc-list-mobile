@@ -4,7 +4,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".ui.card.DisplayCardFragment">
+    tools:context=".ui.card.DisplayCardFragment"
+    android:layoutDirection="locale"
+    android:textDirection="locale"
+    >
 
         <ImageView
             android:id="@+id/ivDisplayCardTop"

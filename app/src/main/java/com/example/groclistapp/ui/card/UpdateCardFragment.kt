@@ -150,13 +150,13 @@ class UpdateCardFragment : Fragment() {
 
         val nameError = itemUtils.validateName(name, previousItems.map { it.name })
         if (nameError != null) {
-            Toast.makeText(requireContext(), "Invalid item name: $nameError", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.error_invalid_item_name_with_detail, nameError), Toast.LENGTH_SHORT).show()
             return
         }
 
         val (amount, amountError) = itemUtils.validateAmount(amountText)
         if (amountError != null) {
-            Toast.makeText(requireContext(), "Invalid item amount: $amountError", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.error_invalid_item_amount_with_detail, amountError), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -210,11 +210,11 @@ class UpdateCardFragment : Fragment() {
 
         var isValid = true
         if (name.isNullOrEmpty()) {
-            tilTitle.error = "Name cannot be empty"
+            tilTitle.error = getString(R.string.error_title_empty)
             isValid = false
         }
         if (description.isNullOrEmpty()) {
-            tilDescription.error = "Description cannot be empty"
+            tilDescription.error = getString(R.string.error_description_empty)
             isValid = false
         }
         return isValid
@@ -254,7 +254,7 @@ class UpdateCardFragment : Fragment() {
 
     private fun handleUpdateSuccess() {
         progressBar.visibility = View.GONE
-        Toast.makeText(requireContext(), "List updated successfully", Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), getString(R.string.success_list_updated), Toast.LENGTH_SHORT).show()
         findNavController().navigateUp()
     }
 
@@ -273,13 +273,13 @@ class UpdateCardFragment : Fragment() {
     private fun showDeleteConfirmationDialog() {
         currentList?.let { list ->
             AlertDialog.Builder(requireContext())
-                .setTitle("Delete List")
-                .setMessage("Are you sure you want to delete this list?")
-                .setPositiveButton("Yes") { _, _ ->
+                .setTitle(getString(R.string.dialog_delete_list_title))
+                .setMessage(getString(R.string.dialog_delete_list_message))
+                .setPositiveButton(getString(R.string.dialog_button_yes)) { _, _ ->
                     viewModel.deleteShoppingList(list.shoppingList)
                     progressBar.visibility = View.VISIBLE
                 }
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton(getString(R.string.dialog_button_cancel), null)
                 .show()
         }
     }
@@ -287,7 +287,7 @@ class UpdateCardFragment : Fragment() {
     private fun handleDeleteStatus(isDeleted: Boolean?) {
         if (isDeleted == true) {
             progressBar.visibility = View.GONE
-            Toast.makeText(requireContext(), "List deleted successfully", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.success_list_deleted), Toast.LENGTH_SHORT).show()
             findNavController().navigateUp()
         }
     }
